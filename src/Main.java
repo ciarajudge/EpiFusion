@@ -6,6 +6,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         System.out.println("EpiFusion");
 
+
         //Define params
         int T = 20;
         int numParticles = 10;
@@ -21,6 +22,7 @@ public class Main {
         Particles particles = new Particles(numParticles);
         particles.printParticles();
 
+        //Making a test edit
 
         //Particle filter
         for (int t = 0; t < T; t++) {

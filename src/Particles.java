@@ -26,6 +26,7 @@ public class Particles {
             });
         }
 
+
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 
