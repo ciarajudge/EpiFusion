@@ -9,6 +9,14 @@ public class ParticleFilter {
 
     }
 
+    public void normaliseWeights() {
 
+    }
+
+    public void resampleParticles() {
+
+    }
+
+    public double jointLikelihood
 
 }

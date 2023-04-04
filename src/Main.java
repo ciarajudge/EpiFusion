@@ -26,7 +26,10 @@ public class Main {
 
         //Particle filter
         for (int t = 0; t < T; t++) {
-            System.out.println(caseIncidence.incidence[t]);
+            //predit
+            //update
+            //resample
+            //estimate
         }
 
 
