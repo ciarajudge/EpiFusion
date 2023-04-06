@@ -3,13 +3,12 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 public class Main {
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws FileNotFoundException, InterruptedException {
         System.out.println("EpiFusion");
-
 
         //Define params
         int T = 20;
-        int numParticles = 10;
+        int numParticles = 1;
 
         //Read in tree
 
@@ -22,14 +21,16 @@ public class Main {
         Particles particles = new Particles(numParticles);
         particles.printParticles();
 
-        //Making a test edit
 
         //Particle filter
         for (int t = 0; t < T; t++) {
-            //predit
-            //update
+            //predict and update
+            particles.predictAndUpdate();
+            //particle likelihoods
+            particles.getLikelihoods(caseIncidence.incidence[t]);
             //resample
             //estimate
+            particles.printParticles();
         }
 
 

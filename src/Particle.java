@@ -8,6 +8,7 @@ public class Particle {
     ArrayList<Integer> states;
     ArrayList<Integer> fluxIns;
     ArrayList<Integer> fluxOuts;
+    double likelihood = 0;
 
     public Particle(int pID) {
         particleID = pID;
@@ -30,6 +31,7 @@ public class Particle {
         System.out.println("State: "+ state);
         System.out.println("Flux In: "+ fluxIn);
         System.out.println("Flux out: "+ fluxOut);
+        System.out.println("Likelihood "+ likelihood);
         System.out.println();
     }
 
@@ -46,5 +48,10 @@ public class Particle {
         int[] flux = {this.fluxIn, this.fluxOut};
         return flux;
     }
+
+    public void setLikelihood(double newLikelihood) {
+        this.likelihood = newLikelihood;
+    }
+
 
 }

@@ -17,7 +17,7 @@ public class Particles {
         }
     }
 
-    public void updateParticles() throws InterruptedException{
+    public void predictAndUpdate() throws InterruptedException{
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
         for (Particle particle : particles) {
@@ -26,9 +26,20 @@ public class Particles {
             });
         }
 
+        executor.shutdown();
+        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    }
+
+    public void getLikelihoods(int incidence) throws InterruptedException{
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        for (Particle particle : particles) {
+            executor.submit(() -> {
+                particle.setLikelihood(EpiLikelihood.calculateLikelihood(incidence, particle));
+            });
+        }
 
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-
     }
 }
