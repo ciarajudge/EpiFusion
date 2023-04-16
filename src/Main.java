@@ -8,7 +8,7 @@ public class Main {
 
         //Define params
         int T = 20;
-        int numParticles = 1;
+        int numParticles = 2;
 
         //Read in tree
 
@@ -24,11 +24,13 @@ public class Main {
 
         //Particle filter
         for (int t = 0; t < T; t++) {
+            System.out.println("Day "+t+", Incidence: "+caseIncidence.incidence[t]);
             //predict and update
             particles.predictAndUpdate();
             //particle likelihoods
             particles.getLikelihoods(caseIncidence.incidence[t]);
             //resample
+            particles.resampleParticles();
             //estimate
             particles.printParticles();
         }
