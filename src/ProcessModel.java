@@ -1,10 +1,13 @@
-public class ProcessModel { //needs stochasticity
+import org.apache.commons.math3.distribution.PoissonDistribution;
+public class ProcessModel {
 
     public static int predictNext(Particle particle) {
         int currentState = particle.getState();
-        int[] currentFlux = particle.getFlux();
+        PoissonDistribution[] currentFlux = particle.getFlux();
+        int currentFluxIn = currentFlux[0].sample();
+        int currentFluxOut = currentFlux[1].sample();
 
-        return currentState+currentFlux[0]-currentFlux[1];
+        return currentState+currentFluxIn-currentFluxOut;
     }
 
     public static void updateState(Particle particle) {

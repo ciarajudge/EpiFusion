@@ -3,8 +3,8 @@ import org.apache.commons.math3.distribution.PoissonDistribution;
 public class Particle {
     int particleID;
     int state;
-    int fluxIn;
-    int fluxOut;
+    PoissonDistribution fluxIn;
+    PoissonDistribution fluxOut;
     ArrayList<Integer> states;
     ArrayList<Integer> fluxIns;
     ArrayList<Integer> fluxOuts;
@@ -16,17 +16,13 @@ public class Particle {
         particleID = pID;
         row = pID;
         PoissonDistribution initialI = new PoissonDistribution(100);
-        PoissonDistribution initialFluxIn = new PoissonDistribution(20);
-        PoissonDistribution initialFluxOut = new PoissonDistribution(10);
+        fluxIn = new PoissonDistribution(20);
+        fluxOut = new PoissonDistribution(10);
         state = initialI.sample();
         states = new ArrayList<>();
         setState(state);
-        fluxIn = initialFluxIn.sample();
         fluxIns = new ArrayList<>();
-        fluxIns.add(fluxIn);
-        fluxOut = initialFluxOut.sample();
         fluxOuts = new ArrayList<>();
-        fluxOuts.add(fluxOut);
     }
 
     public Particle(Particle other, int row) {
@@ -62,8 +58,8 @@ public class Particle {
         return this.state;
     }
 
-    public int[] getFlux() {
-        int[] flux = {this.fluxIn, this.fluxOut};
+    public PoissonDistribution[] getFlux() {
+        PoissonDistribution[] flux = {this.fluxIn, this.fluxOut};
         return flux;
     }
 

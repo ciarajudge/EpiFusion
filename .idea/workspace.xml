@@ -5,13 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="605c0d2a-e27e-449c-bfd5-a292e2c107e0" name="Changes" comment="None of the statistics make any sense but the control flow works for pf">
+      <change afterPath="$PROJECT_DIR$/src/Node.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/EpiLikelihood.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EpiLikelihood.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Particle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Particle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ParticleFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ParticleFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Particles.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Particles.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ProcessModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ProcessModel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Tree.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Tree.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,7 +134,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681659139162</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="save particle state histories to csv">
+      <created>1681725204600</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1681725204600</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -183,6 +189,7 @@
     <MESSAGE value="changed ParticleFilter class to utility only" />
     <MESSAGE value="moving some stuff around and starting the control flow through T. Wondering if the ParticleFilter class is redundant" />
     <MESSAGE value="None of the statistics make any sense but the control flow works for pf" />
-    <option name="LAST_COMMIT_MESSAGE" value="None of the statistics make any sense but the control flow works for pf" />
+    <MESSAGE value="save particle state histories to csv" />
+    <option name="LAST_COMMIT_MESSAGE" value="save particle state histories to csv" />
   </component>
 </project>
