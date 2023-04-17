@@ -1,15 +1,27 @@
 import java.util.concurrent.*;
 import java.util.Random;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Particles {
     Particle[] particles;
     int N;
-    public Particles(int numParticles){
+    int[][] particlesHistory;
+
+    public Particles(int numParticles, int T){
         N = numParticles;
         particles = new Particle[numParticles];
+        particlesHistory = new int[numParticles][(T*2)+2];
         for (int i = 0; i< N; i++) {
             particles[i] = new Particle(i);
+            editParticlesHistory(i,0,i);
+            editParticlesHistory(i,1,particles[i].state);
         }
+    }
+
+    public void editParticlesHistory(int row, int col, int value){
+        particlesHistory[row][col] = value;
     }
 
     public void printParticles() {
@@ -18,13 +30,12 @@ public class Particles {
         }
     }
 
-    public void predictAndUpdate() throws InterruptedException{
+    public void predictAndUpdate(int t) throws InterruptedException{
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
         for (Particle particle : particles) {
-            executor.submit(() -> {
-                ProcessModel.updateState(particle);
-            });
+            executor.submit(() ->  ProcessModel.updateState(particle));
+            editParticlesHistory(particle.row, (t*2), particle.state);
         }
 
         executor.shutdown();
@@ -45,7 +56,7 @@ public class Particles {
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 
-    public void resampleParticles() {
+    public void resampleParticles(int t) {
         Particle[] resampledParticles = new Particle[N];
         double totalWeight = 0.0;
 
@@ -64,12 +75,30 @@ public class Particles {
             for (Particle particle : particles) {
                 runningSum += particle.weight;
                 if (runningSum >= randomWeight) {
-                    resampledParticles[i] = particle;
+                    resampledParticles[i] = new Particle(particle, i);
+                    editParticlesHistory(i, (t*2)+1, resampledParticles[i].particleID);
                     break;
                 }
             }
         }
         particles = resampledParticles;
+    }
+
+    public void saveParticleHistory(String fileName) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            for (int i = 0; i < particlesHistory.length; i++) {
+                for (int j = 0; j < particlesHistory[i].length; j++) {
+                    writer.write(Integer.toString(particlesHistory[i][j])); // Write each element to the file
+                    if (j < particlesHistory[i].length - 1) {
+                        writer.write(","); // Add a comma as a separator between elements
+                    }
+                }
+                writer.newLine(); // Write a new line after each row
+            }
+            System.out.println("Matrix has been written to " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

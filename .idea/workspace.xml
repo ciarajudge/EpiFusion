@@ -4,12 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="605c0d2a-e27e-449c-bfd5-a292e2c107e0" name="Changes" comment="initialise project">
-      <change afterPath="$PROJECT_DIR$/src/EpiSamplingModel.java" afterDir="false" />
+    <list default="true" id="605c0d2a-e27e-449c-bfd5-a292e2c107e0" name="Changes" comment="None of the statistics make any sense but the control flow works for pf">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/EpiLikelihood.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EpiLikelihood.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Particle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Particle.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ParticleFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ParticleFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Particles.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Particles.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ProcessModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ProcessModel.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +28,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="SIGN_OFF_COMMIT" value="true" />
+  </component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="selectedUrlAndAccountId">
+      <UrlAndAccount>
+        <option name="accountId" value="1867d2d8-ccf5-42c6-975e-000b1bf6763d" />
+        <option name="url" value="https://github.com/ciarajudge/EpiFusion.git" />
+      </UrlAndAccount>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -48,10 +58,11 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;ToolWindowGit.ShowToolbar&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/ciarajudge/Desktop/PhD/EpiFusion&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   },
   &quot;keyToStringList&quot;: {
     &quot;GitStage.ChangesTree.GroupingKeys&quot;: [
@@ -96,7 +107,35 @@
       <option name="project" value="LOCAL" />
       <updated>1680276951242</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="drafted epi likelihood, affirmed control flow will take place in main, threw some empty methods into particleFilter that I might want to use for control flow">
+      <created>1680619338114</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1680619338114</updated>
+    </task>
+    <task id="LOCAL-00005" summary="changed ParticleFilter class to utility only">
+      <created>1680621709288</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1680621709288</updated>
+    </task>
+    <task id="LOCAL-00006" summary="moving some stuff around and starting the control flow through T. Wondering if the ParticleFilter class is redundant">
+      <created>1680796868542</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1680796868542</updated>
+    </task>
+    <task id="LOCAL-00007" summary="None of the statistics make any sense but the control flow works for pf">
+      <created>1681659139162</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1681659139162</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -140,6 +179,10 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initialise project" />
     <MESSAGE value="edited main and particles as a test" />
-    <option name="LAST_COMMIT_MESSAGE" value="edited main and particles as a test" />
+    <MESSAGE value="drafted epi likelihood, affirmed control flow will take place in main, threw some empty methods into particleFilter that I might want to use for control flow" />
+    <MESSAGE value="changed ParticleFilter class to utility only" />
+    <MESSAGE value="moving some stuff around and starting the control flow through T. Wondering if the ParticleFilter class is redundant" />
+    <MESSAGE value="None of the statistics make any sense but the control flow works for pf" />
+    <option name="LAST_COMMIT_MESSAGE" value="None of the statistics make any sense but the control flow works for pf" />
   </component>
 </project>

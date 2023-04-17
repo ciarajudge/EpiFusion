@@ -10,9 +10,11 @@ public class Particle {
     ArrayList<Integer> fluxOuts;
     double likelihood;
     double weight;
+    int row;
 
     public Particle(int pID) {
         particleID = pID;
+        row = pID;
         PoissonDistribution initialI = new PoissonDistribution(100);
         PoissonDistribution initialFluxIn = new PoissonDistribution(20);
         PoissonDistribution initialFluxOut = new PoissonDistribution(10);
@@ -27,12 +29,27 @@ public class Particle {
         fluxOuts.add(fluxOut);
     }
 
+    public Particle(Particle other, int row) {
+        this.particleID = other.particleID;
+        this.state = other.state;
+        this.fluxIn = other.fluxIn;
+        this.fluxOut = other.fluxOut;
+        this.states = other.states;
+        this.fluxIns = other.fluxIns;
+        this.fluxOuts = other.fluxOuts;
+        this.likelihood = other.likelihood;
+        this.weight = other.weight;
+        this.row = row;
+
+    }
+
     public void printStatus() {
         System.out.println("Particle "+ particleID);
         System.out.println("State: "+ state);
         System.out.println("Flux In: "+ fluxIn);
         System.out.println("Flux out: "+ fluxOut);
         System.out.println("Likelihood: "+ likelihood);
+        System.out.println("Row: "+ row);
         System.out.println();
     }
 

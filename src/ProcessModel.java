@@ -1,4 +1,4 @@
-public class ProcessModel {
+public class ProcessModel { //needs stochasticity
 
     public static int predictNext(Particle particle) {
         int currentState = particle.getState();

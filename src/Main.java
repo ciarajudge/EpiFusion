@@ -7,8 +7,7 @@ public class Main {
         System.out.println("EpiFusion");
 
         //Define params
-        int T = 20;
-        int numParticles = 2;
+        int numParticles = 10;
 
         //Read in tree
 
@@ -18,23 +17,12 @@ public class Main {
         System.out.println(Arrays.toString(caseIncidence.incidence));
 
         //Initialise particles
-        Particles particles = new Particles(numParticles);
+        Particles particles = new Particles(numParticles, caseIncidence.length);
         particles.printParticles();
 
+        ParticleFilter.particleFilter(caseIncidence, particles);
 
-        //Particle filter
-        for (int t = 0; t < T; t++) {
-            System.out.println("Day "+t+", Incidence: "+caseIncidence.incidence[t]);
-            //predict and update
-            particles.predictAndUpdate();
-            //particle likelihoods
-            particles.getLikelihoods(caseIncidence.incidence[t]);
-            //resample
-            particles.resampleParticles();
-            //estimate
-            particles.printParticles();
-        }
-
+        particles.saveParticleHistory("/Users/ciarajudge/Desktop/particlehistory.csv");
 
     }
 }
