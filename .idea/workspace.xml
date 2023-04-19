@@ -5,12 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="605c0d2a-e27e-449c-bfd5-a292e2c107e0" name="Changes" comment="None of the statistics make any sense but the control flow works for pf">
-      <change afterPath="$PROJECT_DIR$/src/Node.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/EpiLikelihood.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/EpiLikelihood.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Particle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Particle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Tree.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Tree.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ParticleFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ParticleFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Particles.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Particles.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +61,7 @@
     "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.0",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "editor.preferences.fonts.default"
+    "settings.editor.selected.configurable": "preferences.lookFeel"
   },
   "keyToStringList": {
     "GitStage.ChangesTree.GroupingKeys": [
@@ -148,7 +148,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681739245098</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Tree infrastructure added that can read in newick format trees, still some work needed to put them in a format that makes sense for a likelihood calculation">
+      <created>1681829431656</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1681829431656</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -198,6 +205,8 @@
     <MESSAGE value="None of the statistics make any sense but the control flow works for pf" />
     <MESSAGE value="save particle state histories to csv" />
     <MESSAGE value="added some stochasticity" />
-    <option name="LAST_COMMIT_MESSAGE" value="added some stochasticity" />
+    <MESSAGE value="Tree infrastructure added that can read in newick format trees" />
+    <MESSAGE value="Tree infrastructure added that can read in newick format trees, still some work needed to put them in a format that makes sense for a likelihood calculation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tree infrastructure added that can read in newick format trees, still some work needed to put them in a format that makes sense for a likelihood calculation" />
   </component>
 </project>

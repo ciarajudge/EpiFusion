@@ -12,11 +12,9 @@ public class Particles {
     public Particles(int numParticles, int T){
         N = numParticles;
         particles = new Particle[numParticles];
-        particlesHistory = new int[numParticles][(T*2)+2];
+        particlesHistory = new int[numParticles][(T*2)];
         for (int i = 0; i< N; i++) {
             particles[i] = new Particle(i);
-            editParticlesHistory(i,0,i);
-            editParticlesHistory(i,1,particles[i].state);
         }
     }
 
@@ -34,8 +32,12 @@ public class Particles {
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
         for (Particle particle : particles) {
-            executor.submit(() ->  ProcessModel.updateState(particle));
-            editParticlesHistory(particle.row, (t*2), particle.state);
+            executor.submit(() -> {
+                editParticlesHistory(particle.row, (t * 2), particle.state);
+                ProcessModel.updateState(particle);
+                editParticlesHistory(particle.row, ((t * 2) + 1), particle.state);
+            });
+
         }
 
         executor.shutdown();
@@ -76,7 +78,7 @@ public class Particles {
                 runningSum += particle.weight;
                 if (runningSum >= randomWeight) {
                     resampledParticles[i] = new Particle(particle, i);
-                    editParticlesHistory(i, (t*2)+1, resampledParticles[i].particleID);
+                    //System.out.println("Particle "+i+" resampled as Particle "+particle.row);
                     break;
                 }
             }
