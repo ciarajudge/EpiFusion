@@ -42,10 +42,7 @@ public class Particle {
     public void printStatus() {
         System.out.println("Particle "+ particleID);
         System.out.println("State: "+ state);
-        System.out.println("Flux In: "+ fluxIn);
-        System.out.println("Flux out: "+ fluxOut);
         System.out.println("Likelihood: "+ likelihood);
-        System.out.println("Row: "+ row);
         System.out.println();
     }
 
