@@ -49,7 +49,7 @@ public class Particles {
 
         for (Particle particle : particles) {
             executor.submit(() -> {
-                double newLikelihood = EpiLikelihood.calculateLikelihood(incidence, particle);
+                double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle);
                 particle.setLikelihood(newLikelihood);
             });
         }

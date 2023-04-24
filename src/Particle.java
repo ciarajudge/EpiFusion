@@ -62,7 +62,7 @@ public class Particle {
 
     public void setLikelihood(double newLikelihood) {
         this.likelihood = newLikelihood;
-        this.weight = 1/newLikelihood;
+        this.weight = newLikelihood;
     }
 
 
