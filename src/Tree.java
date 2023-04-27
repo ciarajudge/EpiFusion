@@ -19,6 +19,7 @@ public class Tree {
     }
 
     private Node parseNewickString(String newickString) {
+        double time = 0.0;
         Stack<Node> stack = new Stack<>();
         Node current = null;
         StringBuilder label = new StringBuilder();
@@ -37,7 +38,7 @@ public class Tree {
                 if (current != null) {
                     stack.push(current);
                 }
-                current = new Internal("", 0.0);
+                current = new Internal("", 0.0, time);
                 isLeaf = true;
                 readingLabel = true;
                 readingBranchLength = false;
@@ -50,7 +51,8 @@ public class Tree {
                 if (isLeaf) {
                     branchLength = Double.parseDouble(branchLengthBuilder.toString());
                     String lbl = label.toString();
-                    current.addChild(new Leaf(lbl, branchLength));
+                    time = getTime(lbl);
+                    current.addChild(new Leaf(lbl, branchLength, time));
                     label.setLength(0);
                     branchLengthBuilder.setLength(0);
                 } else {
@@ -59,6 +61,8 @@ public class Tree {
                         String lbl = label.toString();
                         current.setBranchLength(branchLength);
                         current.setLabel(lbl);
+                        time = getTime(lbl);
+                        current.setTime(time);
                         Node parent = stack.pop();
                         parent.addChild(current);
                         current = parent;
@@ -78,7 +82,8 @@ public class Tree {
                 if (isLeaf) {
                     branchLength = Double.parseDouble(branchLengthBuilder.toString());
                     String lbl = label.toString();
-                    current.addChild(new Leaf(lbl, branchLength));
+                    time = getTime(lbl);
+                    current.addChild(new Leaf(lbl, branchLength, time));
                     label.setLength(0);
                     branchLengthBuilder.setLength(0);
                 } else {
@@ -87,6 +92,8 @@ public class Tree {
                         String lbl = label.toString();
                         current.setBranchLength(branchLength);
                         current.setLabel(lbl);
+                        time = getTime(lbl);
+                        current.setTime(time);
                         Node parent = stack.pop();
                         parent.addChild(current);
                         current = parent;
@@ -118,6 +125,10 @@ public class Tree {
         return current;
     }
 
+    public Node getRoot() {
+        return root; // Start printing from the root with initial indentation level 0
+    }
+
     public void printTree() {
         System.out.println("Tree");
         System.out.println("root");
@@ -140,6 +151,13 @@ public class Tree {
                 printTree(child, indentation + 1);
             }
         }
+    }
+
+    private double getTime(String label) {
+        int startIndex = label.indexOf("[") + 1;
+        int endIndex = label.indexOf("]");
+        String numberStr = label.substring(startIndex, endIndex);
+        return Double.parseDouble(numberStr);
     }
 
 }
