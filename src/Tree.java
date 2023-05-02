@@ -7,7 +7,7 @@ public class Tree {
     // Leaf class representing a leaf node in the tree
 
     // Tree class representing a Newick format tree
-    private final Node root; // root node of the tree
+    public final Node root; // root node of the tree
 
     public Tree(String fileName) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -52,6 +52,7 @@ public class Tree {
                     branchLength = Double.parseDouble(branchLengthBuilder.toString());
                     String lbl = label.toString();
                     time = getTime(lbl);
+                    assert current != null;
                     current.addChild(new Leaf(lbl, branchLength, time));
                     label.setLength(0);
                     branchLengthBuilder.setLength(0);
@@ -83,6 +84,7 @@ public class Tree {
                     branchLength = Double.parseDouble(branchLengthBuilder.toString());
                     String lbl = label.toString();
                     time = getTime(lbl);
+                    assert current != null;
                     current.addChild(new Leaf(lbl, branchLength, time));
                     label.setLength(0);
                     branchLengthBuilder.setLength(0);

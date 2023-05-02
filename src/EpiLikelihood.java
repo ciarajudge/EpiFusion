@@ -21,17 +21,17 @@ public class EpiLikelihood {
 
     public static double poissonLikelihood(int incidence, Particle particle) {
         double pDetect = 0.1; // Note that this is a constant number but I should switch to sampling from a dist to introduce noise
-        double p = particle.state * pDetect;
+        double p = particle.getState() * pDetect;
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         return Math.exp(logLikelihood);
     }
 
     public static double binomialLikelihood(int incidence, Particle particle) {
         double p = 0.1; // probability of success
-        double n = particle.state*p; // number of trials
+        double n = particle.getState()*p; // number of trials
 
         // calculate the probability of the measurement given the state
-        double probability = binomialProbability(incidence, n, p, particle.state);
+        double probability = binomialProbability(incidence, n, p, particle.getState());
 
         // return the likelihood
         return probability;

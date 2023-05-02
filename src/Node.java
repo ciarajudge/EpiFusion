@@ -4,7 +4,7 @@ import java.util.List;
 public abstract class Node {
     private String label; // label of the node
     private double branchLength; // branch length of the node
-    private List<Node> children; // children of the node
+    public List<Node> children; // children of the node
     private double time;
 
     public Node(String label) {
@@ -46,6 +46,10 @@ public abstract class Node {
         return this.children;
     }
 
+    public double getTime() {
+        return this.time;
+    }
+
     public double getBranchLength() {
         return this.branchLength;
     }
@@ -71,5 +75,13 @@ class Internal extends Node {
 
     public boolean isLeaf(){
         return false;
+    }
+
+    public Node getLeft() {
+        return children.get(0);
+    }
+
+    public Node getRight() {
+        return children.get(1);
     }
 }
