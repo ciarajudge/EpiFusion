@@ -1,48 +1,44 @@
 import java.util.ArrayList;
 import org.apache.commons.math3.distribution.PoissonDistribution;
+import java.util.Arrays;
 public class Particle {
     int particleID;
-    int state;
-    PoissonDistribution fluxIn;
-    PoissonDistribution fluxOut;
+    private int state;
     ArrayList<Integer> states;
-    ArrayList<Integer> fluxIns;
-    ArrayList<Integer> fluxOuts;
-    double likelihood;
+    /* Might be a better way of doing that
+    ArrayList<Integer> births;
+    ArrayList<Integer> deaths;
+    ArrayList<Integer> samples; */
+    double phyloLikelihood;
+    double epiLikelihood;
     double weight;
-    int row;
+    double[] rates;
+    double[] propensities;
 
-    public Particle(int pID) {
+    public Particle(int pID, double[] rates) {
         particleID = pID;
-        row = pID;
         PoissonDistribution initialI = new PoissonDistribution(100);
-        fluxIn = new PoissonDistribution(20);
-        fluxOut = new PoissonDistribution(10);
         state = initialI.sample();
         states = new ArrayList<>();
         setState(state);
-        fluxIns = new ArrayList<>();
-        fluxOuts = new ArrayList<>();
+        this.rates = rates;
     }
 
-    public Particle(Particle other, int row) {
+    public Particle(Particle other) {
         this.particleID = other.particleID;
         this.state = other.state;
-        this.fluxIn = other.fluxIn;
-        this.fluxOut = other.fluxOut;
         this.states = other.states;
-        this.fluxIns = other.fluxIns;
-        this.fluxOuts = other.fluxOuts;
-        this.likelihood = other.likelihood;
+        this.epiLikelihood = other.epiLikelihood;
+        this.phyloLikelihood = other.phyloLikelihood;
         this.weight = other.weight;
-        this.row = row;
+        this.rates = other.rates;
+        this.propensities = other.propensities;
 
     }
 
     public void printStatus() {
         System.out.println("Particle "+ particleID);
         System.out.println("State: "+ state);
-        System.out.println("Likelihood: "+ likelihood);
         System.out.println();
     }
 
@@ -55,15 +51,28 @@ public class Particle {
         return this.state;
     }
 
-    public PoissonDistribution[] getFlux() {
-        PoissonDistribution[] flux = {this.fluxIn, this.fluxOut};
-        return flux;
-    }
 
-    public void setLikelihood(double newLikelihood) {
-        this.likelihood = newLikelihood;
+    public void setPhyloLikelihood(double newLikelihood) {
+        this.phyloLikelihood = newLikelihood;
         this.weight = newLikelihood;
     }
 
+    public double getPhyloLikelihood() {
+        return this.phyloLikelihood;
+    }
 
+    public double[] getPropensities() {
+        Arrays.setAll(propensities, i -> rates[i] * state);
+        return propensities;
+    }
+
+    public void setEpiLikelihood(double epiLikelihood){
+        this.epiLikelihood = epiLikelihood;
+    }
+
+    public void updateWeight(double confidenceSplit) {
+        double epiConfidence = confidenceSplit;
+        double phyloConfidence = 1 - confidenceSplit;
+        weight = (Math.pow(phyloLikelihood, phyloConfidence))*(Math.pow(epiLikelihood, epiConfidence));
+    }
 }

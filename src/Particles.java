@@ -9,18 +9,17 @@ public class Particles {
     int N;
     int[][] particlesHistory;
 
-    public Particles(int numParticles, int T){
+    public Particles(int numParticles, double[] parameters){
         N = numParticles;
         particles = new Particle[numParticles];
-        particlesHistory = new int[numParticles][(T*2)];
         for (int i = 0; i< N; i++) {
-            particles[i] = new Particle(i);
+            particles[i] = new Particle(i, parameters);
         }
     }
 
-    public void editParticlesHistory(int row, int col, int value){
+    /*public void editParticlesHistory(int row, int col, int value){
         particlesHistory[row][col] = value;
-    }
+    }*/
 
     public void printParticles() {
         for (int i = 0; i < N; i++) {
@@ -28,29 +27,46 @@ public class Particles {
         }
     }
 
-    public void predictAndUpdate(int t) throws InterruptedException{
+    public void predictAndUpdate(int t, Tree tree) throws InterruptedException{
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
-        for (Particle particle : particles) {
-            executor.submit(() -> {
-                editParticlesHistory(particle.row, (t * 2), particle.state);
-                ProcessModel.updateState(particle);
-                editParticlesHistory(particle.row, ((t * 2) + 1), particle.state);
-            });
+        //Tree segments made here
+        TreeSegment[] treeSegments = new TreeSegment[7];
+        int ind = 0;
+        for (int i=t; i<t+7; i++) {
+            double end = (double) i + 1;
+            treeSegments[ind] = new TreeSegment(tree, i, end);
+            ind++;
+        }
 
+        for (Particle particle : particles) {
+            executor.submit(() -> ProcessModel.week(particle, treeSegments));
         }
 
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 
-    public void getLikelihoods(int incidence) throws InterruptedException{
+    public void getEpiLikelihoods(int incidence) throws InterruptedException{
         ExecutorService executor = Executors.newFixedThreadPool(4);
 
         for (Particle particle : particles) {
             executor.submit(() -> {
                 double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle);
-                particle.setLikelihood(newLikelihood);
+                particle.setEpiLikelihood(newLikelihood);
+            });
+        }
+
+        executor.shutdown();
+        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    }
+
+    public void updateWeights() throws InterruptedException {
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+
+        for (Particle particle : particles) {
+            executor.submit(() -> {
+                particle.updateWeight(0.5);
             });
         }
 
@@ -77,7 +93,7 @@ public class Particles {
             for (Particle particle : particles) {
                 runningSum += particle.weight;
                 if (runningSum >= randomWeight) {
-                    resampledParticles[i] = new Particle(particle, i);
+                    resampledParticles[i] = new Particle(particle);
                     //System.out.println("Particle "+i+" resampled as Particle "+particle.row);
                     break;
                 }
@@ -88,10 +104,10 @@ public class Particles {
 
     public void saveParticleHistory(String fileName) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (int i = 0; i < particlesHistory.length; i++) {
-                for (int j = 0; j < particlesHistory[i].length; j++) {
-                    writer.write(Integer.toString(particlesHistory[i][j])); // Write each element to the file
-                    if (j < particlesHistory[i].length - 1) {
+            for (int[] ints : particlesHistory) {
+                for (int j = 0; j < ints.length; j++) {
+                    writer.write(Integer.toString(ints[j])); // Write each element to the file
+                    if (j < ints.length - 1) {
                         writer.write(","); // Add a comma as a separator between elements
                     }
                 }
