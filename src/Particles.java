@@ -1,25 +1,19 @@
 import java.util.concurrent.*;
 import java.util.Random;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+
 
 public class Particles {
     Particle[] particles;
     int N;
     int[][] particlesHistory;
 
-    public Particles(int numParticles, double[] parameters){
+    public Particles(int numParticles){
         N = numParticles;
         particles = new Particle[numParticles];
         for (int i = 0; i< N; i++) {
-            particles[i] = new Particle(i, parameters);
+            particles[i] = new Particle(i);
         }
     }
-
-    /*public void editParticlesHistory(int row, int col, int value){
-        particlesHistory[row][col] = value;
-    }*/
 
     public void printParticles() {
         for (int i = 0; i < N; i++) {
@@ -27,54 +21,85 @@ public class Particles {
         }
     }
 
-    public void predictAndUpdate(int t, Tree tree) throws InterruptedException{
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-
-        //Tree segments made here
-        TreeSegment[] treeSegments = new TreeSegment[7];
-        int ind = 0;
-        for (int i=t; i<t+7; i++) {
-            double end = (double) i + 1;
-            treeSegments[ind] = new TreeSegment(tree, i, end);
-            ind++;
+    public void printLikelihoods() {
+        for (int i = 0; i < N; i++) {
+            System.out.println("Particle: "+i);
+            System.out.println("PhyloLikelihood: "+particles[i].getPhyloLikelihood());
+            System.out.println("EpiLikelihood: "+particles[i].getEpiLikelihood());
         }
-
-        for (Particle particle : particles) {
-            executor.submit(() -> ProcessModel.week(particle, treeSegments));
-        }
-
-        executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 
-    public void getEpiLikelihoods(int incidence) throws InterruptedException{
+
+    public void predictAndUpdate(int t, Tree tree, double[] rates){
         ExecutorService executor = Executors.newFixedThreadPool(4);
+        try {
+            int spareT = t*7;
+            //Tree segments made here
+            TreeSegment[] treeSegments = new TreeSegment[7];
+            int ind = 0;
+            for (int i=spareT; i<spareT+7; i++) {
+                double end = (double) i + 1;
+                treeSegments[ind] = new TreeSegment(tree, i, end);
+                ind++;
+            }
 
-        for (Particle particle : particles) {
-            executor.submit(() -> {
-                double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle);
-                particle.setEpiLikelihood(newLikelihood);
-            });
+            for (Particle particle : particles) {
+                executor.submit(() -> ProcessModel.week(particle, treeSegments, t, rates));
+            }
+
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting", e);
         }
-
-        executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 
-    public void updateWeights() throws InterruptedException {
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+    public void getEpiLikelihoods(int incidence) {
+        try {
+            ExecutorService executor = Executors.newFixedThreadPool(4);
 
-        for (Particle particle : particles) {
-            executor.submit(() -> {
-                particle.updateWeight(0.5);
-            });
-        }
+            for (Particle particle : particles) {
+                executor.submit(() -> {
+                    double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle);
+                    particle.setEpiLikelihood(newLikelihood);
+                });
+            }
 
-        executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupted while waiting", e);
+    }
     }
 
-    public void resampleParticles(int t) {
+    public void updateWeights() {
+        try {
+            ExecutorService executor = Executors.newFixedThreadPool(4);
+
+            for (Particle particle : particles) {
+                executor.submit(() -> particle.updateWeight(0.5));
+            }
+
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting", e);
+        }
+    }
+
+    public void resampleParticles() {
         Particle[] resampledParticles = new Particle[N];
         double totalWeight = 0.0;
 
@@ -94,7 +119,6 @@ public class Particles {
                 runningSum += particle.weight;
                 if (runningSum >= randomWeight) {
                     resampledParticles[i] = new Particle(particle);
-                    //System.out.println("Particle "+i+" resampled as Particle "+particle.row);
                     break;
                 }
             }
@@ -102,21 +126,35 @@ public class Particles {
         particles = resampledParticles;
     }
 
-    public void saveParticleHistory(String fileName) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (int[] ints : particlesHistory) {
-                for (int j = 0; j < ints.length; j++) {
-                    writer.write(Integer.toString(ints[j])); // Write each element to the file
-                    if (j < ints.length - 1) {
-                        writer.write(","); // Add a comma as a separator between elements
-                    }
-                }
-                writer.newLine(); // Write a new line after each row
-            }
-            System.out.println("Matrix has been written to " + fileName);
-        } catch (IOException e) {
-            e.printStackTrace();
+    public double scaleWeightsAndGetLogP() {
+        double[] particleWeights = new double[N];
+        double[] logParticleWeights = new double[N];
+        double maxLogWeight = Double.NEGATIVE_INFINITY;
+
+        int iter = 0;
+        for (Particle particle : particles) {
+            maxLogWeight = Math.max(particle.weight, maxLogWeight);
+            logParticleWeights[iter] = particle.weight;
+            iter++;
         }
+
+        double sumOfScaledWeights = 0, sumOfSquaredScaledWeights = 0;
+        for (int p=0; p<N; p++){
+            particleWeights[p] = Math.exp(logParticleWeights[p] - maxLogWeight);
+            sumOfScaledWeights += particleWeights[p];
+            sumOfSquaredScaledWeights += particleWeights[p] * particleWeights[p];
+        }
+
+        for (int p=0; p<N; p++){
+            particles[p].updateWeight(particleWeights[p]/sumOfScaledWeights);
+        }
+
+        double logP = Math.log(sumOfScaledWeights/N) + maxLogWeight;
+        return logP;
+    }
+
+    public void updateParameters(double[] newParameters) {
+
     }
 
 }

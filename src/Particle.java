@@ -1,27 +1,23 @@
 import java.util.ArrayList;
-import org.apache.commons.math3.distribution.PoissonDistribution;
+//import org.apache.commons.math3.distribution.PoissonDistribution;
 import java.util.Arrays;
 public class Particle {
     int particleID;
     private int state;
     ArrayList<Integer> states;
-    /* Might be a better way of doing that
-    ArrayList<Integer> births;
-    ArrayList<Integer> deaths;
-    ArrayList<Integer> samples; */
     double phyloLikelihood;
     double epiLikelihood;
     double weight;
-    double[] rates;
     double[] propensities;
+    Trajectory traj;
 
-    public Particle(int pID, double[] rates) {
+    public Particle(int pID) {
         particleID = pID;
-        PoissonDistribution initialI = new PoissonDistribution(100);
-        state = initialI.sample();
+        //PoissonDistribution initialI = new PoissonDistribution(100);
+        state = 1;
         states = new ArrayList<>();
         setState(state);
-        this.rates = rates;
+        this.traj = new Trajectory(new Day(0, state, 0,0));
     }
 
     public Particle(Particle other) {
@@ -31,9 +27,8 @@ public class Particle {
         this.epiLikelihood = other.epiLikelihood;
         this.phyloLikelihood = other.phyloLikelihood;
         this.weight = other.weight;
-        this.rates = other.rates;
         this.propensities = other.propensities;
-
+        this.traj = other.traj;
     }
 
     public void printStatus() {
@@ -51,7 +46,6 @@ public class Particle {
         return this.state;
     }
 
-
     public void setPhyloLikelihood(double newLikelihood) {
         this.phyloLikelihood = newLikelihood;
         this.weight = newLikelihood;
@@ -61,7 +55,7 @@ public class Particle {
         return this.phyloLikelihood;
     }
 
-    public double[] getPropensities() {
+    public double[] getVanillaPropensities(double[] rates) {
         Arrays.setAll(propensities, i -> rates[i] * state);
         return propensities;
     }
@@ -70,6 +64,9 @@ public class Particle {
         this.epiLikelihood = epiLikelihood;
     }
 
+    public double getEpiLikelihood() {
+        return this.epiLikelihood;
+    }
     public void updateWeight(double confidenceSplit) {
         double epiConfidence = confidenceSplit;
         double phyloConfidence = 1 - confidenceSplit;
