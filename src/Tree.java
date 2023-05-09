@@ -114,6 +114,11 @@ public class Tree {
                 readingBranchLength = true;
             }
 
+            //If char is a semicolon it's time to break the loop
+            else if (c == ';') {
+                break;
+            }
+
             //Otherwise just add it to its correct label
             else {
                 if (readingLabel) {
@@ -123,6 +128,12 @@ public class Tree {
                 }
             }
         }
+        branchLength = Double.parseDouble(branchLengthBuilder.toString());
+        String lbl = label.toString();
+        current.setBranchLength(branchLength);
+        current.setLabel(lbl);
+        time = getTime(lbl);
+        current.setTime(time);
 
         return current;
     }
@@ -133,7 +144,6 @@ public class Tree {
 
     public void printTree() {
         System.out.println("Tree");
-        System.out.println("root");
         printTree(root, 0); // Start printing from the root with initial indentation level 0
     }
 
