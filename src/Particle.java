@@ -1,20 +1,21 @@
 import java.util.ArrayList;
 //import org.apache.commons.math3.distribution.PoissonDistribution;
-import java.util.Arrays;
+
 public class Particle {
     int particleID;
     private int state;
     ArrayList<Integer> states;
     double phyloLikelihood;
     double epiLikelihood;
+    double phyloWeight;
+    double epiWeight;
     double weight;
-    double[] propensities;
     Trajectory traj;
 
     public Particle(int pID) {
         particleID = pID;
         //PoissonDistribution initialI = new PoissonDistribution(100);
-        state = 1;
+        state = 4;
         states = new ArrayList<>();
         setState(state);
         this.traj = new Trajectory(new Day(0, state, 0,0));
@@ -24,10 +25,11 @@ public class Particle {
         this.particleID = other.particleID;
         this.state = other.state;
         this.states = other.states;
-        this.epiLikelihood = other.epiLikelihood;
-        this.phyloLikelihood = other.phyloLikelihood;
-        this.weight = other.weight;
-        this.propensities = other.propensities;
+        this.epiLikelihood = 0.0;
+        this.phyloLikelihood = 0.0;
+        this.weight = 0.0;
+        this.epiWeight = 0.0;
+        this.phyloWeight = 0.0;
         this.traj = other.traj;
     }
 
@@ -48,20 +50,30 @@ public class Particle {
 
     public void setPhyloLikelihood(double newLikelihood) {
         this.phyloLikelihood = newLikelihood;
-        this.weight = newLikelihood;
     }
 
+    public void setPhyloWeight(double newWeight) {
+        this.weight = newWeight;
+    }
     public double getPhyloLikelihood() {
         return this.phyloLikelihood;
     }
 
     public double[] getVanillaPropensities(double[] rates) {
-        Arrays.setAll(propensities, i -> rates[i] * state);
-        return propensities;
+        double[] newPropensities = new double[rates.length];
+        for ( int i=0; i<rates.length; i++){
+            newPropensities[i] = rates[i] * state;
+        }
+        return newPropensities;
     }
 
     public void setEpiLikelihood(double epiLikelihood){
         this.epiLikelihood = epiLikelihood;
+        this.epiWeight = Math.log(epiLikelihood);
+    }
+
+    public void setEpiWeight(double epiWeight){
+        this.epiWeight = epiWeight;
     }
 
     public double getEpiLikelihood() {
@@ -70,6 +82,12 @@ public class Particle {
     public void updateWeight(double confidenceSplit) {
         double epiConfidence = confidenceSplit;
         double phyloConfidence = 1 - confidenceSplit;
-        weight = (Math.pow(phyloLikelihood, phyloConfidence))*(Math.pow(epiLikelihood, epiConfidence));
+        weight = (Math.pow(phyloWeight, phyloConfidence))*(Math.pow(epiWeight, epiConfidence));
+    }
+
+    public void setWeight(double weight) {this.weight = weight;  }
+
+    public void updateTrajectory(Day day) {
+        traj.updateTrajectory(day);
     }
 }

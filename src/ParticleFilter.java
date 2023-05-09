@@ -22,13 +22,10 @@ public class ParticleFilter {
     public void filterStep(int t)  {
         System.out.println("Week "+t);
         //predict and update
-        System.out.println("Predict Step");
         particles.predictAndUpdate(t, tree, candidateParameters);
         //particle likelihoods
         particles.getEpiLikelihoods(caseIncidence.incidence[t]);
         particles.printLikelihoods();
-        //particle weights
-        particles.updateWeights();
         //Scale weights and add to logP
         logLikelihoodCandidate += particles.scaleWeightsAndGetLogP();
         //resample

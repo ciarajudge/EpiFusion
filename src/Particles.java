@@ -25,7 +25,7 @@ public class Particles {
         for (int i = 0; i < N; i++) {
             System.out.println("Particle: "+i);
             System.out.println("PhyloLikelihood: "+particles[i].getPhyloLikelihood());
-            System.out.println("EpiLikelihood: "+particles[i].getEpiLikelihood());
+            System.out.println("EpiLikelihood: "+Math.log(particles[i].getEpiLikelihood()));
         }
     }
 
@@ -80,12 +80,12 @@ public class Particles {
     }
     }
 
-    public void updateWeights() {
+    public void updateWeights(double confidenceSplit) {
         try {
             ExecutorService executor = Executors.newFixedThreadPool(4);
 
             for (Particle particle : particles) {
-                executor.submit(() -> particle.updateWeight(0.5));
+                executor.submit(() -> particle.updateWeight(confidenceSplit));
             }
 
             executor.shutdown();
@@ -126,7 +126,57 @@ public class Particles {
         particles = resampledParticles;
     }
 
+    public void scalePhyloWeights() {
+        double[] particleWeights = new double[N];
+        double[] logParticleWeights = new double[N];
+        double maxLogWeight = Double.NEGATIVE_INFINITY;
+
+        int iter = 0;
+        for (Particle particle : particles) {
+            maxLogWeight = Math.max(particle.phyloLikelihood, maxLogWeight);
+            logParticleWeights[iter] = particle.phyloLikelihood;
+            iter++;
+        }
+
+        double sumOfScaledWeights = 0;
+        for (int p=0; p<N; p++){
+            particleWeights[p] = Math.exp(logParticleWeights[p] - maxLogWeight);
+            sumOfScaledWeights += particleWeights[p];
+        }
+
+        for (int p=0; p<N; p++){
+            particles[p].setPhyloWeight(particleWeights[p]/sumOfScaledWeights);
+        }
+    }
+
+    public void scaleEpiWeights() {
+        double[] particleWeights = new double[N];
+        double[] logParticleWeights = new double[N];
+        double maxLogWeight = Double.NEGATIVE_INFINITY;
+
+        int iter = 0;
+        for (Particle particle : particles) {
+            maxLogWeight = Math.max(particle.epiWeight, maxLogWeight);
+            logParticleWeights[iter] = particle.epiWeight;
+            iter++;
+        }
+
+        double sumOfScaledWeights = 0;
+        for (int p=0; p<N; p++){
+            particleWeights[p] = Math.exp(logParticleWeights[p] - maxLogWeight);
+            sumOfScaledWeights += particleWeights[p];
+        }
+
+        for (int p=0; p<N; p++){
+            particles[p].setEpiWeight(particleWeights[p]/sumOfScaledWeights);
+        }
+    }
+
     public double scaleWeightsAndGetLogP() {
+        scaleEpiWeights();
+        scalePhyloWeights();
+        updateWeights(0.5);
+
         double[] particleWeights = new double[N];
         double[] logParticleWeights = new double[N];
         double maxLogWeight = Double.NEGATIVE_INFINITY;
@@ -138,23 +188,18 @@ public class Particles {
             iter++;
         }
 
-        double sumOfScaledWeights = 0, sumOfSquaredScaledWeights = 0;
+        double sumOfScaledWeights = 0;
         for (int p=0; p<N; p++){
             particleWeights[p] = Math.exp(logParticleWeights[p] - maxLogWeight);
             sumOfScaledWeights += particleWeights[p];
-            sumOfSquaredScaledWeights += particleWeights[p] * particleWeights[p];
         }
 
         for (int p=0; p<N; p++){
-            particles[p].updateWeight(particleWeights[p]/sumOfScaledWeights);
+            particles[p].setWeight(particleWeights[p]/sumOfScaledWeights);
         }
 
         double logP = Math.log(sumOfScaledWeights/N) + maxLogWeight;
         return logP;
-    }
-
-    public void updateParameters(double[] newParameters) {
-
     }
 
 }
