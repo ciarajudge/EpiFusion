@@ -134,7 +134,7 @@ public class Tree {
         current.setLabel(lbl);
         time = getTime(lbl);
         current.setTime(time);
-
+        current.isRoot = true;
         return current;
     }
 

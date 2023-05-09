@@ -6,7 +6,7 @@ public abstract class Node {
     private double branchLength; // branch length of the node
     public List<Node> children; // children of the node
     private double time;
-
+    public boolean isRoot = false;
     public Node(String label) {
         this.label = label;
         this.branchLength = 0.0;
