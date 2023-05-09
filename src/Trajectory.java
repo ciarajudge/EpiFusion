@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class Trajectory {
     ArrayList<Day> trajectory;
     public Trajectory(Day day) {
-        ArrayList<Day> trajectory = new ArrayList<>();
+        trajectory = new ArrayList<>();
         trajectory.add(day);
 
     }
@@ -25,4 +25,9 @@ class Day {
         this.births = births;
         this.removals = removals;
     }
+
+    public void printDay(){
+        System.out.println("Time: "+t+", State: "+I+", Births: "+births+", Deaths: "+removals);
+    }
+
 }
