@@ -23,11 +23,13 @@ public class ParticleFilter {
         System.out.println("Week "+t);
         //predict and update
         particles.predictAndUpdate(t, tree, candidateParameters);
+        particles.printParticles();
         //particle likelihoods
         particles.getEpiLikelihoods(caseIncidence.incidence[t]);
         particles.printLikelihoods();
         //Scale weights and add to logP
         logLikelihoodCandidate += particles.scaleWeightsAndGetLogP();
+        particles.printWeights();
         //resample
         particles.resampleParticles();
         //print them

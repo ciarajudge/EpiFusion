@@ -59,6 +59,14 @@ public class Particle {
         return this.phyloLikelihood;
     }
 
+    public double getPhyloWeight() {
+        return this.phyloWeight;
+    }
+
+    public double getEpiWeight() {
+        return this.epiWeight;
+    }
+
     public double[] getVanillaPropensities(double[] rates) {
         double[] newPropensities = new double[rates.length];
         for ( int i=0; i<rates.length; i++){

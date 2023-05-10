@@ -29,6 +29,15 @@ public class Particles {
         }
     }
 
+    public void printWeights() {
+        for (int i = 0; i < N; i++) {
+            System.out.println("Particle: "+i);
+            System.out.println("PhyloWeight: "+particles[i].getPhyloWeight());
+            System.out.println("EpiWeight: "+particles[i].getEpiWeight());
+            System.out.println("CombinedWeight: "+particles[i].getEpiWeight());
+        }
+    }
+
 
     public void predictAndUpdate(int t, Tree tree, double[] rates){
         ExecutorService executor = Executors.newFixedThreadPool(4);
