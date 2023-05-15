@@ -53,7 +53,7 @@ public class Particle {
     }
 
     public void setPhyloWeight(double newWeight) {
-        this.weight = newWeight;
+        this.phyloWeight = newWeight;
     }
     public double getPhyloLikelihood() {
         return this.phyloLikelihood;
