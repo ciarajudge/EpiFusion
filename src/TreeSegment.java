@@ -6,8 +6,12 @@ public class TreeSegment {
     public int births;
     public int samplings;
     public int lineages;
+    private double startTime;
+    private double endTime;
 
     public TreeSegment(Tree tree, double startTime, double endTime) {
+        this.startTime = startTime;
+        this.endTime = endTime;
         births = getNumInternalNodes(tree, startTime, endTime);
         samplings = getNumExternalNodes(tree, startTime, endTime);
         lineages = getNumLineages(tree, startTime);
@@ -34,7 +38,7 @@ public class TreeSegment {
 
     private int traverseForLineagesInWindow(Node node, double T, int lineages) {
         if (node == null || node instanceof Leaf) {
-            return 0;
+            return lineages;
         }
         Node leftChild = ((Internal) node).getLeft();
         Node rightChild = ((Internal) node).getRight();
@@ -83,8 +87,9 @@ public class TreeSegment {
     }
 
     public void printTreeSegment() {
-        System.out.println(lineages);
-        System.out.println(births);
-        System.out.println(samplings);
+        System.out.println("Printing Tree Segment Details Between "+startTime+" and "+endTime);
+        System.out.println("Lineages: "+lineages);
+        System.out.println("Births: "+births);
+        System.out.println("Samplings: "+samplings);
     }
 }
