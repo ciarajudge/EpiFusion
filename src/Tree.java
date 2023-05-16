@@ -172,4 +172,12 @@ public class Tree {
         return Double.parseDouble(numberStr);
     }
 
+    public void printTreeInSegments(int maxTime) {
+        for (int i=0; i<maxTime; i++) {
+            double end = (double) i + 1;
+            TreeSegment treeSegment = new TreeSegment(this, i, end);
+            treeSegment.printTreeSegment();
+        }
+    }
+
 }
