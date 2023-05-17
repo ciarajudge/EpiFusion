@@ -6,9 +6,9 @@ public class Particle {
     private int state;
     ArrayList<Integer> states;
     double phyloLikelihood;
-    double epiLikelihood = 1.0;
+    double epiLikelihood;
     double phyloWeight;
-    double epiWeight = 1.0;
+    double epiWeight;
     double weight;
     Trajectory traj;
 
@@ -19,16 +19,18 @@ public class Particle {
         states = new ArrayList<>();
         setState(state);
         this.traj = new Trajectory(new Day(0, state, 0,0));
+        this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
+        this.epiWeight = Storage.isPhyloOnly() ? 1.0 : 0.0;
     }
 
     public Particle(Particle other, int pID) {
         this.particleID = pID;
         this.state = other.state;
         this.states = other.states;
-        this.epiLikelihood = 1.0;
+        this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
         this.phyloLikelihood = 0.0;
         this.weight = 0.0;
-        this.epiWeight = 1.0;
+        this.epiWeight = Storage.isPhyloOnly() ? 1.0 : 0.0;
         this.phyloWeight = 0.0;
         this.traj = other.traj;
     }

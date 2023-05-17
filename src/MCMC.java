@@ -12,7 +12,7 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.1, 0.1, 0.1, 0.1, 0.1}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.001, 0.001, 0.001, 0.001, 0.001}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             // Generate a proposal for the next set of parameters

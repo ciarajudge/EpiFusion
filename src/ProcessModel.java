@@ -61,6 +61,7 @@ public class ProcessModel {
                 break;
             }
             int actualDay = t+i;
+            System.out.println();
             System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
             day(particle, treeSegments[i], actualDay, rates[i]);
         }

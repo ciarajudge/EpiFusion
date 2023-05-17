@@ -29,12 +29,13 @@ public class ParticleFilter {
         this.candidateRates = new double[this.T][3];
         this.filterSteps = (int) Math.ceil(this.T / (double) resampleEvery);
         this.resampleEvery = resampleEvery;
-        this.loggers = new Loggers("/Users/ciarajudge/Desktop/PhD/EpiFusionResults/Test3");
+        this.loggers = new Loggers();
 
         particles = new Particles(numParticles);
         runPF(candidateParameters);
         loggers.logTrajectory(particles.particles[0].traj);
         logLikelihoodCurrent = logLikelihoodCandidate;
+        System.out.println(logLikelihoodCurrent);
         logPriorCurrent = logPriorCandidate;
 
     }
@@ -88,13 +89,17 @@ public class ParticleFilter {
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
             particles.printParticles();
             //particle likelihoods
-            //particles.getEpiLikelihoods(caseIncidence.incidence[t]);
-            //particles.printLikelihoods();
-            //particles.checkEpiLikelihoods();
+            if (!Storage.isPhyloOnly()){
+                particles.getEpiLikelihoods(caseIncidence.incidence[step]);
+                particles.printLikelihoods();
+                particles.checkEpiLikelihoods();
+            }
         }
 
         //Scale weights and add to logP
-        logLikelihoodCandidate += particles.scaleWeightsAndGetLogP();
+        double logP = particles.scaleWeightsAndGetLogP();
+        System.out.println("STEP "+step+" logP: "+logP);
+        logLikelihoodCandidate += logP;
         particles.printWeights();
         //resample
         particles.resampleParticles();
@@ -103,10 +108,6 @@ public class ParticleFilter {
     }
 
     //PF Calculators
-    public double calculatePFLogLikelihood() {
-        return 0.0;
-    }
-
     public double calculatePFLogPrior() {
         return 0.0;
     }

@@ -1,12 +1,26 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Loggers {
     File folder;
     FileWriter trajectories;
 
     public Loggers(String filePath) throws IOException {
+        folder = new File(filePath);
+        if (!folder.exists()){
+            folder.mkdir();
+        }
+        trajectories = new FileWriter(filePath+"/trajectories.csv");
+    }
+
+    public Loggers() throws IOException {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+        String folderName = currentDateTime.format(formatter);
+        String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
         folder = new File(filePath);
         if (!folder.exists()){
             folder.mkdir();
