@@ -1,33 +1,36 @@
+import java.io.IOException;
 import java.util.Random;
 public class MCMC {
     private final ParticleFilter particleFilter;
     private final Random random;
 
-    public MCMC(ParticleFilter particleFilter) {
+
+    public MCMC(ParticleFilter particleFilter) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
-    }
+   }
 
-    public void runMCMC(int numIterations) {
-        double[] currentParams = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.1, 0.1, 0.1}; // example proposal standard deviations
+    public void runMCMC(int numIterations) throws IOException {
+        double[] currentParameters = this.particleFilter.getCurrentParameters();
+        double[] proposalStdDevs = {0.1, 0.1, 0.1, 0.1, 0.1}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             // Generate a proposal for the next set of parameters
-            double[] candidateParams = new double[3];
-            for (int j = 0; j < 3; j++) {
-                candidateParams[j] = currentParams[j] + this.random.nextGaussian() * proposalStdDevs[j];
+            double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
+            for (int j=0; j<candidateParameters.length; j++){
+                candidateParameters[j] = currentParameters[j] + this.random.nextGaussian() * proposalStdDevs[j];
             }
 
             // Run particle filter to generate logPrior and logLikelihood for new params
-            particleFilter.runPF(candidateParams);
+            particleFilter.runPF(candidateParameters);
+
 
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
 
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
-                currentParams = candidateParams;
+                currentParameters = candidateParameters;
             }
 
             // Update the particle filter with the current set of parameters
