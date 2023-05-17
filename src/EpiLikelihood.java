@@ -1,14 +1,5 @@
 
-import java.math.BigInteger;
-
 public class EpiLikelihood {
-    public static BigInteger factorial(int n) {
-        BigInteger factorial = BigInteger.valueOf(1);
-        for (int i = 1; i <= n; i++) {
-            factorial = factorial.multiply(BigInteger.valueOf(i));
-        }
-        return factorial;
-    }
 
     private static double logFactorial(int n) {
         double result = 0;
@@ -20,7 +11,7 @@ public class EpiLikelihood {
 
 
     public static double poissonLikelihood(int incidence, Particle particle) {
-        double pDetect = 0.1; // Note that this is a constant number but I should switch to sampling from a dist to introduce noise
+        double pDetect = 0.15; // Note that this is a constant number but I should switch to sampling from a dist to introduce noise
         double p = particle.getState() * pDetect;
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         return Math.exp(logLikelihood);
