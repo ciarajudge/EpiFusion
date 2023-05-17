@@ -37,35 +37,6 @@ public class Particles {
     }
 
 
-    //Actual propagation
-    public void predictAndUpdate(int t, Tree tree, double[] rates){
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        try {
-            int spareT = t*7;
-            //Tree segments made here
-            TreeSegment[] treeSegments = new TreeSegment[7];
-            int ind = 0;
-            for (int i=spareT; i<spareT+7; i++) {
-                double end = (double) i + 1;
-                treeSegments[ind] = new TreeSegment(tree, i, end);
-                ind++;
-            }
-
-            for (Particle particle : particles) {
-                executor.submit(() -> ProcessModel.week(particle, treeSegments, t, rates));
-            }
-
-            executor.shutdown();
-            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-            if (!done) {
-                System.err.println("Not all tasks completed within the specified timeout.");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while waiting", e);
-        }
-    }
-
     //Epi Likelihood things
     public void getEpiLikelihoods(int incidence) {
         try {
@@ -116,6 +87,7 @@ public class Particles {
         }
         System.out.println(allNaN);
     }
+
 
     //Weights utilities
     public void updateWeights(double confidenceSplit) {
@@ -210,6 +182,37 @@ public class Particles {
         double logP = Math.log(sumOfScaledWeights/N) + maxLogWeight;
         return logP;
     }
+
+
+    //Actual propagation
+    public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments){
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        try {
+            int t = step*Storage.resampleEvery;
+            //Tree segments made here
+            TreeSegment[] treeSegments = new TreeSegment[increments];
+            int ind = 0;
+            for (int i=t; i<t+increments; i++) {
+                double end = (double) i + 1;
+                treeSegments[ind] = new TreeSegment(tree, i, end);
+                ind++;
+            }
+
+            for (Particle particle : particles) {
+                executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates));
+            }
+
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting", e);
+        }
+    }
+
 
     //Resampling
     public void resampleParticles() {
