@@ -8,16 +8,18 @@ public class Tree {
 
     // Tree class representing a Newick format tree
     public final Node root; // root node of the tree
+    public double age;
 
     public Tree(String fileName) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String newickString = reader.readLine();
         reader.close();
-
+        this.age = 0.0;
         // Create a Tree object from the Newick format string
         this.root = parseNewickString(newickString);
     }
 
+    //Read-in utilities
     private Node parseNewickString(String newickString) {
         double time = 0.0;
         Stack<Node> stack = new Stack<>();
@@ -52,6 +54,7 @@ public class Tree {
                     branchLength = Double.parseDouble(branchLengthBuilder.toString());
                     String lbl = label.toString();
                     time = getTime(lbl);
+                    age = Math.max(time, age);
                     assert current != null;
                     current.addChild(new Leaf(lbl, branchLength, time));
                     label.setLength(0);
@@ -84,6 +87,7 @@ public class Tree {
                     branchLength = Double.parseDouble(branchLengthBuilder.toString());
                     String lbl = label.toString();
                     time = getTime(lbl);
+                    age = Math.max(time, age);
                     assert current != null;
                     current.addChild(new Leaf(lbl, branchLength, time));
                     label.setLength(0);
@@ -137,17 +141,23 @@ public class Tree {
         current.isRoot = true;
         return current;
     }
+    private double getTime(String label) {
+        int startIndex = label.indexOf("[") + 1;
+        int endIndex = label.indexOf("]");
+        String numberStr = label.substring(startIndex, endIndex);
+        return Double.parseDouble(numberStr);
+    }
 
+    //Getters
     public Node getRoot() {
         return root; // Start printing from the root with initial indentation level 0
     }
 
+    //Printing
     public void printTree() {
         System.out.println("Tree");
         printTree(root, 0); // Start printing from the root with initial indentation level 0
     }
-
-    // Recursive method to print tree structure with indentation
     private void printTree(Node node, int indentation) {
         if (node != null) {
             // Print indentation for the current level
@@ -163,21 +173,27 @@ public class Tree {
                 printTree(child, indentation + 1);
             }
         }
-    }
-
-    private double getTime(String label) {
-        int startIndex = label.indexOf("[") + 1;
-        int endIndex = label.indexOf("]");
-        String numberStr = label.substring(startIndex, endIndex);
-        return Double.parseDouble(numberStr);
-    }
-
+    }  // Recursive method to print tree structure with indentation
     public void printTreeInSegments(int maxTime) {
         for (int i=0; i<maxTime; i++) {
             double end = (double) i + 1;
             TreeSegment treeSegment = new TreeSegment(this, i, end);
             treeSegment.printTreeSegment();
         }
+    }
+
+    //Check if tree is 'active'
+    public boolean treeFinished(int step){
+        boolean treeFinished = false;
+        if (step < 2) {
+            return treeFinished;
+        }
+        int time = step*Storage.resampleEvery;
+        TreeSegment segment = new TreeSegment(this, (double) time, time+ 1.0);
+        if (segment.lineages == 0) {
+            treeFinished = true;
+        }
+        return treeFinished;
     }
 
 }
