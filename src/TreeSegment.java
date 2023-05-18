@@ -1,5 +1,6 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class TreeSegment {
@@ -8,13 +9,19 @@ public class TreeSegment {
     public int lineages;
     private double startTime;
     private double endTime;
+    private ArrayList<Double> birthTimes;
+    private ArrayList<Double> sampleTimes;
+    public int[] observationOrder;
 
     public TreeSegment(Tree tree, double startTime, double endTime) {
+        birthTimes = new ArrayList<>();
+        sampleTimes = new ArrayList<>();
         this.startTime = startTime;
         this.endTime = endTime;
         births = getNumInternalNodes(tree, startTime, endTime);
         samplings = getNumExternalNodes(tree, startTime, endTime);
         lineages = getNumLineages(tree, startTime);
+        observationOrder = getObservationOrder();
     }
 
     public List<Node> getNodesInWindow(Tree tree, double startTime, double endTime) {
@@ -70,6 +77,7 @@ public class TreeSegment {
         for (Node node : nodesInWindow) {
             if (node instanceof Internal) {
                 numInternalNodes++;
+                birthTimes.add((Double) node.getTime());
             }
         }
         return numInternalNodes;
@@ -81,6 +89,7 @@ public class TreeSegment {
         for (Node node : nodesInWindow) {
             if (node instanceof Leaf) {
                 numExternalNodes++;
+                sampleTimes.add((Double) node.getTime());
             }
         }
         return numExternalNodes;
@@ -91,5 +100,21 @@ public class TreeSegment {
         System.out.println("Lineages: "+lineages);
         System.out.println("Births: "+births);
         System.out.println("Samplings: "+samplings);
+    }
+
+    private int[] getObservationOrder() {
+        int[] observationOrder = new int[births+samplings];
+        ArrayList<Double> combinedList = new ArrayList<>(birthTimes);
+        combinedList.addAll(sampleTimes);
+        Collections.sort(combinedList);
+        for (int i = 0; i < combinedList.size(); i++) {
+            double value = combinedList.get(i);
+            if (birthTimes.contains(value)) {
+                observationOrder[i] = 0;
+            } else {
+                observationOrder[i] = 1;
+            }
+        }
+        return observationOrder;
     }
 }
