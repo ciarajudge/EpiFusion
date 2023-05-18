@@ -26,7 +26,7 @@ public class Main {
         T = Math.max(epiLength, (int) Math.round(phyloLength));
 
         //Initialise particle filter instance
-        double[] initialParameters = {0.06, -0.043, 0.4, 0.233, 0.007};
+        double[] initialParameters = Storage.priors.sampleInitial();
         ParticleFilter particleFilter = new ParticleFilter(numParticles, initialParameters, tree, caseIncidence, T, resampleEvery);
 
         //Initialise and run MCMC instance

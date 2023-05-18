@@ -1,4 +1,5 @@
 import java.io.IOException;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
 public class ParticleFilter {
     private double[][] currentRates;
@@ -109,7 +110,11 @@ public class ParticleFilter {
 
     //PF Calculators
     public double calculatePFLogPrior() {
-        return 0.0;
+        double logPrior = 1.0;
+        for (int d=0; d<currentParameters.length; d++) {
+            logPrior *= Storage.priors.allPriors[d].density(currentParameters[d]);
+        }
+        return logPrior;
     }
 
 
