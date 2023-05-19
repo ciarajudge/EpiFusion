@@ -31,10 +31,12 @@ public class MCMC {
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
                 currentParameters = candidateParameters;
+                this.particleFilter.resetCurrentParameters();
             }
 
-            // Update the particle filter with the current set of parameters
-            this.particleFilter.resetCurrentParameters();
+            // Clear the pf cache
+            this.particleFilter.clearCache();
+
         }
     }
 

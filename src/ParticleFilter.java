@@ -18,9 +18,11 @@ public class ParticleFilter {
     private final int resampleEvery;
     int increments;
     public Loggers loggers;
+    private int numParticles;
     //private final Random random;
 
     public ParticleFilter(int numParticles, double[] initialParameters, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
+        this.numParticles = numParticles;
         this.currentParameters = initialParameters;
         this.candidateParameters = initialParameters;
         this.tree = tree;
@@ -55,14 +57,6 @@ public class ParticleFilter {
             candidateRates[k][2] = parameters[4];
         }
 
-        /*
-        System.out.println("Beta vector: ");
-        printRateVector(0);
-        System.out.println("Gamma vector: ");
-        printRateVector(1);
-        System.out.println("Psi vector: ");
-        printRateVector(2);
-        */
 
         logLikelihoodCandidate = 0.0;
         particles.printParticles();
@@ -77,6 +71,7 @@ public class ParticleFilter {
 
         }
         logPriorCandidate = calculatePFLogPrior();
+        System.out.println(logPriorCandidate);
     }
 
 
@@ -84,11 +79,10 @@ public class ParticleFilter {
         System.out.println("Step "+step);
         //Find out how many increments (days) in this step, useful housekeeping
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
-        System.out.println("Increments: "+increments);
+        //System.out.println("Increments: "+increments);
         //predict and update
         if (Storage.isEpiGrainyResolution()){
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
-            particles.printParticles();
             //particle likelihoods
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step]);
@@ -171,8 +165,9 @@ public class ParticleFilter {
     }
 
 
-    private void clearCache() {
-
+    public void clearCache() {
+        particles = new Particles(numParticles);
+        logLikelihoodCandidate = 0.0;
     }
 
 
