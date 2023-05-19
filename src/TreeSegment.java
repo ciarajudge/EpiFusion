@@ -67,6 +67,9 @@ public class TreeSegment {
     }
 
     public int getNumLineages(Tree tree, double T) {
+        /*if (T == 0.0){
+            return 1;
+        }*/
         int numLineages = traverseForLineagesInWindow(tree.getRoot(), T, 0);
         return numLineages;
     }

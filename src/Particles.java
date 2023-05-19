@@ -22,7 +22,7 @@ public class Particles {
     }
     public void printLikelihoods() {
         for (int i = 0; i < N; i++) {
-            System.out.println("Particle: "+i);
+            System.out.println("Particle: "+i+", State: "+particles[i].getState());
             System.out.println("PhyloLikelihood: "+particles[i].getPhyloLikelihood());
             System.out.println("EpiLikelihood: "+Math.log(particles[i].getEpiLikelihood()));
         }

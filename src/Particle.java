@@ -15,12 +15,12 @@ public class Particle {
     public Particle(int pID) {
         particleID = pID;
         //PoissonDistribution initialI = new PoissonDistribution(100);
-        state = 4;
+        state = 1;
         states = new ArrayList<>();
         setState(state);
         this.traj = new Trajectory(new Day(0, state, 0,0));
         this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.epiWeight = Storage.isPhyloOnly() ? 1.0 : 0.0;
+        this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
     }
 
     public Particle(Particle other, int pID) {
@@ -30,7 +30,7 @@ public class Particle {
         this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
         this.phyloLikelihood = 0.0;
         this.weight = 0.0;
-        this.epiWeight = Storage.isPhyloOnly() ? 1.0 : 0.0;
+        this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.phyloWeight = 0.0;
         this.traj = other.traj;
     }
