@@ -7,9 +7,10 @@ public class Main {
 
         //Define params
         int numParticles = 1;
+        Storage.setNumParticles(numParticles);
         int numIterations = 0;
         Storage.setEpiGrainyResolution();
-        Storage.setPhyloOnly();
+        //Storage.setPhyloOnly();
         int resampleEvery = 7;
         Storage.setResampling(resampleEvery);
         int T;
@@ -34,8 +35,6 @@ public class Main {
         particleMCMC.runMCMC(numIterations);
 
         particleFilter.loggers.trajectories.close();
-        //Save output
-        //double[][] finalParams = particleFilter.getCurrentParameters();
 
     }
 }

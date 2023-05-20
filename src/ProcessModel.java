@@ -13,11 +13,15 @@ public class ProcessModel {
         double unobservedInfectProp = state > 0
                 ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
                 : 0.0;
+        if (unobservedInfectProp < 0.0) {
+            System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
+                    "for day "+t+" is negative! This may disrupt the process model for the rest of the filter step!");
+        }
         System.out.println("unobserved infection prop: "+unobservedInfectProp);
 
         double observedInfectProp = propensities[0] - unobservedInfectProp;
         double allowedRecovProp, forbiddenRecovProp;
-        if (state > tree.lineages) {
+        if (state > tree.lineages + propensities[1]) { //THIS IS A TEST TO SOLVE THE RECOVERY PAST LIMIT ISSUE
             allowedRecovProp = propensities[1];
             forbiddenRecovProp = 0.0;
         }
@@ -44,6 +48,17 @@ public class ProcessModel {
             System.out.println("adjusted propensities: "+Arrays.toString(adjustedPropensities));
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities);
             System.out.println("Today's Phylo Likelihood: " +todayPhyloLikelihood);
+            if (Double.isInfinite(todayPhyloLikelihood)) {
+                System.out.println("WARNING: Particle "+particle.particleID+" likelihood for day "+t+" is Infinity!");
+                System.out.println("["+particle.particleID+"]State pre phylo likelihood calc: "+state);
+                System.out.println("["+particle.particleID+"]State post phylo likelihood calc: "+particle.getState());
+                System.out.println("["+particle.particleID+"]Likelihood: "+todayPhyloLikelihood);
+                System.out.println("["+particle.particleID+"]Tree lineages: "+tree.lineages);
+                System.out.println("["+particle.particleID+"]Unobserved births: "+births);
+                System.out.println("["+particle.particleID+"]Deaths: "+deaths);
+                System.out.println("["+particle.particleID+"]Adjusted propensities: "+Arrays.toString(adjustedPropensities));
+            }
+
             particle.setPhyloLikelihood(particle.getPhyloLikelihood()+todayPhyloLikelihood);
             System.out.println("Overall Phylo Likelihood: "+particle.getPhyloLikelihood());
         } else {
@@ -61,7 +76,7 @@ public class ProcessModel {
                 break;
             }
             int actualDay = t+i;
-            System.out.println();
+            //System.out.println();
             System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
             day(particle, treeSegments[i], actualDay, rates[i]);
         }
