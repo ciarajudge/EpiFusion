@@ -1,25 +1,34 @@
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
+
+
 public class MCMC {
     private final ParticleFilter particleFilter;
     private final Random random;
+    public Loggers loggers;
 
 
     public MCMC(ParticleFilter particleFilter) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
+        this.loggers = new Loggers();
+        loggers.logTrajectory(particleFilter.particles.particles[0].traj);
    }
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.001, 0.001, 0.001, 0.001, 0.001}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.0001, 0.0001, 0.0001, 0.0001, 0.0001}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
+            System.out.println();
+            System.out.println("MCMC STEP "+i);
             // Generate a proposal for the next set of parameters
             double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
             for (int j=0; j<candidateParameters.length; j++){
                 candidateParameters[j] = currentParameters[j] + this.random.nextGaussian() * proposalStdDevs[j];
             }
+            System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
 
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);
@@ -30,8 +39,12 @@ public class MCMC {
 
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
+                System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
+                loggers.logTrajectory(particleFilter.particles.particles[0].traj);
                 this.particleFilter.resetCurrentParameters();
+            } else {
+                System.out.println("Step Not Accepted");
             }
 
             // Clear the pf cache

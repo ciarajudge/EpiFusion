@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Loggers {
     File folder;
-    FileWriter trajectories;
+    public FileWriter trajectories;
 
     public Loggers(String filePath) throws IOException {
         folder = new File(filePath);

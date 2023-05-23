@@ -4,7 +4,6 @@ import java.util.ArrayList;
 public class Particle {
     int particleID;
     private int state;
-    ArrayList<Integer> states;
     double phyloLikelihood;
     double epiLikelihood;
     double phyloWeight;
@@ -15,24 +14,24 @@ public class Particle {
     public Particle(int pID) {
         particleID = pID;
         //PoissonDistribution initialI = new PoissonDistribution(100);
-        state = 1;
-        states = new ArrayList<>();
+        state = 2;
         setState(state);
         this.traj = new Trajectory(new Day(0, state, 0,0));
         this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
         this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
+        this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
+        this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
     }
 
     public Particle(Particle other, int pID) {
         this.particleID = pID;
         this.state = other.state;
-        this.states = other.states;
         this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.phyloLikelihood = 0.0;
+        this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.weight = 0.0;
         this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
-        this.phyloWeight = 0.0;
-        this.traj = other.traj;
+        this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
+        this.traj = new Trajectory(other.traj);
     }
 
     public void printStatus() {
@@ -44,7 +43,6 @@ public class Particle {
     //Setters
     public void setState(int newState) {
         this.state = newState;
-        this.states.add(state);
     }
     public void setPhyloWeight(double newWeight) {
         this.phyloWeight = newWeight;
@@ -87,9 +85,15 @@ public class Particle {
 
     //More complex updators
     public void updateWeight(double confidenceSplit) {
-        double epiConfidence = confidenceSplit;
-        double phyloConfidence = 1 - confidenceSplit;
-        weight = (Math.pow(phyloWeight, phyloConfidence))*(Math.pow(epiWeight, epiConfidence));
+        if (Storage.isEpiOnly()) {
+            weight = epiWeight;
+        } else if (Storage.isPhyloOnly()) {
+            weight = phyloWeight;
+        } else {
+            double epiConfidence = confidenceSplit;
+            double phyloConfidence = 1 - confidenceSplit;
+            weight = (Math.pow(phyloWeight, phyloConfidence))*(Math.pow(epiWeight, epiConfidence));
+        }
     }
     public void updateTrajectory(Day day) {
         traj.updateTrajectory(day);

@@ -1,5 +1,6 @@
 public class Storage {
     private static boolean phyloOnly = false;
+    private static boolean epiOnly = false;
     private static boolean epiGrainyResolution = false;
     public static int resampleEvery = 7;
     public static Priors priors = new Priors();
@@ -15,8 +16,16 @@ public class Storage {
         resampleEvery = resampling;
     }
 
+    public static void setEpiOnly() {
+        epiOnly = true;
+    }
+
     public static boolean isPhyloOnly() {
         return phyloOnly;
+    }
+
+    public static boolean isEpiOnly() {
+        return epiOnly;
     }
 
     public static boolean isEpiGrainyResolution() {

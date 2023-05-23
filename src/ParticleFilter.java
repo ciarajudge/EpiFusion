@@ -17,7 +17,6 @@ public class ParticleFilter {
     private final int filterSteps;
     private final int resampleEvery;
     int increments;
-    public Loggers loggers;
     private int numParticles;
     //private final Random random;
 
@@ -32,11 +31,10 @@ public class ParticleFilter {
         this.candidateRates = new double[this.T][3];
         this.filterSteps = (int) Math.ceil(this.T / (double) resampleEvery);
         this.resampleEvery = resampleEvery;
-        this.loggers = new Loggers();
 
         particles = new Particles(numParticles);
         runPF(candidateParameters);
-        loggers.logTrajectory(particles.particles[0].traj);
+
         logLikelihoodCurrent = logLikelihoodCandidate;
         System.out.println(logLikelihoodCurrent);
         logPriorCurrent = logPriorCandidate;
@@ -44,6 +42,7 @@ public class ParticleFilter {
     }
 
     public void runPF(double[] parameters) {
+        clearCache();
         //Convert parameters into rates
         candidateParameters = parameters;
         candidateRates[0][0] = inverseLogistic(0, parameters);
@@ -59,10 +58,16 @@ public class ParticleFilter {
 
 
         logLikelihoodCandidate = 0.0;
-        particles.printParticles();
+        //particles.printParticles();
         for (int step=0; step<filterSteps; step++) {
             if (!(Storage.isPhyloOnly() && tree.treeFinished(step))){
-                filterStep(step);
+                if (filterStep(step)) {
+                    //All the particles are neg infinity so break the steps
+                    logLikelihoodCandidate = Double.NEGATIVE_INFINITY;
+                    logPriorCandidate = calculatePFLogPrior();
+                    System.out.println("Full run not completed");
+                    break;
+                }
             }
             else {
                 System.out.println("Model only running with Phylo and the tree is terminated.");
@@ -70,36 +75,56 @@ public class ParticleFilter {
             }
 
         }
+        /*
+        for (int i = 0; i<numParticles; i++) {
+            particles.particles[i].traj.printTrajectory(i);
+        }*/
+
         logPriorCandidate = calculatePFLogPrior();
-        System.out.println(logPriorCandidate);
+        System.out.println("Log Likelihood Candidate: "+logLikelihoodCandidate);
+        System.out.println("Log Prior Candidate: "+logPriorCandidate);
     }
 
 
-    public void filterStep(int step)  {
-        System.out.println("Step "+step);
+    public boolean filterStep(int step)  {
+        //System.out.println("STEP "+step);
         //Find out how many increments (days) in this step, useful housekeeping
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
-        //System.out.println("Increments: "+increments);
-        //predict and update
-        if (Storage.isEpiGrainyResolution()){
+
+        if (Storage.isEpiOnly()) {
+            particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
+            particles.getEpiLikelihoods(caseIncidence.incidence[step]);
+            //particles.printLikelihoods();
+            if (particles.checkEpiLikelihoods()) {
+                return true;
+            }
+        } else {
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
+            particles.checkPhyloLikelihoods();
             //particle likelihoods
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step]);
-                particles.printLikelihoods();
-                particles.checkEpiLikelihoods();
+                //particles.printLikelihoods();
+                if (particles.checkEpiLikelihoods()) {
+                    return true;
+                }
             }
+        }
+
+        if (particles.checkLikelihoods()) {
+            return true;
         }
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP();
-        System.out.println("STEP "+step+" logP: "+logP);
+        //System.out.println("STEP "+step+" logP: "+logP);
         logLikelihoodCandidate += logP;
-        particles.printWeights();
+        //particles.printWeights();
         //resample
         particles.resampleParticles();
         //print them
-        particles.printParticles();
+        //particles.printParticles();
+        return false;
     }
 
     //PF Calculators

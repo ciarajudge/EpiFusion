@@ -54,7 +54,7 @@ public class PhyloLikelihood {
         }
         else {//sampling
             conditionalLogP += Math.log(prop);
-            //particle.setState(state-1);
+            particle.setState(state-1);
         }
 
         return conditionalLogP;

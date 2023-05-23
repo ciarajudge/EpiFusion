@@ -36,8 +36,10 @@ public class Particles {
         }
     }
 
+    //Check for all particle states being 0
 
-    //Epi Likelihood things
+
+    //Likelihood things
     public void getEpiLikelihoods(int incidence) {
         try {
             ExecutorService executor = Executors.newFixedThreadPool(4);
@@ -59,20 +61,81 @@ public class Particles {
         throw new RuntimeException("Interrupted while waiting", e);
     }
     }
-    public void checkEpiLikelihoods() {
+    public boolean checkEpiLikelihoods() {
+        //Case 1: all NaN. Can happen if state is negative in which case the pf needs quitting
         boolean allNaN = true;
         for (Particle particle : particles) {
-            if (!(Double.isInfinite(particle.getEpiLikelihood()) && particle.getEpiLikelihood() < 0)) {
-                        allNaN = false;
-                        break;
+            if (!(Double.isNaN(Math.log(particle.getEpiLikelihood())))) {
+                allNaN = false;
+                break;
             }
         }
         if (allNaN) {
+            return true;
+        }
+        else {
+            //Case 2: all -Inf. Could happen if the state is very far from incidence, or is 0.
+            boolean allNegInf = true;
+            for (Particle particle : particles) {
+                if (!(Double.isInfinite(Math.log(particle.getEpiLikelihood())))) {
+                    allNegInf = false;
+                    break;
+                }
+            }
+            if (allNegInf) {
+                return true;
+                /*
+                try {
+                    ExecutorService executor = Executors.newFixedThreadPool(4);
+
+                    for (Particle particle : particles) {
+                        executor.submit(() -> particle.setEpiWeight(1/ (double) N));
+                    }
+
+                    executor.shutdown();
+                    boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+                    if (!done) {
+                        System.err.println("Not all tasks completed within the specified timeout.");
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted while waiting", e);
+                }
+                */
+
+            }
+
+        }
+        return false;
+    }
+    public void checkPhyloLikelihoods() {
+        //Case 1: all NaN. Could happen if state/incidence is negative or logFactorial() returns -Inf
+        for (Particle particle : particles) {
+            if (particle == null) {
+                System.out.println("Particle is null");
+            }
+        }
+
+        boolean allNegInf = true;
+        for (Particle particle : particles) {
+            try {
+                if (!(Double.isInfinite(particle.getPhyloLikelihood()))) {
+                    allNegInf = false;
+                    break;
+                }
+            } catch (NullPointerException e) {
+                System.out.println("NullPointerException");
+                System.out.println(particle.particleID);
+                System.out.println(particle.getState());
+
+            }
+        }
+        if (allNegInf) {
             try {
                 ExecutorService executor = Executors.newFixedThreadPool(4);
 
                 for (Particle particle : particles) {
-                    executor.submit(() -> particle.setEpiWeight(1/ (double) N));
+                    executor.submit(() -> particle.setPhyloWeight(1/ (double) N));
                 }
 
                 executor.shutdown();
@@ -85,9 +148,20 @@ public class Particles {
                 throw new RuntimeException("Interrupted while waiting", e);
             }
         }
-        System.out.println(allNaN);
+        //Case 2: all -Inf. Could happen if the state is very far from incidence, or is 0.
+        //System.out.println(allNaN);
     }
-
+    public boolean checkLikelihoods() {
+        //Case 1: all NaN. Could happen if state/incidence is negative or logFactorial() returns -Inf
+        boolean allBothNegInf = true;
+        for (Particle particle : particles) {
+            if (!(Double.isInfinite(Math.log(particle.getEpiLikelihood())) && Double.isInfinite(particle.getPhyloLikelihood()))) {
+                allBothNegInf = false;
+                break;
+            }
+        }
+        return allBothNegInf;
+    }
 
     //Weights utilities
     public void updateWeights(double confidenceSplit) {
@@ -113,6 +187,7 @@ public class Particles {
         double[] logParticleWeights = new double[N];
         double maxLogWeight = Double.NEGATIVE_INFINITY;
 
+
         int iter = 0;
         for (Particle particle : particles) {
             maxLogWeight = Math.max(particle.phyloLikelihood, maxLogWeight);
@@ -135,6 +210,12 @@ public class Particles {
         double[] particleWeights = new double[N];
         double[] logParticleWeights = new double[N];
         double maxLogWeight = Double.NEGATIVE_INFINITY;
+
+        for (Particle particle : particles) {
+            if (Double.isNaN(particle.getEpiLikelihood())) {
+                particle.setEpiWeight(Double.NEGATIVE_INFINITY);
+            }
+        }
 
         int iter = 0;
         for (Particle particle : particles) {
@@ -202,6 +283,22 @@ public class Particles {
                 executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates));
             }
 
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting", e);
+        }
+    }
+    public void epiOnlyPredictAndUpdate(int step, double[][] rates, int increments){
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        try {
+            for (Particle particle : particles) {
+                executor.submit(() -> ProcessModel.epiOnlyStep(particle, step, rates, increments));
+            }
             executor.shutdown();
             boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
             if (!done) {
