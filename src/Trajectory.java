@@ -8,8 +8,20 @@ public class Trajectory {
 
     }
 
+    public Trajectory(Trajectory copyTrajectory) {
+        this.trajectory = new ArrayList<>(copyTrajectory.trajectory);
+    }
+
     public void updateTrajectory(Day day) {
         trajectory.add(day);
+    }
+
+    public void printTrajectory(int pID) {
+        System.out.println("Particle "+pID+" trajectory");
+        for (Day d : trajectory) {
+            System.out.print(d.I+",");
+        }
+        System.out.println();
     }
 }
 
