@@ -38,4 +38,14 @@ public class Loggers {
         trajectories.write(toWrite);
     }
 
+    public void logTrajectory(Trajectory trajectory, String acceptance) throws IOException {
+        String toWrite = "";
+        for (Day d : trajectory.trajectory) {
+            toWrite = toWrite + d.I + ",";
+        }
+        toWrite = toWrite + acceptance+ "\n";
+        System.out.println(toWrite);
+        trajectories.write(toWrite);
+    }
+
 }

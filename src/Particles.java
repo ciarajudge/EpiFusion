@@ -35,6 +35,11 @@ public class Particles {
             System.out.println("CombinedWeight: "+particles[i].getEpiWeight());
         }
     }
+    public void printTrajectories() {
+        for (Particle particle : particles) {
+            particle.traj.printTrajectory(particle.particleID);
+        }
+    }
 
     //Check for all particle states being 0
 
@@ -46,8 +51,17 @@ public class Particles {
 
             for (Particle particle : particles) {
                 executor.submit(() -> {
+                    if (particle == null) {
+                        System.out.println("Null particle here line 50");
+                    }
                     double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle);
+                    if (particle == null) {
+                        System.out.println("Null particle here line 54");
+                    }
                     particle.setEpiLikelihood(newLikelihood);
+                    if (particle == null) {
+                        System.out.println("Null particle here line 58");
+                    }
                 });
             }
 
@@ -318,6 +332,9 @@ public class Particles {
 
         // Calculate the total weight of all particles
         for (Particle particle : particles) {
+            if (particle == null) {
+                System.out.println("Null particle here line 338");
+            }
             totalWeight += particle.weight;
         }
 
@@ -330,7 +347,12 @@ public class Particles {
             // Iterate through particles and select based on weights
             for (Particle particle : particles) {
                 runningSum += particle.weight;
+                if (particle.weight == 0.0) {
+                    System.out.println("skipping particle with 0 weight");
+                    continue;
+                }
                 if (runningSum >= randomWeight) {
+                    System.out.println("Particle "+particle.particleID+"resampled");
                     resampledParticles[i] = new Particle(particle, i);
                     break;
                 }

@@ -107,13 +107,20 @@ public class ProcessModel {
     public static void epiOnlyDay(Particle particle, int t, double[] rates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         int state = particle.getState();
+        if (state <= 0) {
+            Day tmpDay = new Day(t, state, 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        }
+
+
         double[] propensities = particle.getVanillaPropensities(rates);
 
         //Calculate the events
         int births = poissonSampler(propensities[0]);
-        //System.out.println("births: "+births);
+        //System.out.println("["+particle.particleID+"]"+"births: "+births);
         int deaths = poissonSampler(propensities[1]);
-        //System.out.println("deaths: "+deaths);
+        //System.out.println("["+particle.particleID+"]"+"deaths: "+deaths);
         state = state + births - deaths;
         particle.setState(state);
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
@@ -124,8 +131,10 @@ public class ProcessModel {
         int t = step*Storage.resampleEvery;
         for (int i=0; i<increments; i++) {
             int actualDay = t+i;
+            //System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
             epiOnlyDay(particle, actualDay, rates[i]);
         }
+
     }
 
 
