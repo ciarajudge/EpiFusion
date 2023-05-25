@@ -63,6 +63,7 @@ public class Particle {
     public int getState() {
         return this.state;
     }
+    public double getWeight() {return this.weight;}
     public double getPhyloWeight() {
         return this.phyloWeight;
     }

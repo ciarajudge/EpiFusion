@@ -18,7 +18,7 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.00001, 0.00001, 0.0001, 0.0001, 0.0001}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.0001, 0.0001, 0.0005, 0.005, 0.005}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println();
@@ -28,7 +28,7 @@ public class MCMC {
             for (int j=0; j<candidateParameters.length; j++){
                 candidateParameters[j] = currentParameters[j] + this.random.nextGaussian() * proposalStdDevs[j];
             }
-            System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
+            //System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
 
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);
@@ -36,15 +36,14 @@ public class MCMC {
 
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
-
+            loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
-                particleFilter.particles.printTrajectories();
+                //particleFilter.particles.printTrajectories();
                 System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
                 loggers.logTrajectory(particleFilter.particles.particles[0].traj);
                 this.particleFilter.resetCurrentParameters();
-                break;
             } else {
                 System.out.println("Step Not Accepted");
                 //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
@@ -64,7 +63,7 @@ public class MCMC {
         double logPriorCurrent = this.particleFilter.getLogPriorCurrent();
         double logPriorCandidate = this.particleFilter.getLogPriorCandidate();
 
-        double acceptanceRatio = (logLikelihoodCandidate * logPriorCandidate) / (logLikelihoodCurrent * logPriorCurrent);
+        double acceptanceRatio = (logLikelihoodCurrent * logPriorCurrent) / (logLikelihoodCandidate * logPriorCandidate);
         return Math.min(1.0, acceptanceRatio);
     }
 

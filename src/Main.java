@@ -6,9 +6,9 @@ public class Main {
         System.out.println("EpiFusion");
 
         //Define params
-        int numParticles = 5;
+        int numParticles = 100;
         Storage.setNumParticles(numParticles);
-        int numIterations = 20;
+        int numIterations = 10;
         Storage.setEpiGrainyResolution();
         //Storage.setPhyloOnly();
         Storage.setEpiOnly();

@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 public class Loggers {
     File folder;
     public FileWriter trajectories;
+    public FileWriter likelihoods;
 
     public Loggers(String filePath) throws IOException {
         folder = new File(filePath);
@@ -14,6 +15,7 @@ public class Loggers {
             folder.mkdir();
         }
         trajectories = new FileWriter(filePath+"/trajectories.csv");
+        likelihoods = new FileWriter(filePath+"/likelihoods.txt");
     }
 
     public Loggers() throws IOException {
@@ -35,6 +37,11 @@ public class Loggers {
         }
         toWrite = toWrite + "\n";
         System.out.println(toWrite);
+        trajectories.write(toWrite);
+    }
+
+    public void logLogLikelihood(Double likelihood) throws IOException {
+        String toWrite = likelihood + "\n";
         trajectories.write(toWrite);
     }
 

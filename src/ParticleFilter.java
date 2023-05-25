@@ -87,14 +87,14 @@ public class ParticleFilter {
 
 
     public boolean filterStep(int step)  {
-        System.out.println("STEP "+step);
+        //System.out.println("STEP "+step);
         //Find out how many increments (days) in this step, useful housekeeping
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
 
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
             particles.getEpiLikelihoods(caseIncidence.incidence[step]);
-            particles.printLikelihoods();
+            //particles.printLikelihoods();
             if (particles.checkEpiLikelihoods()) {
                 return true;
             }
@@ -119,7 +119,7 @@ public class ParticleFilter {
         double logP = particles.scaleWeightsAndGetLogP();
         //System.out.println("STEP "+step+" logP: "+logP);
         logLikelihoodCandidate += logP;
-        particles.printWeights();
+        //particles.printWeights();
         //resample
         particles.resampleParticles();
         //print them
