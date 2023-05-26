@@ -81,8 +81,8 @@ public class ParticleFilter {
         }*/
 
         logPriorCandidate = calculatePFLogPrior();
-        System.out.println("Log Likelihood Candidate: "+logLikelihoodCandidate);
-        System.out.println("Log Prior Candidate: "+logPriorCandidate);
+        //System.out.println("Log Likelihood Candidate: "+logLikelihoodCandidate);
+        //System.out.println("Log Prior Candidate: "+logPriorCandidate);
     }
 
 
@@ -131,8 +131,10 @@ public class ParticleFilter {
     public double calculatePFLogPrior() {
         double logPrior = 1.0;
         for (int d=0; d<currentParameters.length; d++) {
+            //System.out.println(Storage.priors.allPriors[d].density(currentParameters[d]));
             logPrior *= Storage.priors.allPriors[d].density(currentParameters[d]);
         }
+        logPrior = Math.log(logPrior);
         return logPrior;
     }
 

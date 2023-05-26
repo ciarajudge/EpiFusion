@@ -6,12 +6,12 @@ public class Main {
         System.out.println("EpiFusion");
 
         //Define params
-        int numParticles = 100;
+        int numParticles = 10;
         Storage.setNumParticles(numParticles);
         int numIterations = 10;
         Storage.setEpiGrainyResolution();
-        //Storage.setPhyloOnly();
-        Storage.setEpiOnly();
+        Storage.setPhyloOnly();
+        //Storage.setEpiOnly();
         int resampleEvery = 7;
         Storage.setResampling(resampleEvery);
         int T;
@@ -35,7 +35,7 @@ public class Main {
         MCMC particleMCMC = new MCMC(particleFilter);
         particleMCMC.runMCMC(numIterations);
 
-        particleMCMC.loggers.trajectories.close();
+        particleMCMC.loggers.terminateLoggers();
 
     }
 }

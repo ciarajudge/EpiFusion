@@ -21,8 +21,8 @@ public class MCMC {
         double[] proposalStdDevs = {0.0001, 0.0001, 0.0005, 0.005, 0.005}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
-            System.out.println();
-            System.out.println("MCMC STEP "+i);
+            //System.out.println();
+            //System.out.println("MCMC STEP "+i);
             // Generate a proposal for the next set of parameters
             double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
             for (int j=0; j<candidateParameters.length; j++){
@@ -37,15 +37,15 @@ public class MCMC {
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
             loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
+            loggers.logTrajectory(particleFilter.particles.particles[0].traj);
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
                 //particleFilter.particles.printTrajectories();
-                System.out.println("Step Accepted");
+                //System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
-                loggers.logTrajectory(particleFilter.particles.particles[0].traj);
                 this.particleFilter.resetCurrentParameters();
             } else {
-                System.out.println("Step Not Accepted");
+                //System.out.println("Step Not Accepted");
                 //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
             }
 
@@ -63,7 +63,10 @@ public class MCMC {
         double logPriorCurrent = this.particleFilter.getLogPriorCurrent();
         double logPriorCandidate = this.particleFilter.getLogPriorCandidate();
 
-        double acceptanceRatio = (logLikelihoodCurrent * logPriorCurrent) / (logLikelihoodCandidate * logPriorCandidate);
+        double logAcceptanceRatio = logLikelihoodCandidate + logPriorCandidate - logLikelihoodCurrent + logPriorCurrent ;
+        //System.out.println("Log acceptance ratio "+logAcceptanceRatio);
+        double acceptanceRatio = Math.exp(logAcceptanceRatio);
+        //System.out.println("Acceptance ratio: " + acceptanceRatio);
         return Math.min(1.0, acceptanceRatio);
     }
 

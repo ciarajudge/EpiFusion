@@ -28,6 +28,7 @@ public class Loggers {
             folder.mkdir();
         }
         trajectories = new FileWriter(filePath+"/trajectories.csv");
+        likelihoods = new FileWriter(filePath+"/likelihoods.txt");
     }
 
     public void logTrajectory(Trajectory trajectory) throws IOException {
@@ -42,7 +43,7 @@ public class Loggers {
 
     public void logLogLikelihood(Double likelihood) throws IOException {
         String toWrite = likelihood + "\n";
-        trajectories.write(toWrite);
+        likelihoods.write(toWrite);
     }
 
     public void logTrajectory(Trajectory trajectory, String acceptance) throws IOException {
@@ -51,8 +52,13 @@ public class Loggers {
             toWrite = toWrite + d.I + ",";
         }
         toWrite = toWrite + acceptance+ "\n";
-        System.out.println(toWrite);
+        //System.out.println(toWrite);
         trajectories.write(toWrite);
+    }
+
+    public void terminateLoggers() throws IOException {
+        trajectories.close();
+        likelihoods.close();
     }
 
 }
