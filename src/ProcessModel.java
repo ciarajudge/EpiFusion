@@ -5,6 +5,10 @@ public class ProcessModel {
 
     public static void day(Particle particle, TreeSegment tree, int t, double[] rates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
+        if (particle == null) {
+            System.out.println("null particle here PM line 9");
+        }
+
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
             return;
         }
