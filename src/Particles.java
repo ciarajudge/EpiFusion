@@ -296,7 +296,7 @@ public class Particles {
 
     //Actual propagation
     public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments){
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ExecutorService executor = Executors.newFixedThreadPool(10);
         try {
             int t = step*Storage.resampleEvery;
             //Tree segments made here
