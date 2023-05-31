@@ -8,10 +8,11 @@ public class Main {
         //Define params
         int numParticles = 100;
         Storage.setNumParticles(numParticles);
-        int numIterations = 100;
+        int numIterations = 10000;
+        Storage.setNumMCMCsteps(numIterations);
         Storage.setEpiGrainyResolution();
-        Storage.setPhyloOnly();
-        //Storage.setEpiOnly();
+        //Storage.setPhyloOnly();
+        Storage.setEpiOnly();
         int resampleEvery = 7;
         Storage.setResampling(resampleEvery);
         int T;

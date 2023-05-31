@@ -5,8 +5,11 @@ public class Storage {
     public static int resampleEvery = 7;
     public static Priors priors = new Priors();
     public static int numParticles = 0;
+    public static int numMCMCsteps = 0;
 
     public static void setNumParticles(int N) {numParticles = N;}
+
+    public static void setNumMCMCsteps(int T) {numMCMCsteps = T;}
 
     public static void setPhyloOnly() {
         phyloOnly = true;
