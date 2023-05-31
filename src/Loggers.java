@@ -57,7 +57,7 @@ public class Loggers {
         likelihoods.write(toWrite);
     }
 
-    public void logParams(Double[] paramSet) throws IOException {
+    public void logParams(double[] paramSet) throws IOException {
         String toWrite = "";
         for (Double param : paramSet) {
             toWrite = toWrite + param + ",";
