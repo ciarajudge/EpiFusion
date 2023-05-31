@@ -55,7 +55,7 @@ public class Particles {
     //Likelihood things
     public void getEpiLikelihoods(int incidence) {
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(4);
+            ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
 
             for (Particle particle : particles) {
                 executor.submit(() -> {
@@ -178,7 +178,7 @@ public class Particles {
     //Weights utilities
     public void updateWeights(double confidenceSplit) {
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(4);
+            ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
 
             for (Particle particle : particles) {
                 executor.submit(() -> particle.updateWeight(confidenceSplit));
@@ -297,7 +297,7 @@ public class Particles {
 
     //Actual propagation
     public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments){
-        ExecutorService executor = Executors.newFixedThreadPool(10);
+        ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
         try {
             int t = step*Storage.resampleEvery;
             //Tree segments made here
@@ -324,7 +324,7 @@ public class Particles {
         }
     }
     public void epiOnlyPredictAndUpdate(int step, double[][] rates, int increments){
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
         try {
             for (Particle particle : particles) {
                 executor.submit(() -> ProcessModel.epiOnlyStep(particle, step, rates, increments));

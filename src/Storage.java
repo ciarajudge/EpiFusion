@@ -6,6 +6,7 @@ public class Storage {
     public static Priors priors = new Priors();
     public static int numParticles = 0;
     public static int numMCMCsteps = 0;
+    public static int numThreads = 10;
 
     public static void setNumParticles(int N) {numParticles = N;}
 

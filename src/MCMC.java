@@ -19,7 +19,7 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.0001, 0.0001, 0.0005, 0.005, 0.0001}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.001, 0.001, 0.005, 0.005, 0.0001}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println();
@@ -44,7 +44,7 @@ public class MCMC {
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
             loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
-            loggers.logTrajectory(particleFilter.particles.particles[0].traj;
+            loggers.logTrajectory(particleFilter.particles.particles[0].traj);
             loggers.logParams(candidateParameters);
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
