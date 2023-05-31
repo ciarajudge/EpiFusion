@@ -121,51 +121,50 @@ public class Particles {
         }
         return false;
     }
-    public void checkPhyloLikelihoods() {
-        //Case 1: all NaN. Could happen if state/incidence is negative or logFactorial() returns -Inf
+    public boolean checkPhyloLikelihoods() {
+        boolean allNaN = true;
         for (Particle particle : particles) {
-            if (particle == null) {
-                System.out.println("Particle is null");
+            if (!(Double.isNaN(particle.getPhyloLikelihood()))) {
+                allNaN = false;
+                break;
             }
         }
-
-        boolean allNegInf = true;
-        for (Particle particle : particles) {
-            try {
+        if (allNaN) {
+            return true;
+        }
+        else {
+            boolean allNegInf = true;
+            for (Particle particle : particles) {
                 if (!(Double.isInfinite(particle.getPhyloLikelihood()))) {
                     allNegInf = false;
                     break;
                 }
-            } catch (NullPointerException e) {
-                System.out.println("NullPointerException");
-                System.out.println(particle.particleID);
-                System.out.println(particle.getState());
-
             }
-        }
-        if (allNegInf) {
-            try {
-                ExecutorService executor = Executors.newFixedThreadPool(4);
+            if (allNegInf) {
+                return true;
+                /*
+                try {
+                    ExecutorService executor = Executors.newFixedThreadPool(4);
 
-                for (Particle particle : particles) {
-                    executor.submit(() -> particle.setPhyloWeight(1/ (double) N));
-                }
+                    for (Particle particle : particles) {
+                        executor.submit(() -> particle.setPhyloWeight(1/ (double) N));
+                    }
 
-                executor.shutdown();
-                boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-                if (!done) {
-                    System.err.println("Not all tasks completed within the specified timeout.");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Interrupted while waiting", e);
+                    executor.shutdown();
+                    boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+                    if (!done) {
+                        System.err.println("Not all tasks completed within the specified timeout.");
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted while waiting", e);
+                } */
             }
+
         }
-        //Case 2: all -Inf. Could happen if the state is very far from incidence, or is 0.
-        //System.out.println(allNaN);
+        return false;
     }
     public boolean checkLikelihoods() {
-        //Case 1: all NaN. Could happen if state/incidence is negative or logFactorial() returns -Inf
         boolean allBothNegInf = true;
         for (Particle particle : particles) {
             if (!(Double.isInfinite(Math.log(particle.getEpiLikelihood())) && Double.isInfinite(particle.getPhyloLikelihood()))) {
@@ -203,6 +202,9 @@ public class Particles {
 
         int iter = 0;
         for (Particle particle : particles) {
+            if (Double.isNaN(particle.getPhyloLikelihood())) {
+                particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+            }
             maxLogWeight = Math.max(particle.phyloLikelihood, maxLogWeight);
             logParticleWeights[iter] = particle.phyloLikelihood;
             iter++;
@@ -272,8 +274,8 @@ public class Particles {
 
             int iter = 0;
             for (Particle particle : particles) {
-                maxLogWeight = Math.max(particle.weight, maxLogWeight);
-                logParticleWeights[iter] = particle.weight;
+                maxLogWeight = Math.max(Math.log(particle.weight), maxLogWeight);
+                logParticleWeights[iter] = Math.log(particle.weight);
                 iter++;
             }
 
@@ -286,7 +288,6 @@ public class Particles {
             for (int p=0; p<N; p++){
                 particles[p].setWeight(particleWeights[p]/sumOfScaledWeights);
             }
-
             double logP = Math.log(sumOfScaledWeights/N) + maxLogWeight;
             return logP;
         }
