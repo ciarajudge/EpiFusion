@@ -9,38 +9,26 @@ public class PhyloLikelihood {
         int treeSamples = tree.samplings;
         double conditionalLogP = 0.0;
 
-        try {
-            // Case 1: Likelihood given no events on the tree
-            conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
-            //System.out.println("Phylolikelihood main:" + conditionalLogP);
+        // Case 1: Likelihood given no events on the tree
+        conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
+        //System.out.println("Phylolikelihood main:" + conditionalLogP);
 
-            if (treeBirths != 0 || treeSamples != 0) {
-                // Case 2: Likelihood given something does happen
-                int[] observations = tree.observationOrder;
-                for (int observation : observations) {
+        if (treeBirths != 0 || treeSamples != 0) {
+            // Case 2: Likelihood given something does happen
+            int[] observations = tree.observationOrder;
+            for (int observation : observations) {
+                if (observation == 0) {
                     conditionalLogP += observedEventProbability(observation, particle, propensities[0] + propensities[1]);
                 }
+                else {
+                    conditionalLogP += observedEventProbability(observation, particle, propensities[4]);
+                }
+
             }
-        } catch (NullPointerException e) {
-            // Handle NullPointerException
-            System.out.println("Null pointer exception");
-            e.printStackTrace();
-            // You can choose to throw the exception again if needed or return a specific value.
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // Handle ArrayIndexOutOfBoundsException
-            System.out.println("Array index out of bounds exception");
-            e.printStackTrace();
-            // You can choose to throw the exception again if needed or return a specific value.
-        } catch (ConcurrentModificationException e) {
-            // Handle ConcurrentModificationException
-            System.out.println("Concurrent modification exception");
-            e.printStackTrace();
-            // You can choose to throw the exception again if needed or return a specific value.
-        } catch (Exception e) {
-            // Handle any other exception (optional)
-            System.out.println("Other exception");
-            e.printStackTrace();
-            // You can choose to throw the exception again if needed or return a specific value.
+        }
+
+        if (particle.getState() < 0) { //Sometimes the observations can make the state go negative, in which case the particle is trash
+            conditionalLogP = Double.NEGATIVE_INFINITY;
         }
 
         return conditionalLogP;
@@ -58,6 +46,7 @@ public class PhyloLikelihood {
             particle.setState(state+1);
         }
         else {//sampling
+            //System.out.println("Additional sampling P:" + prop);
             //System.out.println("Additional sampling logP:" + Math.log(prop));
             conditionalLogP += Math.log(prop);
             particle.setState(state-1);
