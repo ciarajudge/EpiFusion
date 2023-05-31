@@ -23,10 +23,12 @@ public class ProcessModel {
                 ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
                 : 0.0;
         if (unobservedInfectProp < 0.0) {
-            System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
+            /*System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
                     "for day "+t+" is negative! This will disrupt the process model for the rest of the filter step!"+
                     " Returning neg infinity for the particle.");
+            */
             particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+
             return;
         }
         //System.out.println("unobserved infection prop: "+unobservedInfectProp);
@@ -64,7 +66,7 @@ public class ProcessModel {
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities);
             //System.out.println("Today's Phylo Likelihood: " +todayPhyloLikelihood);
             if (Double.isInfinite(todayPhyloLikelihood)) {
-                System.out.println("WARNING: Particle "+particle.particleID+" likelihood for day "+t+" is Infinity!");
+                //System.out.println("WARNING: Particle "+particle.particleID+" likelihood for day "+t+" is Infinity!");
                 /*
                 System.out.println("["+particle.particleID+"]State pre phylo likelihood calc: "+state);
                 System.out.println("["+particle.particleID+"]State post phylo likelihood calc: "+particle.getState());

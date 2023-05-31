@@ -100,7 +100,10 @@ public class ParticleFilter {
             }
         } else {
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
-            particles.checkPhyloLikelihoods();
+            //particles.printLikelihoods();
+            if (particles.checkPhyloLikelihoods()) {
+                return true;
+            }
             //particle likelihoods
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step]);
@@ -108,18 +111,21 @@ public class ParticleFilter {
                 if (particles.checkEpiLikelihoods()) {
                     return true;
                 }
+            } else {
+                //particles.printLikelihoods();
             }
         }
 
-        if (particles.checkLikelihoods()) {
+        /*if (particles.checkLikelihoods()) {
             return true;
-        }
+        }*/
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP();
-        //System.out.println("STEP "+step+" logP: "+logP);
+
         logLikelihoodCandidate += logP;
         //particles.printWeights();
+        //System.out.println("STEP "+step+" logP: "+logP);
         //resample
         particles.resampleParticles();
         //print them
