@@ -9,9 +9,9 @@ public class Priors {
     public final NormalDistribution[] allPriors;
 
     public Priors() {
-        a = new NormalDistribution(0.047, 0.001);
-        b = new NormalDistribution(-0.057, 0.0001);
-        c = new NormalDistribution(0.5, 0.01);
+        a = new NormalDistribution(0.047, 0.05);
+        b = new NormalDistribution(-0.057, 0.05);
+        c = new NormalDistribution(0.5, 0.1);
         gamma = new NormalDistribution(0.233, 0.01);
         psi = new NormalDistribution(0.007, 0.001);
         allPriors = new NormalDistribution[] {a,b,c,gamma,psi};
