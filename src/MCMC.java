@@ -19,7 +19,7 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.001, 0.001, 0.005, 0.005, 0.0001}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.01, 0.01, 0.1, 0.005, 0.0001}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println();
