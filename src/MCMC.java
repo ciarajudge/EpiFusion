@@ -29,7 +29,7 @@ public class MCMC {
             for (int j=0; j<candidateParameters.length; j++){
                 candidateParameters[j] = currentParameters[j] + this.random.nextGaussian() * proposalStdDevs[j];
             }
-            System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
+            //System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
 
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);
@@ -49,12 +49,12 @@ public class MCMC {
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
                 //particleFilter.particles.printTrajectories();
-                System.out.println("Step Accepted");
+                //System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
                 this.particleFilter.resetCurrentParameters();
                 loggers.logAcceptance(0);
             } else {
-                System.out.println("Step Not Accepted");
+                //System.out.println("Step Not Accepted");
                 loggers.logAcceptance(1);
                 //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
             }

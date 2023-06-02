@@ -116,9 +116,9 @@ public class ParticleFilter {
             }
         }
 
-        /*if (particles.checkLikelihoods()) {
-            return true;
-        }*/
+        //if (particles.checkLikelihoods()) {
+        //    return true;
+        //}
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP();
