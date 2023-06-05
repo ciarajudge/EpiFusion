@@ -17,7 +17,10 @@ public class Loggers {
             folder.mkdir();
         }
         trajectories = new FileWriter(filePath+"/trajectories.csv");
+        trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
+        params = new FileWriter(filePath+"/params.txt");
+        acceptance = new FileWriter(filePath+"/acceptance.txt");
     }
 
     public Loggers() throws IOException {
@@ -31,7 +34,7 @@ public class Loggers {
         } else {
             folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_"+currentDateTime.format(formatter);
         }
-        String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
+        String filePath = folderName;
         folder = new File(filePath);
         if (!folder.exists()){
             folder.mkdir();

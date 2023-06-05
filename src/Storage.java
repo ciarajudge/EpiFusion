@@ -10,6 +10,7 @@ public class Storage {
     public static Tree tree = null;
     public static Incidence incidence = null;
     public static int T;
+    public static String fileBase;
 
     public static void setNumParticles(int N) {numParticles = N;}
 
@@ -57,5 +58,9 @@ public class Storage {
 
     public static void setT(int Time) {
         T = Time;
+    }
+
+    public static void setfileBase(String file) {
+        fileBase = file;
     }
 }

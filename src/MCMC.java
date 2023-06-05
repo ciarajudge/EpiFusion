@@ -12,14 +12,14 @@ public class MCMC {
     public MCMC(ParticleFilter particleFilter) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
-        this.loggers = new Loggers();
+        this.loggers = new Loggers(Storage.fileBase);
         loggers.logTrajectory(particleFilter.particles.particles[0].traj);
         loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
    }
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.01, 0.01, 0.1, 0.005, 0.0001}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.05, 0.01, 0.2, 0.005, 0.0001}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println();

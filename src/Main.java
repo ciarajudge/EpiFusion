@@ -48,12 +48,15 @@ public class Main {
         Element root = document.getDocumentElement();
         Element dataElement = (Element) root.getElementsByTagName("data").item(0);
         Element parametersElement = (Element) root.getElementsByTagName("parameters").item(0);
+        Element loggersElement = (Element) root.getElementsByTagName("loggers").item(0);
+        String fileBase = loggersElement.getElementsByTagName("fileBase").item(0).getTextContent();
+        Storage.setfileBase(fileBase);
 
         // Get boolean values of epi or phylo only
         boolean epiOnly = Boolean.parseBoolean(parametersElement.getElementsByTagName("epiOnly").item(0).getTextContent());
         boolean phyloOnly = Boolean.parseBoolean(parametersElement.getElementsByTagName("phyloOnly").item(0).getTextContent());
 
-        if (!phyloOnly) {
+       // if (!phyloOnly) {
             boolean incidenceFileExists = dataElement.getElementsByTagName("incidenceFile").getLength() > 0;
             if (incidenceFileExists) {
                 String incidenceFile = dataElement.getElementsByTagName("incidenceFile").item(0).getTextContent();
@@ -69,9 +72,9 @@ public class Main {
                     System.out.println("ERROR: Analysis includes epi model but no incidence data provided");
                 }
             }
-        }
+       // }
 
-        if (!epiOnly) {
+        //if (!epiOnly) {
             boolean treeFileExists = dataElement.getElementsByTagName("treeFile").getLength() > 0;
             if (treeFileExists) {
                 String treeFile = dataElement.getElementsByTagName("treeFile").item(0).getTextContent();
@@ -87,7 +90,7 @@ public class Main {
                     System.out.println("ERROR: Analysis includes phylo model but no tree data provided");
                 }
             }
-        }
+        //}
 
 
         // Extract parameters element values
@@ -106,10 +109,10 @@ public class Main {
             System.out.println("ERROR: analysis cannot be both epi and phylo only!");
             System.exit(0);
         } else if (epiOnly) {
-            tree = null;
+            //tree = null;
             Storage.setEpiOnly();
         } else if (phyloOnly) {
-            incidence = null;
+            //incidence = null;
             Storage.setPhyloOnly();
         }
 
