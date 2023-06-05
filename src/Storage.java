@@ -7,6 +7,9 @@ public class Storage {
     public static int numParticles = 0;
     public static int numMCMCsteps = 0;
     public static int numThreads = 10;
+    public static Tree tree = null;
+    public static Incidence incidence = null;
+    public static int T;
 
     public static void setNumParticles(int N) {numParticles = N;}
 
@@ -42,5 +45,17 @@ public class Storage {
 
     public static void setEpiResolution(boolean resolution) {
         epiGrainyResolution = resolution;
+    }
+
+    public static void setTree(Tree t) {
+        tree = t;
+    }
+
+    public static void setIncidence(Incidence i) {
+        incidence = i;
+    }
+
+    public static void setT(int Time) {
+        T = Time;
     }
 }

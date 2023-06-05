@@ -19,6 +19,15 @@ public class Tree {
         this.root = parseNewickString(newickString);
     }
 
+
+    public Tree(String treeString, boolean isString) throws IOException {
+        this.age = 0.0;
+        // Create a Tree object from the Newick format string
+        this.root = parseNewickString(treeString);
+    }
+
+
+
     //Read-in utilities
     private Node parseNewickString(String newickString) {
         double time = 0.0;

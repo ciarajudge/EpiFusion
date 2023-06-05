@@ -14,6 +14,16 @@ public class Incidence {
         length = incidence.length;
     }
 
+    public Incidence(String incidenceString, boolean notAFile) {
+        String[] stringArray = incidenceString.split(" ");
+        incidence = new int [stringArray.length];
+        for (int i = 0; i<stringArray.length; i++) {
+            System.out.println(Integer.parseInt(stringArray[i]));
+            incidence[i] = Integer.parseInt(stringArray[i]);
+        }
+        length = incidence.length;
+    }
+
 
 
 
