@@ -6,11 +6,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.io.IOException;
 import java.util.Arrays;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         System.out.println("EpiFusion");
 
+        //Syncmarker
         parseXMLInput(args[0]);
 
         //Storage silly to do it this way but improves readability

@@ -6,6 +6,7 @@ public class Priors {
     public final NormalDistribution c;
     public final NormalDistribution gamma;
     public final NormalDistribution psi;
+    public final NormalDistribution phi;
     public final NormalDistribution[] allPriors;
 
     public Priors() {
@@ -14,11 +15,12 @@ public class Priors {
         c = new NormalDistribution(0.5, 0.1);
         gamma = new NormalDistribution(0.233, 0.02);
         psi = new NormalDistribution(0.007, 0.001);
-        allPriors = new NormalDistribution[] {a,b,c,gamma,psi};
+        phi = new NormalDistribution(0.15, 0.01);
+        allPriors = new NormalDistribution[] {a,b,c,gamma,psi,phi};
     }
 
     public double[] sampleInitial() {
-        double[] initialParams = {a.sample(), b.sample(), c.sample(), gamma.sample(), psi.sample()};
+        double[] initialParams = {a.sample(), b.sample(), c.sample(), gamma.sample(), psi.sample(), phi.sample()};
         return initialParams;
     }
 

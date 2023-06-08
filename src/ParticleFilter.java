@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.Arrays;
 import org.apache.commons.math3.distribution.NormalDistribution;
 
 public class ParticleFilter {
@@ -28,7 +29,8 @@ public class ParticleFilter {
         this.caseIncidence = incidence;
         this.T = T;
         //this.random = new Random();
-        this.candidateRates = new double[this.T][3];
+        this.candidateRates = new double[this.T][4];
+        System.out.println(Arrays.toString(candidateParameters));
         this.filterSteps = (int) Math.ceil(this.T / (double) resampleEvery);
         this.resampleEvery = resampleEvery;
 
@@ -48,12 +50,14 @@ public class ParticleFilter {
         candidateRates[0][0] = inverseLogistic(0, parameters);
         candidateRates[0][1] = parameters[3];//assign day 0
         candidateRates[0][2] = parameters[4];
+        candidateRates[0][3] = parameters[5];
         for (int k = 1; k < T; k++) { //Random walk for gamma, inverse log for
             candidateRates[k][0] = inverseLogistic(k, parameters);
             //candidateRates[k][1] = candidateRates[k-1][1] + this.random.nextGaussian()*0.01;
             //candidateRates[k][2] = candidateRates[k-1][2] + this.random.nextGaussian()*0.0001;//assign the rest using random walk
             candidateRates[k][1] = parameters[3];
             candidateRates[k][2] = parameters[4];
+            candidateRates[k][3] = parameters[5];
         }
 
 
@@ -93,7 +97,7 @@ public class ParticleFilter {
 
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
-            particles.getEpiLikelihoods(caseIncidence.incidence[step]);
+            particles.getEpiLikelihoods(caseIncidence.incidence[step], candidateRates[step][3]);
             //particles.printLikelihoods();
             if (particles.checkEpiLikelihoods()) {
                 return true;
@@ -106,7 +110,7 @@ public class ParticleFilter {
             }
             //particle likelihoods
             if (!Storage.isPhyloOnly()){
-                particles.getEpiLikelihoods(caseIncidence.incidence[step]);
+                particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[step][3]);
                 //particles.printLikelihoods();
                 if (particles.checkEpiLikelihoods()) {
                     return true;
@@ -162,7 +166,7 @@ public class ParticleFilter {
         return rateVector;
     }
     private double[][] getRatesForStep(int step) {
-        double[][] ratesForStep = new double[resampleEvery][3];
+        double[][] ratesForStep = new double[resampleEvery][4];
         int begin = step*resampleEvery;
         int ind = 0;
         for (int i=begin; i<begin+increments; i++){

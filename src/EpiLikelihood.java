@@ -10,14 +10,13 @@ public class EpiLikelihood {
     }
 
 
-    public static double poissonLikelihood(int incidence, Particle particle) {
+    public static double poissonLikelihood(int incidence, Particle particle, double phi) {
         if (particle.getState() == 0 && incidence == 0) { //if state and incidence are 0, prob is 1
             return 1.0;
         } else if (particle.getState() <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
             return 0.0;
         }
-        double pDetect = 0.15; // Note that this is a constant number but I should switch to sampling from a dist to introduce noise
-        double p = particle.getState() * pDetect;
+        double p = particle.getState() * phi;
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         return Math.exp(logLikelihood);
     }
