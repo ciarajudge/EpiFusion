@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 
@@ -12,14 +13,14 @@ public class MCMC {
     public MCMC(ParticleFilter particleFilter) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
-        this.loggers = new Loggers(Storage.fileBase);
+        this.loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
         loggers.logTrajectory(particleFilter.particles.particles[0].traj);
         loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
    }
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.05, 0.01, 0.2, 0.005, 0.0001, 0.001}; // example proposal standard deviations
+        double[] proposalStdDevs = {0.05, 0.05, 0.05, 0.0, 0.0, 0.0}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println();
@@ -29,7 +30,7 @@ public class MCMC {
             for (int j=0; j<candidateParameters.length; j++){
                 candidateParameters[j] = currentParameters[j] + this.random.nextGaussian() * proposalStdDevs[j];
             }
-            //System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
+            System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
 
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);

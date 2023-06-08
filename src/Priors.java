@@ -11,8 +11,8 @@ public class Priors {
 
     public Priors() {
         a = new NormalDistribution(0.047, 0.03);
-        b = new NormalDistribution(-0.057, 0.01);
-        c = new NormalDistribution(0.5, 0.1);
+        b = new NormalDistribution(-0.057, 0.02);
+        c = new NormalDistribution(0.5, 0.2);
         gamma = new NormalDistribution(0.233, 0.02);
         psi = new NormalDistribution(0.007, 0.001);
         phi = new NormalDistribution(0.15, 0.01);

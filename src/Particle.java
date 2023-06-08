@@ -14,7 +14,7 @@ public class Particle {
     public Particle(int pID) {
         particleID = pID;
         //PoissonDistribution initialI = new PoissonDistribution(100);
-        state = 2;
+        state = 1;
         setState(state);
         this.traj = new Trajectory(new Day(0, state, 0,0));
         this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;

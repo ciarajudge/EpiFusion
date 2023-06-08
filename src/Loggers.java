@@ -34,11 +34,12 @@ public class Loggers {
         } else {
             folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_"+currentDateTime.format(formatter);
         }
-        String filePath = folderName;
+        String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
         folder = new File(filePath);
         if (!folder.exists()){
             folder.mkdir();
         }
+        System.out.println(filePath);
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
