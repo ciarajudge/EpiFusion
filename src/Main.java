@@ -62,7 +62,7 @@ public class Main {
         boolean phyloOnly = Boolean.parseBoolean(parametersElement.getElementsByTagName("phyloOnly").item(0).getTextContent());
 
        // if (!phyloOnly) {
-            boolean incidenceFileExists = dataElement.getElementsByTagName("incidenceFile").getLength() > 0;
+        boolean incidenceFileExists = dataElement.getElementsByTagName("incidenceFile").getLength() > 0;
             if (incidenceFileExists) {
                 String incidenceFile = dataElement.getElementsByTagName("incidenceFile").item(0).getTextContent();
                 incidence = new Incidence(incidenceFile);
@@ -129,6 +129,9 @@ public class Main {
         double phyloLength = tree.age;
         int T = Math.max(epiLength, (int) Math.round(phyloLength));
         Storage.setT(T);
+
+        Element priorElement = (Element) root.getElementsByTagName("priors").item(0);
+        Storage.setPriors(priorElement);
 
     }
 

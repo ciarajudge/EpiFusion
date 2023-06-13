@@ -1,29 +1,56 @@
-import org.apache.commons.math3.distribution.NormalDistribution;
+import org.w3c.dom.*;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class Priors {
-    public final NormalDistribution a;
-    public final NormalDistribution b;
-    public final NormalDistribution c;
-    public final NormalDistribution gamma;
-    public final NormalDistribution psi;
-    public final NormalDistribution phi;
-    public final NormalDistribution[] allPriors;
+    public Prior[] priors;
+    public int numPriors;
+    public List<Element> priorNodes;
 
-    public Priors() {
-        a = new NormalDistribution(0.047, 0.03);
-        b = new NormalDistribution(-0.057, 0.02);
-        c = new NormalDistribution(0.5, 0.2);
-        gamma = new NormalDistribution(0.233, 0.02);
-        psi = new NormalDistribution(0.007, 0.001);
-        phi = new NormalDistribution(0.15, 0.01);
-        allPriors = new NormalDistribution[] {a,b,c,gamma,psi,phi};
+    public Priors(Element priorElement) {
+        NodeList priorElementChildNodes = priorElement.getChildNodes();
+        priorNodes = new ArrayList<>();
+
+        for (int i=0; i<priorElementChildNodes.getLength(); i++) {
+            org.w3c.dom.Node node = priorElementChildNodes.item(i);
+            if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                Element element = (Element) node;
+                priorNodes.add(element);
+            }
+        }
+
+        numPriors = priorNodes.size();
+        priors = new Prior[numPriors];
+
+
+        for (int i = 0; i < priorNodes.size(); i++) {
+            org.w3c.dom.Node node = priorNodes.get(i);
+            String nodeName = node.getNodeName();
+            short nodeType = node.getNodeType();
+
+            System.out.println("Node Name: " + nodeName);
+            System.out.println("Node Type: " + nodeType);
+        }
+        for (int i=0; i<numPriors; i++) {
+            priors[i] = new Prior((Element) priorNodes.get(i));
+        }
     }
 
     public double[] sampleInitial() {
-        double[] initialParams = {a.sample(), b.sample(), c.sample(), gamma.sample(), psi.sample(), phi.sample()};
+        double[] initialParams = new double[numPriors];
+        for (int i=0; i<numPriors; i++) {
+            initialParams[i] = priors[i].sample();
+        }
+
         return initialParams;
     }
 
 
+
 }
+
+
+
+
 
