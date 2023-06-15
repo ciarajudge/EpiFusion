@@ -141,6 +141,7 @@ public class ParticleFilter {
         double logPrior = 1.0;
         for (int d=0; d<currentParameters.length; d++) {
             //System.out.println(Storage.priors.allPriors[d].density(currentParameters[d]));
+            System.out.println("Prior prob:"+Storage.priors.priors[d].density(currentParameters[d]));
             logPrior *= Storage.priors.priors[d].density(currentParameters[d]);
         }
         logPrior = Math.log(logPrior);

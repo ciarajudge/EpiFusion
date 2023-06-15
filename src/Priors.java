@@ -29,8 +29,6 @@ public class Priors {
             String nodeName = node.getNodeName();
             short nodeType = node.getNodeType();
 
-            System.out.println("Node Name: " + nodeName);
-            System.out.println("Node Type: " + nodeType);
         }
         for (int i=0; i<numPriors; i++) {
             priors[i] = new Prior((Element) priorNodes.get(i));
