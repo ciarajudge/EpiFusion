@@ -110,6 +110,9 @@ public class Main {
             Storage.setEpiGrainyResolution();
         }
 
+        double stepCoefficient = Double.parseDouble(parametersElement.getElementsByTagName("stepCoefficient").item(0).getTextContent());
+        Storage.setStepCoefficient(stepCoefficient);
+
         if (epiOnly && phyloOnly) {
             System.out.println("ERROR: analysis cannot be both epi and phylo only!");
             System.exit(0);

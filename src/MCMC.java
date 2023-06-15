@@ -20,7 +20,6 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-        double[] proposalStdDevs = {0.05, 0.05, 0.05, 0.0, 0.0, 0.0}; // example proposal standard deviations
 
         for (int i = 0; i < numIterations; i++) {
             System.out.println();
@@ -28,7 +27,7 @@ public class MCMC {
             // Generate a proposal for the next set of parameters
             double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
             for (int j=0; j<candidateParameters.length; j++){
-                candidateParameters[j] = currentParameters[j] + this.random.nextGaussian() * proposalStdDevs[j];
+                candidateParameters[j] = outarctanh(arctanh(currentParameters[j]) + this.random.nextGaussian() * Storage.stepCoefficient);
             }
             System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
 
@@ -64,6 +63,16 @@ public class MCMC {
             this.particleFilter.clearCache();
 
         }
+    }
+
+    private double arctanh(double param) {
+        return 0.5 * Math.log(1+param/(1-param));
+    }
+
+    private double outarctanh(double param) {
+        double a = Math.exp(2*param);
+        double b = (a-1)/(1+a);
+        return b;
     }
 
     private double computeAcceptanceProbability() {

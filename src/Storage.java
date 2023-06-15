@@ -9,6 +9,7 @@ public class Storage {
     public static int numParticles = 0;
     public static int numMCMCsteps = 0;
     public static int numThreads = 10;
+    public static double stepCoefficient;
     public static Tree tree = null;
     public static Incidence incidence = null;
     public static int T;
@@ -67,4 +68,6 @@ public class Storage {
     }
 
     public static void setPriors(Element element) {priors = new Priors(element);}
+
+    public static void setStepCoefficient(double stepCo) {stepCoefficient = stepCo;}
 }
