@@ -30,7 +30,6 @@ public class MCMC {
                 for (int j = 0; j < candidateParameters.length; j++) {
                     candidateParameters[j] = outarctanh(arctanh(currentParameters[j]) + this.random.nextGaussian() * Storage.stepCoefficient);
                 }
-                System.out.println(Arrays.toString(candidateParameters));
             } while (checkParams(candidateParameters) == 0);
             System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
 
@@ -69,7 +68,7 @@ public class MCMC {
     }
 
     private double arctanh(double param) {
-        return 0.5 * Math.log(1+param/(1-param));
+        return 0.5 * Math.log((1+param)/(1-param));
     }
 
     private double outarctanh(double param) {
@@ -82,7 +81,7 @@ public class MCMC {
         double logPrior = 1.0;
         for (int d=0; d<candidateParameters.length; d++) {
             //System.out.println(Storage.priors.allPriors[d].density(currentParameters[d]));
-            System.out.println("Prior prob:"+Storage.priors.priors[d].density(candidateParameters[d]));
+            //System.out.println("Prior prob:"+Storage.priors.priors[d].density(candidateParameters[d]));
             logPrior *= Storage.priors.priors[d].density(candidateParameters[d]);
         }
         System.out.println(logPrior);
