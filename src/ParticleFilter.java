@@ -20,25 +20,40 @@ public class ParticleFilter {
     private int numParticles;
     //private final Random random;
 
-    public ParticleFilter(int numParticles, double[] initialParameters, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
+    public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
         this.numParticles = numParticles;
-        this.currentParameters = initialParameters;
-        this.candidateParameters = initialParameters;
         this.tree = tree;
         this.caseIncidence = incidence;
         this.T = T;
         //this.random = new Random();
         this.candidateRates = new double[this.T][4];
-        System.out.println(Arrays.toString(candidateParameters));
+
         this.filterSteps = (int) Math.ceil(this.T / (double) resampleEvery);
         this.resampleEvery = resampleEvery;
 
         particles = new Particles(numParticles);
-        runPF(candidateParameters);
+        initialisePF(5);
 
         logLikelihoodCurrent = logLikelihoodCandidate;
         System.out.println(logLikelihoodCurrent);
         logPriorCurrent = logPriorCandidate;
+
+    }
+
+    public void initialisePF(int numAttempts) {
+        double likelihood = Double.NEGATIVE_INFINITY;
+        for (int i=0; i<numAttempts; i++) {
+            System.out.println("Initialisation attempt");
+            runPF(Storage.priors.sampleInitial());
+            System.out.println("Log Likelihood: "+logLikelihoodCandidate);
+            if (likelihood < logLikelihoodCandidate) {
+                currentParameters = candidateParameters;
+                logLikelihoodCurrent = logLikelihoodCandidate;
+                likelihood = logLikelihoodCandidate;
+            }
+        }
+        System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
+        System.out.println("Initial LL: "+logLikelihoodCurrent);
 
     }
 
@@ -139,9 +154,9 @@ public class ParticleFilter {
     //PF Calculators
     public double calculatePFLogPrior() {
         double logPrior = 1.0;
-        for (int d=0; d<currentParameters.length; d++) {
+        for (int d=0; d<candidateParameters.length; d++) {
             //System.out.println(Storage.priors.allPriors[d].density(currentParameters[d]));
-            logPrior *= Storage.priors.priors[d].density(currentParameters[d]);
+            logPrior *= Storage.priors.priors[d].density(candidateParameters[d]);
         }
         logPrior = Math.log(logPrior);
         return logPrior;

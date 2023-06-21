@@ -51,12 +51,12 @@ public class MCMC {
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
                 //particleFilter.particles.printTrajectories();
-                //System.out.println("Step Accepted");
+                System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
                 this.particleFilter.resetCurrentParameters();
                 loggers.logAcceptance(0);
             } else {
-                //System.out.println("Step Not Accepted");
+                System.out.println("Step Not Accepted");
                 loggers.logAcceptance(1);
                 //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
             }
@@ -92,14 +92,18 @@ public class MCMC {
         // Compute the acceptance probability based on the likelihood of the data given
         // the current and candidate sets of parameters
         double logLikelihoodCurrent = this.particleFilter.getLogLikelihoodCurrent();
+        System.out.println("Current log likelihood: "+logLikelihoodCurrent);
         double logLikelihoodCandidate = this.particleFilter.getLogLikelihoodCandidate();
+        System.out.println("This run log likelihood: "+logLikelihoodCandidate);
         double logPriorCurrent = this.particleFilter.getLogPriorCurrent();
+        System.out.println("Current log prior: "+logPriorCurrent);
         double logPriorCandidate = this.particleFilter.getLogPriorCandidate();
+        System.out.println("Candidate log prior: "+logPriorCandidate);
 
-        double logAcceptanceRatio = logLikelihoodCandidate + logPriorCandidate - logLikelihoodCurrent + logPriorCurrent ;
-        //System.out.println("Log acceptance ratio "+logAcceptanceRatio);
+        double logAcceptanceRatio = logLikelihoodCandidate + logPriorCandidate - (logLikelihoodCurrent + logPriorCurrent);
+        System.out.println("Log acceptance ratio "+logAcceptanceRatio);
         double acceptanceRatio = Math.exp(logAcceptanceRatio);
-        //System.out.println("Acceptance ratio: " + acceptanceRatio);
+        System.out.println("Acceptance ratio: " + acceptanceRatio);
         return Math.min(1.0, acceptanceRatio);
     }
 

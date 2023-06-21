@@ -5,11 +5,12 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.io.IOException;
+/*
 import java.util.Arrays;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ActionListener;*/
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
@@ -27,8 +28,7 @@ public class Main {
         //System.out.println(Arrays.toString(caseIncidence.incidence));
 
         //Initialise particle filter instance
-        double[] initialParameters = Storage.priors.sampleInitial();
-        ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, initialParameters, tree, caseIncidence, Storage.T, resampleEvery);
+        ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
         //Initialise and run MCMC instance
         MCMC particleMCMC = new MCMC(particleFilter);
