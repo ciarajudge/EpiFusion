@@ -105,6 +105,12 @@ public class Main {
         int numSteps = Integer.parseInt(parametersElement.getElementsByTagName("numSteps").item(0).getTextContent());
         Storage.setNumMCMCsteps(numSteps);
 
+        int logEvery = Integer.parseInt(parametersElement.getElementsByTagName("logEvery").item(0).getTextContent());
+        Storage.setLogEvery(logEvery);
+
+        int numInitialisationAttempts = Integer.parseInt(parametersElement.getElementsByTagName("numInitialisationAttempts").item(0).getTextContent());
+        Storage.setNumInitialisationAttempts(numInitialisationAttempts);
+
         boolean grainyEpi = Boolean.parseBoolean(parametersElement.getElementsByTagName("grainyEpi").item(0).getTextContent());
         if (grainyEpi) {
             Storage.setEpiGrainyResolution();

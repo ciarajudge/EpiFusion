@@ -14,10 +14,14 @@ public class Storage {
     public static Incidence incidence = null;
     public static int T;
     public static String fileBase;
+    public static int logEvery;
+    public static int numInitialisationAttempts;
 
     public static void setNumParticles(int N) {numParticles = N;}
 
     public static void setNumMCMCsteps(int T) {numMCMCsteps = T;}
+
+    public static void setNumInitialisationAttempts(int T) {numInitialisationAttempts = T;}
 
     public static void setPhyloOnly() {
         phyloOnly = true;
@@ -30,6 +34,8 @@ public class Storage {
     public static void setEpiOnly() {
         epiOnly = true;
     }
+
+    public static void setLogEvery(int N) {logEvery = N;}
 
     public static boolean isPhyloOnly() {
         return phyloOnly;

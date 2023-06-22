@@ -32,11 +32,9 @@ public class ParticleFilter {
         this.resampleEvery = resampleEvery;
 
         particles = new Particles(numParticles);
-        initialisePF(5);
+        initialisePF(Storage.numInitialisationAttempts);
 
-        logLikelihoodCurrent = logLikelihoodCandidate;
         System.out.println(logLikelihoodCurrent);
-        logPriorCurrent = logPriorCandidate;
 
     }
 

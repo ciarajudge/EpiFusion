@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 public class Loggers {
     File folder;
     public FileWriter trajectories;
+    public FileWriter likelihoodsall;
     public FileWriter likelihoods;
     public FileWriter params;
     public FileWriter acceptance;
@@ -19,6 +20,7 @@ public class Loggers {
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
+        likelihoodsall = new FileWriter(filePath+"/likelihoodsall.txt");
         params = new FileWriter(filePath+"/params.txt");
         acceptance = new FileWriter(filePath+"/acceptance.txt");
     }
@@ -39,10 +41,11 @@ public class Loggers {
         if (!folder.exists()){
             folder.mkdir();
         }
-        System.out.println(filePath);
+        //System.out.println(filePath);
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
+        likelihoodsall = new FileWriter(filePath+"/likelihoodsall.txt");
         params = new FileWriter(filePath+"/params.txt");
         acceptance = new FileWriter(filePath+"/acceptance.txt");
     }
@@ -69,9 +72,13 @@ public class Loggers {
 
 
 
-    public void logLogLikelihood(Double likelihood) throws IOException {
+    public void logLogLikelihoodAccepted(Double likelihood) throws IOException {
         String toWrite = likelihood + "\n";
         likelihoods.write(toWrite);
+    }
+    public void logLogLikelihood(Double likelihood) throws IOException {
+        String toWrite = likelihood + "\n";
+        likelihoodsall.write(toWrite);
     }
 
     public void logParams(double[] paramSet) throws IOException {
@@ -100,6 +107,7 @@ public class Loggers {
     public void terminateLoggers() throws IOException {
         trajectories.close();
         likelihoods.close();
+        likelihoodsall.close();
         params.close();
         acceptance.close();
     }
