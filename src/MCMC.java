@@ -27,9 +27,9 @@ public class MCMC {
         for (int i = 0; i < numIterations; i++) {
 
             // Generate a proposal for the next set of parameters
-            double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient*Math.pow(0.99975,i));
+            //double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient*Math.pow(0.99975,i));
             //System.out.println("Current params " + Arrays.toString(currentParameters));
-            //double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
+            double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
             //System.out.println("Candidate params " + Arrays.toString(candidateParameters));
 
 
@@ -53,7 +53,7 @@ public class MCMC {
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
                 loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
-                loggers.logTrajectory(particleFilter.particles.particles[0].traj);
+                loggers.logTrajectory(particleFilter.currentTrajectory);
                 loggers.logParams(currentParameters);
             }
 
