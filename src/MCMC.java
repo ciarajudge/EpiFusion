@@ -27,7 +27,10 @@ public class MCMC {
         for (int i = 0; i < numIterations; i++) {
 
             // Generate a proposal for the next set of parameters
-            double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient*Math.pow(0.997,i));
+            double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient*Math.pow(0.99975,i));
+            //System.out.println("Current params " + Arrays.toString(currentParameters));
+            //double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
+            //System.out.println("Candidate params " + Arrays.toString(candidateParameters));
 
 
             // Run particle filter to generate logPrior and logLikelihood for new params
@@ -51,7 +54,7 @@ public class MCMC {
                 loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
                 loggers.logTrajectory(particleFilter.particles.particles[0].traj);
-                loggers.logParams(candidateParameters);
+                loggers.logParams(currentParameters);
             }
 
             // Accept or reject the proposal based on the acceptance probability
@@ -60,14 +63,10 @@ public class MCMC {
                 //System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
                 this.particleFilter.resetCurrentParameters();
-                if (i % Storage.logEvery == 0 ) {
-                    loggers.logAcceptance(0);
-                }
+                loggers.logAcceptance(0);
             } else {
                 //System.out.println("Step Not Accepted");
-                if (i % Storage.logEvery == 0 ) {
-                    loggers.logAcceptance(1);
-                }
+                loggers.logAcceptance(1);
                 //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
             }
 
@@ -77,14 +76,12 @@ public class MCMC {
         }
     }
 
-    private double arctanh(double param) {
-        return 0.5 * Math.log((1+param)/(1-param));
+    private double transform(double param) {
+        return Math.log(Math.abs(param));
     }
 
-    private double outarctanh(double param) {
-        double a = Math.exp(2*param);
-        double b = (a-1)/(1+a);
-        return b;
+    private double untransform(double param) {
+        return Math.exp(param);
     }
 
     public double checkParams(double[] candidateParameters) {
@@ -115,7 +112,9 @@ public class MCMC {
         double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
         do {
             for (int j = 0; j < candidateParameters.length; j++) {
-                candidateParameters[j] = outarctanh(arctanh(currentParameters[j]) + this.random.nextGaussian() * cooling);
+                boolean negative = currentParameters[j] < 0;
+                double newparam = untransform(transform(currentParameters[j]) + this.random.nextGaussian() * cooling);
+                candidateParameters[j] = negative ? -newparam : newparam;
             }
         } while (checkParams(candidateParameters) == 0);
         return candidateParameters;
