@@ -18,6 +18,7 @@ public class ParticleFilter {
     private final int resampleEvery;
     int increments;
     private int numParticles;
+    public Trajectory currentTrajectory;
     //private final Random random;
 
     public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
@@ -47,6 +48,7 @@ public class ParticleFilter {
             if (likelihood < logLikelihoodCandidate) {
                 currentParameters = candidateParameters;
                 logLikelihoodCurrent = logLikelihoodCandidate;
+                currentTrajectory = particles.particles[0].traj;
                 likelihood = logLikelihoodCandidate;
             }
         }
@@ -95,8 +97,10 @@ public class ParticleFilter {
         for (int i = 0; i<numParticles; i++) {
             particles.particles[i].traj.printTrajectory(i);
         }*/
-
+        System.out.println("Checkpoint PF complete");
+        checkParticles();
         logPriorCandidate = calculatePFLogPrior();
+        checkParticles();
         //System.out.println("Log Likelihood Candidate: "+logLikelihoodCandidate);
         //System.out.println("Log Prior Candidate: "+logPriorCandidate);
     }
@@ -110,6 +114,7 @@ public class ParticleFilter {
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
             particles.getEpiLikelihoods(caseIncidence.incidence[step], candidateRates[step][3]);
+
             //particles.printLikelihoods();
             if (particles.checkEpiLikelihoods()) {
                 return true;
@@ -120,13 +125,16 @@ public class ParticleFilter {
             if (particles.checkPhyloLikelihoods()) {
                 return true;
             }
+            System.out.println("Phylo likelihoods done");
             //particle likelihoods
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[step][3]);
+                System.out.println("Epi likelihoods done");
                 //particles.printLikelihoods();
                 if (particles.checkEpiLikelihoods()) {
                     return true;
                 }
+                System.out.println("Epi likelihoods checked");
             } else {
                 //particles.printLikelihoods();
             }
@@ -219,7 +227,13 @@ public class ParticleFilter {
         logLikelihoodCandidate = 0.0;
     }
 
-
+    private void checkParticles() {
+        for (Particle particle : particles.particles) {
+            if (particle == null) {
+                System.out.println("Null particle");
+            }
+        }
+    }
 
 
 }

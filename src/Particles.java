@@ -265,8 +265,10 @@ public class Particles {
             return logP;
         }
         else {
+            /*
             double epiLogP = scaleEpiWeights();
             double phyloLogP = scalePhyloWeights();
+             */
             updateWeights(0.5);
             double[] particleWeights = new double[N];
             double[] logParticleWeights = new double[N];

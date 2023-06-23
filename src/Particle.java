@@ -93,7 +93,8 @@ public class Particle {
         } else {
             double epiConfidence = confidenceSplit;
             double phyloConfidence = 1 - confidenceSplit;
-            weight = (Math.pow(phyloWeight, phyloConfidence))*(Math.pow(epiWeight, epiConfidence));
+            phyloWeight = phyloLikelihood;
+            weight = (Math.pow(phyloWeight, phyloConfidence))+(Math.pow(epiWeight, epiConfidence)); //IMPORTANT THIS IS PLUS CAUSE WE IN LOG SPACE
         }
     }
     public void updateTrajectory(Day day) {
