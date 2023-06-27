@@ -8,6 +8,7 @@ public class MCMC {
     private final ParticleFilter particleFilter;
     private final Random random;
     public Loggers loggers;
+    public int acceptanceRate = 0;
 
 
     public MCMC(ParticleFilter particleFilter) throws IOException {
@@ -51,6 +52,8 @@ public class MCMC {
                 System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
                 System.out.println("Candidate likelihood: "+ particleFilter.getLogLikelihoodCandidate());
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
+                System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
+                acceptanceRate = 0;
                 loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 loggers.logLogLikelihood(particleFilter.getLogLikelihoodCandidate());
                 loggers.logTrajectory(particleFilter.currentTrajectory);
@@ -65,6 +68,7 @@ public class MCMC {
                 particleFilter.currentTrajectory = new Trajectory(particleFilter.particles.particles[0].traj);
                 this.particleFilter.resetCurrentParameters();
                 loggers.logAcceptance(0);
+                acceptanceRate += 1;
             } else {
                 //System.out.println("Step Not Accepted");
                 loggers.logAcceptance(1);
