@@ -45,10 +45,11 @@ public class ParticleFilter {
             System.out.println("Initialisation attempt");
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
+            particles.particles[0].traj.printTrajectory();
             if (likelihood < logLikelihoodCandidate) {
                 currentParameters = candidateParameters;
                 logLikelihoodCurrent = logLikelihoodCandidate;
-                currentTrajectory = particles.particles[0].traj;
+                currentTrajectory = new Trajectory(particles.particles[0].traj);
                 likelihood = logLikelihoodCandidate;
             }
         }
@@ -97,7 +98,7 @@ public class ParticleFilter {
         for (int i = 0; i<numParticles; i++) {
             particles.particles[i].traj.printTrajectory(i);
         }*/
-        System.out.println("Checkpoint PF complete");
+        //System.out.println("Checkpoint PF complete");
         checkParticles();
         logPriorCandidate = calculatePFLogPrior();
         checkParticles();

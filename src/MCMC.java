@@ -14,7 +14,7 @@ public class MCMC {
         this.particleFilter = particleFilter;
         this.random = new Random();
         this.loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
-        loggers.logTrajectory(particleFilter.particles.particles[0].traj);
+        loggers.logTrajectory(particleFilter.currentTrajectory);
         loggers.logParams(particleFilter.getCurrentParameters());
         loggers.logLogLikelihood(particleFilter.getLogLikelihoodCurrent());
         loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
@@ -62,6 +62,7 @@ public class MCMC {
                 //particleFilter.particles.printTrajectories();
                 //System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
+                particleFilter.currentTrajectory = new Trajectory(particleFilter.particles.particles[0].traj);
                 this.particleFilter.resetCurrentParameters();
                 loggers.logAcceptance(0);
             } else {

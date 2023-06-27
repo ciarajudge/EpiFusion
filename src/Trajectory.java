@@ -23,6 +23,13 @@ public class Trajectory {
         }
         System.out.println();
     }
+
+    public void printTrajectory() {
+        for (Day d : trajectory) {
+            System.out.print(d.I+",");
+        }
+        System.out.println();
+    }
 }
 
 class Day {
