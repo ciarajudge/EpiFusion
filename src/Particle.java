@@ -87,14 +87,14 @@ public class Particle {
     //More complex updators
     public void updateWeight(double confidenceSplit) {
         if (Storage.isEpiOnly()) {
-            weight = epiWeight;
+            weight = epiWeight; //Will be in log space
         } else if (Storage.isPhyloOnly()) {
-            weight = phyloWeight;
+            weight = phyloWeight; //Will be in log space
         } else {
             double epiConfidence = confidenceSplit;
             double phyloConfidence = 1 - confidenceSplit;
             phyloWeight = phyloLikelihood;
-            weight = (Math.pow(phyloWeight, phyloConfidence))+(Math.pow(epiWeight, epiConfidence)); //IMPORTANT THIS IS PLUS CAUSE WE IN LOG SPACE
+            weight = (phyloWeight*phyloConfidence)+(epiWeight*epiConfidence); //in log space
         }
     }
     public void updateTrajectory(Day day) {

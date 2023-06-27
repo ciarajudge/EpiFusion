@@ -126,16 +126,16 @@ public class ParticleFilter {
             if (particles.checkPhyloLikelihoods()) {
                 return true;
             }
-            System.out.println("Phylo likelihoods done");
+            //System.out.println("Phylo likelihoods done");
+
             //particle likelihoods
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[step][3]);
-                System.out.println("Epi likelihoods done");
-                //particles.printLikelihoods();
+                //System.out.println("Epi likelihoods done");
                 if (particles.checkEpiLikelihoods()) {
                     return true;
                 }
-                System.out.println("Epi likelihoods checked");
+                //System.out.println("Epi likelihoods checked");
             } else {
                 //particles.printLikelihoods();
             }

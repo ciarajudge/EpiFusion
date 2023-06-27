@@ -265,10 +265,6 @@ public class Particles {
             return logP;
         }
         else {
-            /*
-            double epiLogP = scaleEpiWeights();
-            double phyloLogP = scalePhyloWeights();
-             */
             updateWeights(0.5);
             double[] particleWeights = new double[N];
             double[] logParticleWeights = new double[N];
@@ -276,8 +272,8 @@ public class Particles {
 
             int iter = 0;
             for (Particle particle : particles) {
-                maxLogWeight = Math.max(Math.log(particle.weight), maxLogWeight);
-                logParticleWeights[iter] = Math.log(particle.weight);
+                maxLogWeight = Math.max(particle.weight, maxLogWeight);
+                logParticleWeights[iter] = particle.weight;
                 iter++;
             }
 
