@@ -349,7 +349,6 @@ public class Particles {
         for (Particle particle : particles) {
             totalWeight += particle.weight;
         }
-
         // Generate a random number between 0 and total weight
         Random random = new Random();
         for (int i = 0; i < N; i++) {

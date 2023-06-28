@@ -93,8 +93,16 @@ public class Particle {
         } else {
             double epiConfidence = confidenceSplit;
             double phyloConfidence = 1 - confidenceSplit;
+            if (Double.isNaN(phyloLikelihood)) {
+                phyloLikelihood = Double.NEGATIVE_INFINITY;
+            }
             phyloWeight = phyloLikelihood;
             weight = (phyloWeight*phyloConfidence)+(epiWeight*epiConfidence); //in log space
+            if (Double.isNaN(weight)) {
+                System.out.println("Weight is NaN!");
+                System.out.println("PhyloWeight: "+phyloWeight);
+                System.out.println("EpiWeight: "+epiWeight);
+            }
         }
     }
     public void updateTrajectory(Day day) {
