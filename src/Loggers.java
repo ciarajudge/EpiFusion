@@ -104,6 +104,20 @@ public class Loggers {
         trajectories.write(toWrite);
     }
 
+    public void logAllTrajectories(Particles particles) throws IOException {
+        for (Particle p : particles.particles) {
+            Trajectory trajectory = p.traj;
+            String toWrite = "";
+            for (Day d : trajectory.trajectory) {
+                toWrite = toWrite + d.I + ",";
+            }
+            toWrite = toWrite + acceptance+ "\n";
+            //System.out.println(toWrite);
+            trajectories.write(toWrite);
+        }
+    }
+
+
     public void terminateLoggers() throws IOException {
         trajectories.close();
         likelihoods.close();

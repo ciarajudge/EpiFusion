@@ -35,7 +35,7 @@ public class ProcessModel {
 
         double observedInfectProp = propensities[0] - unobservedInfectProp;
         double allowedRecovProp, forbiddenRecovProp;
-        if (state > tree.lineages + propensities[1] + tree.samplings + 1) { //THIS IS A TEST TO SOLVE THE RECOVERY PAST LIMIT ISSUE
+        if (state > tree.lineages + propensities[1] +tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
             allowedRecovProp = propensities[1];
             forbiddenRecovProp = 0.0;
         }

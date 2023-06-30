@@ -30,11 +30,15 @@ public class Main {
         //Initialise particle filter instance
         ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
+        Debug debug = new Debug(particleFilter);
+        double[] trueParams = new double[] {0.000398, -0.150529, 0.281706, 0.233, 0.0075, 0.15};
+        debug.runDebug(trueParams);
         //Initialise and run MCMC instance
+        /*
         MCMC particleMCMC = new MCMC(particleFilter);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
-
-        particleMCMC.loggers.terminateLoggers();
+        */
+        debug.loggers.terminateLoggers();
 
     }
 
