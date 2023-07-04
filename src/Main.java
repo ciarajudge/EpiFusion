@@ -16,10 +16,8 @@ public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         System.out.println("EpiFusion");
 
-        //Syncmarker
         parseXMLInput(args[0]);
 
-        //Storage silly to do it this way but improves readability
         int resampleEvery = Storage.resampleEvery;
         Incidence caseIncidence = Storage.incidence;
         Tree tree = Storage.tree;
@@ -30,15 +28,16 @@ public class Main {
         //Initialise particle filter instance
         ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
-        Debug debug = new Debug(particleFilter);
-        double[] trueParams = new double[] {0.000398, -0.150529, 0.281706, 0.233, 0.0075, 0.15};
-        debug.runDebug(trueParams);
+        //Debug debug = new Debug(particleFilter);
+        //double[] trueParams = new double[] {0.025, -0.059, 0.46, 0.233, 0.0075, 0.15};
+        //debug.runDebug(trueParams);
         //Initialise and run MCMC instance
-        /*
+
         MCMC particleMCMC = new MCMC(particleFilter);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
-        */
-        debug.loggers.terminateLoggers();
+
+        particleMCMC.loggers.terminateLoggers();
+        //debug.loggers.terminateLoggers();
 
     }
 

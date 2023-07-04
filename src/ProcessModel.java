@@ -6,7 +6,7 @@ public class ProcessModel {
     public static void day(Particle particle, TreeSegment tree, int t, double[] rates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         if (particle == null) {
-            System.out.println("null particle here PM line 9");
+            System.out.println("null particle here ProcessMod line 9");
         }
 
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
@@ -15,9 +15,7 @@ public class ProcessModel {
 
         int state = particle.getState();
         double[] propensities = particle.getVanillaPropensities(rates);
-        //System.out.println("tree lineages: "+tree.lineages);
 
-        //System.out.println("vanilla propensities: "+Arrays.toString(propensities));
         //Divide the propensities into their bits
         double unobservedInfectProp = state > 0
                 ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
@@ -92,13 +90,31 @@ public class ProcessModel {
         int t = step*Storage.resampleEvery;
         int increments = treeSegments.length;
         for (int i=0; i<increments; i++) {
-            if (Storage.isPhyloOnly() && treeSegments[i].lineages == 0 && step > 1) {
-                break;
+            //Turn on tree if we've reached it
+            if (!Storage.treeOn && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
+                Storage.treeOn = true;
+                Storage.haveReachedTree = true;
             }
+
+            //Turn off tree if we've previously reached it and now it's done
+            if (Storage.haveReachedTree && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
+                Storage.treeOn = false;
+            }
+
+
             int actualDay = t+i;
-            //System.out.println();
-            //System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
-            day(particle, treeSegments[i], actualDay, rates[i]);
+            if (Storage.treeOn) { //If the tree is on we can just do the day no questions asked
+                day(particle, treeSegments[i], actualDay, rates[i]);
+            } else if (!(Storage.isPhyloOnly())) { //If tree is off but we are running a combo this means we can use the epi only day
+                epiOnlyDay(particle, actualDay, rates[i]);
+            } else if (Storage.isPhyloOnly()) { //If tree is off and we are phylo only we first need to know if it's before or after tree activation
+                if (Storage.haveReachedTree) {
+                    break;
+                } else {
+                    epiOnlyDay(particle, actualDay, rates[i]);
+                }
+            }
+
         }
     }
 
