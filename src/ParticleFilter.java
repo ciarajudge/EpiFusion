@@ -228,6 +228,8 @@ public class ParticleFilter {
     public void clearCache() {
         particles = new Particles(numParticles);
         logLikelihoodCandidate = 0.0;
+        Storage.haveReachedTree = false;
+        Storage.treeOn = true;
     }
 
     private void checkParticles() {
