@@ -94,10 +94,8 @@ public class ProcessModel {
             if (!Storage.treeOn && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
                 Storage.treeOn = true;
                 Storage.haveReachedTree = true;
-                System.out.println("tree activated, day "+(t+i));
             } else if (Storage.haveReachedTree && (treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
                 Storage.treeOn = false;
-                System.out.println("tree deactivated, day "+(t+i));
             }
 
 

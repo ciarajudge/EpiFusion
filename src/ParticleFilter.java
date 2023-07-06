@@ -89,7 +89,7 @@ public class ParticleFilter {
                 }
             }
             else {
-                System.out.println("Model only running with Phylo and the tree is terminated.");
+                //System.out.println("Model only running with Phylo and the tree is terminated.");
                 break;
             }
 
