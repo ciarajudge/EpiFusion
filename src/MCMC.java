@@ -117,6 +117,10 @@ public class MCMC {
         double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
         do {
             for (int j = 0; j < candidateParameters.length; j++) {
+                if (Storage.priors.priors[j].isFixed()) {
+                    candidateParameters[j] = currentParameters[j];
+                    continue;
+                }
                 boolean negative = currentParameters[j] < 0;
                 double newparam = untransform(transform(currentParameters[j]) + this.random.nextGaussian() * cooling);
                 candidateParameters[j] = negative ? -newparam : newparam;

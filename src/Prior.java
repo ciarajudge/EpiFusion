@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 public class Prior {
     public String label;
     public Dist distrib;
+    private boolean isFixed = false;
 
     public Prior(Element element) {
         label = element.getTagName();
@@ -19,6 +20,11 @@ public class Prior {
             double lowerBound = Double.parseDouble(element.getElementsByTagName("lowerbound").item(0).getTextContent());
             distrib = new TruncatedNormalDist(mean, standardDeviation, lowerBound);
         }
+        if (disttype.equals("FixedParameter")) {
+            double value = Double.parseDouble(element.getElementsByTagName("value").item(0).getTextContent());
+            distrib = new FixedParameter(value);
+            isFixed = true;
+        }
     }
 
     public double sample() {
@@ -29,4 +35,5 @@ public class Prior {
         return distrib.density(candidate);
     }
 
+    public boolean isFixed() {return isFixed;}
 }
