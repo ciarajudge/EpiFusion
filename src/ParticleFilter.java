@@ -19,6 +19,7 @@ public class ParticleFilter {
     int increments;
     private int numParticles;
     public Trajectory currentTrajectory;
+    private int maxEpidemicSize = 50000;
     //private final Random random;
 
     public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
@@ -145,6 +146,11 @@ public class ParticleFilter {
         //    return true;
         //}
 
+        particles.checkStates(maxEpidemicSize);
+        if (Storage.tooBig) {
+            return true;
+        }
+
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP();
 
@@ -230,6 +236,7 @@ public class ParticleFilter {
         logLikelihoodCandidate = 0.0;
         Storage.haveReachedTree = false;
         Storage.treeOn = true;
+        Storage.tooBig = false;
     }
 
     private void checkParticles() {

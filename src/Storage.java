@@ -18,6 +18,8 @@ public class Storage {
     public static int numInitialisationAttempts;
     public static boolean treeOn = false;
     public static boolean haveReachedTree = false;
+    public static boolean tooBig = false;
+    public static int removalProbability = 0;
 
     public static void setNumParticles(int N) {numParticles = N;}
 

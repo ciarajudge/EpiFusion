@@ -49,7 +49,7 @@ public class PhyloLikelihood {
             //System.out.println("Additional sampling P:" + prop);
             //System.out.println("Additional sampling logP:" + Math.log(prop));
             conditionalLogP += Math.log(prop);
-            particle.setState(state-1);
+            particle.setState(state-Storage.removalProbability);
         }
 
         return conditionalLogP;

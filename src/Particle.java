@@ -63,6 +63,11 @@ public class Particle {
     public int getState() {
         return this.state;
     }
+    public void checkState(int limit) {
+        if(state > limit) {
+            Storage.tooBig = true;
+        }
+    }
     public double getWeight() {return this.weight;}
     public double getPhyloWeight() {
         return this.phyloWeight;

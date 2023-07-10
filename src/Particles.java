@@ -371,4 +371,22 @@ public class Particles {
         particles = resampledParticles;
     }
 
+    //Checkstates
+    public void checkStates(int limit) {
+        ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
+        try {
+            for (Particle particle : particles) {
+                executor.submit(() -> particle.checkState(limit));
+            }
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting", e);
+        }
+    }
+
 }
