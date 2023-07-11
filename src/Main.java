@@ -29,7 +29,7 @@ public class Main {
         ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
         //Debug debug = new Debug(particleFilter);
-        //double[] trueParams = new double[] {0.025, -0.059, 0.46, 0.233, 0.0075, 0.15};
+        //double[] trueParams = new double[] {0.0419, -0.0593, 0.5122, 0.233, 0.0075, 0.15};
         //debug.runDebug(trueParams);
         //Initialise and run MCMC instance
 
@@ -55,10 +55,18 @@ public class Main {
         // Extract the values from the XML elements
         Element root = document.getDocumentElement();
         Element dataElement = (Element) root.getElementsByTagName("data").item(0);
+        Element analysisElement = (Element) root.getElementsByTagName("analysis").item(0);
         Element parametersElement = (Element) root.getElementsByTagName("parameters").item(0);
         Element loggersElement = (Element) root.getElementsByTagName("loggers").item(0);
         String fileBase = loggersElement.getElementsByTagName("fileBase").item(0).getTextContent();
         Storage.setfileBase(fileBase);
+
+        //Analysis type
+        String type = analysisElement.getElementsByTagName("type").item(0).getTextContent();
+        if (type.equals("looseformbeta")) {
+            Storage.analysisType = 1;
+        }
+
 
         // Get boolean values of epi or phylo only
         boolean epiOnly = Boolean.parseBoolean(parametersElement.getElementsByTagName("epiOnly").item(0).getTextContent());
@@ -136,6 +144,9 @@ public class Main {
 
         int resampleEvery = Integer.parseInt(parametersElement.getElementsByTagName("resampleEvery").item(0).getTextContent());
         Storage.setResampling(resampleEvery);
+
+        int maxEpidemicSize = Integer.parseInt(parametersElement.getElementsByTagName("maxEpidemicSize").item(0).getTextContent());
+        Storage.maxEpidemicSize = maxEpidemicSize;
 
         int epiLength = Storage.isEpiGrainyResolution() ? resampleEvery * incidence.length : incidence.length;
         double phyloLength = tree.age;

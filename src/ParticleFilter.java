@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 public class ParticleFilter {
     private double[][] currentRates;
@@ -19,7 +20,7 @@ public class ParticleFilter {
     int increments;
     private int numParticles;
     public Trajectory currentTrajectory;
-    private int maxEpidemicSize = 50000;
+    public ArrayList<Double> currentBeta;
     //private final Random random;
 
     public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
@@ -28,7 +29,7 @@ public class ParticleFilter {
         this.caseIncidence = incidence;
         this.T = T;
         //this.random = new Random();
-        this.candidateRates = new double[this.T][4];
+        this.candidateRates = new double[this.T][5];
 
         this.filterSteps = (int) Math.ceil(this.T / (double) resampleEvery);
         this.resampleEvery = resampleEvery;
@@ -47,10 +48,12 @@ public class ParticleFilter {
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
             particles.particles[0].traj.printTrajectory();
+            particles.particles[0].printBeta();
             if (likelihood < logLikelihoodCandidate) {
                 currentParameters = candidateParameters;
                 logLikelihoodCurrent = logLikelihoodCandidate;
                 currentTrajectory = new Trajectory(particles.particles[0].traj);
+                currentBeta = particles.particles[0].beta;
                 likelihood = logLikelihoodCandidate;
             }
         }
@@ -63,20 +66,27 @@ public class ParticleFilter {
         clearCache();
         //Convert parameters into rates
         candidateParameters = parameters;
-        candidateRates[0][0] = inverseLogistic(0, parameters);
-        candidateRates[0][1] = parameters[3];//assign day 0
-        candidateRates[0][2] = parameters[4];
-        candidateRates[0][3] = parameters[5];
+        if (Storage.analysisType == 0) {
+            candidateRates[0][0] = inverseLogistic(0, parameters);
+        } else if (Storage.analysisType == 1) {
+            candidateRates[0][0] = parameters[3];
+        }
+        candidateRates[0][1] = parameters[0];//assign day 0
+        candidateRates[0][2] = parameters[1];
+        candidateRates[0][3] = parameters[2];
+        candidateRates[0][4] = parameters[4];
         for (int k = 1; k < T; k++) { //Random walk for gamma, inverse log for
-            candidateRates[k][0] = inverseLogistic(k, parameters);
-            //candidateRates[k][1] = candidateRates[k-1][1] + this.random.nextGaussian()*0.01;
-            //candidateRates[k][2] = candidateRates[k-1][2] + this.random.nextGaussian()*0.0001;//assign the rest using random walk
-            candidateRates[k][1] = parameters[3];
-            candidateRates[k][2] = parameters[4];
-            candidateRates[k][3] = parameters[5];
+            if (Storage.analysisType == 0) {
+                candidateRates[k][0] = inverseLogistic(k, parameters);
+            }
+            candidateRates[k][1] = parameters[0];
+            candidateRates[k][2] = parameters[1];
+            candidateRates[k][3] = parameters[2];
+            candidateRates[k][4] = parameters[4];
         }
 
 
+        particles.setInitialBeta(parameters[3]);
         logLikelihoodCandidate = 0.0;
         //particles.printParticles();
         for (int step=0; step<filterSteps; step++) {
@@ -146,7 +156,7 @@ public class ParticleFilter {
         //    return true;
         //}
 
-        particles.checkStates(maxEpidemicSize);
+        particles.checkStates(Storage.maxEpidemicSize);
         if (Storage.tooBig) {
             return true;
         }
@@ -214,10 +224,11 @@ public class ParticleFilter {
         this.logPriorCurrent = this.logPriorCandidate;
     }
 
+
     private double inverseLogistic(int t, double[] parameters) {
-        double a = parameters[0];
-        double b = parameters[1];
-        double c = parameters[2];
+        double a = parameters[3];
+        double b = parameters[4];
+        double c = parameters[5];
         return c/(1+(a*Math.exp(-b*t)));
     }
 

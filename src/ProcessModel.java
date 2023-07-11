@@ -14,7 +14,12 @@ public class ProcessModel {
         }
 
         int state = particle.getState();
+        if (Storage.analysisType == 1) {
+            particle.nextBeta(rates[4]);
+            rates[0] = particle.beta.get(particle.beta.size()-1);
+        }
         double[] propensities = particle.getVanillaPropensities(rates);
+
 
         //Divide the propensities into their bits
         double unobservedInfectProp = state > 0
@@ -132,6 +137,10 @@ public class ProcessModel {
             return;
         }
 
+        if (Storage.analysisType == 1) {
+            particle.nextBeta(rates[4]);
+            rates[0] = particle.beta.get(particle.beta.size()-1);
+        }
 
         double[] propensities = particle.getVanillaPropensities(rates);
 

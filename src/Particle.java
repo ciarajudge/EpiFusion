@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import org.apache.commons.math3.distribution.NormalDistribution;
 //import org.apache.commons.math3.distribution.PoissonDistribution;
 
 public class Particle {
@@ -10,6 +11,7 @@ public class Particle {
     double epiWeight;
     double weight;
     Trajectory traj;
+    ArrayList<Double> beta;
 
     public Particle(int pID) {
         particleID = pID;
@@ -21,6 +23,7 @@ public class Particle {
         this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
+        this.beta = new ArrayList<>();
     }
 
     public Particle(Particle other, int pID) {
@@ -32,11 +35,19 @@ public class Particle {
         this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.traj = new Trajectory(other.traj);
+        this.beta = new ArrayList<>(other.beta);
     }
 
     public void printStatus() {
         System.out.println("Particle "+ particleID);
         System.out.println("State: "+ state);
+        System.out.println();
+    }
+    public void printBeta() {
+        System.out.print("Beta: ");
+        for (int i=0; i<beta.size(); i++) {
+            System.out.print(beta.get(i)+",");
+        }
         System.out.println();
     }
 
@@ -58,6 +69,15 @@ public class Particle {
         this.phyloLikelihood = newLikelihood;
     }
     public void setWeight(double weight) {this.weight = weight;  }
+    public void setBeta(Double betaT) {
+        beta.add(betaT);
+    }
+    public void nextBeta(double stdDev) {
+        Double current = beta.get(beta.size()-1);
+        TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
+        Double newBeta = truncatedNormalDistribution.sample();
+        beta.add(newBeta);
+    }
 
     //Getters
     public int getState() {

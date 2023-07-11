@@ -1,16 +1,18 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class Loggers {
     File folder;
     public FileWriter trajectories;
-    public FileWriter likelihoodsall;
     public FileWriter likelihoods;
     public FileWriter params;
     public FileWriter acceptance;
+    public FileWriter betas;
 
     public Loggers(String filePath) throws IOException {
         folder = new File(filePath);
@@ -20,9 +22,9 @@ public class Loggers {
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
-        likelihoodsall = new FileWriter(filePath+"/likelihoodsall.txt");
         params = new FileWriter(filePath+"/params.txt");
         acceptance = new FileWriter(filePath+"/acceptance.txt");
+        betas = new FileWriter(filePath+"/betas.txt");
     }
 
     public Loggers() throws IOException {
@@ -30,11 +32,11 @@ public class Loggers {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
         String folderName;
         if (Storage.isPhyloOnly()) {
-            folderName = "PhyloOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_"+currentDateTime.format(formatter);
+            folderName = "PhyloOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         } else if (Storage.isEpiOnly()) {
-            folderName = "EpiOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_"+currentDateTime.format(formatter);
+            folderName = "EpiOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         } else {
-            folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_"+currentDateTime.format(formatter);
+            folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         }
         String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
         folder = new File(filePath);
@@ -45,9 +47,9 @@ public class Loggers {
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
-        likelihoodsall = new FileWriter(filePath+"/likelihoodsall.txt");
         params = new FileWriter(filePath+"/params.txt");
         acceptance = new FileWriter(filePath+"/acceptance.txt");
+        betas = new FileWriter(filePath+"/beta.txt");
     }
 
     public void logTrajectory(Trajectory trajectory) throws IOException {
@@ -70,15 +72,19 @@ public class Loggers {
         trajectories.write(toWrite);
     }
 
-
+    public void logBeta(ArrayList<Double> betaArray) throws IOException {
+        String toWrite = "";
+        for (int t=0; t < betaArray.size(); t++) {
+            toWrite = toWrite + betaArray.get(t) + ",";
+        }
+        toWrite = toWrite + "\n";
+        System.out.println(toWrite);
+        betas.write(toWrite);
+    }
 
     public void logLogLikelihoodAccepted(Double likelihood) throws IOException {
         String toWrite = likelihood + "\n";
         likelihoods.write(toWrite);
-    }
-    public void logLogLikelihood(Double likelihood) throws IOException {
-        String toWrite = likelihood + "\n";
-        likelihoodsall.write(toWrite);
     }
 
     public void logParams(double[] paramSet) throws IOException {
@@ -121,9 +127,9 @@ public class Loggers {
     public void terminateLoggers() throws IOException {
         trajectories.close();
         likelihoods.close();
-        likelihoodsall.close();
         params.close();
         acceptance.close();
+        betas.close();
     }
 
 }

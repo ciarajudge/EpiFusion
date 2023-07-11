@@ -20,6 +20,8 @@ public class Storage {
     public static boolean haveReachedTree = false;
     public static boolean tooBig = false;
     public static int removalProbability = 0;
+    public static int maxEpidemicSize = 50000;
+    public static int analysisType = 0;
 
     public static void setNumParticles(int N) {numParticles = N;}
 

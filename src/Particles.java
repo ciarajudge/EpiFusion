@@ -50,7 +50,24 @@ public class Particles {
     }
 
     //Check for all particle states being 0
+    public void setInitialBeta(Double beta) {
+        try {
+            ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
 
+            for (Particle particle : particles) {
+                executor.submit(() -> particle.setBeta(beta));
+            }
+
+            executor.shutdown();
+            boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+            if (!done) {
+                System.err.println("Not all tasks completed within the specified timeout.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting", e);
+        }
+    }
 
     //Likelihood things
     public void getEpiLikelihoods(int incidence, double phi) {
