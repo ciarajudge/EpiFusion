@@ -146,8 +146,7 @@ public class Main {
         int resampleEvery = Integer.parseInt(parametersElement.getElementsByTagName("resampleEvery").item(0).getTextContent());
         Storage.setResampling(resampleEvery);
 
-        int maxEpidemicSize = Integer.parseInt(parametersElement.getElementsByTagName("maxEpidemicSize").item(0).getTextContent());
-        Storage.maxEpidemicSize = maxEpidemicSize;
+        Storage.maxEpidemicSize = Integer.parseInt(parametersElement.getElementsByTagName("maxEpidemicSize").item(0).getTextContent());
 
         int epiLength = Storage.isEpiGrainyResolution() ? resampleEvery * incidence.length : incidence.length;
         double phyloLength = tree.age;

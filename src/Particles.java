@@ -112,31 +112,8 @@ public class Particles {
                     break;
                 }
             }
-            if (allNegInf) {
-                return true;
-                /*
-                try {
-                    ExecutorService executor = Executors.newFixedThreadPool(4);
-
-                    for (Particle particle : particles) {
-                        executor.submit(() -> particle.setEpiWeight(1/ (double) N));
-                    }
-
-                    executor.shutdown();
-                    boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
-                    if (!done) {
-                        System.err.println("Not all tasks completed within the specified timeout.");
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting", e);
-                }
-                */
-
-            }
-
+            return allNegInf;
         }
-        return false;
     }
     public boolean checkPhyloLikelihoods() {
         boolean allNaN = true;
@@ -157,9 +134,7 @@ public class Particles {
                     break;
                 }
             }
-            if (allNegInf) {
-                return true;
-                /*
+            /*
                 try {
                     ExecutorService executor = Executors.newFixedThreadPool(4);
 
@@ -176,10 +151,9 @@ public class Particles {
                     Thread.currentThread().interrupt();
                     throw new RuntimeException("Interrupted while waiting", e);
                 } */
-            }
+            return allNegInf;
 
         }
-        return false;
     }
     public boolean checkLikelihoods() {
         boolean allBothNegInf = true;

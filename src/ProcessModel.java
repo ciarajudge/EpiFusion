@@ -1,5 +1,4 @@
 import org.apache.commons.math3.distribution.PoissonDistribution;
-import java.util.Arrays;
 
 public class ProcessModel {
 

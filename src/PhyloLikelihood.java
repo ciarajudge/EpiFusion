@@ -1,13 +1,9 @@
-import java.util.Arrays;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.Collections;
 
 public class PhyloLikelihood {
     public static double calculateLikelihood(TreeSegment tree, Particle particle, double[] propensities) {
         int treeBirths = tree.births;
         int treeSamples = tree.samplings;
-        double conditionalLogP = 0.0;
+        double conditionalLogP;
 
         // Case 1: Likelihood given no events on the tree
         conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
@@ -55,15 +51,5 @@ public class PhyloLikelihood {
         return conditionalLogP;
     }
 
-    public static int[] randomiseObservations(int births, int samplings) { //do it in order
-        Integer[] observations = new Integer[births + samplings];
-        Arrays.fill(observations, 0, births, 0);
-        Arrays.fill(observations, births, births + samplings, 1);
-
-        List<Integer> list = Arrays.asList(observations);
-        Collections.shuffle(list);
-        list.toArray(observations);
-        return Arrays.stream(observations).mapToInt(Integer::intValue).toArray();
-    }
 
 }

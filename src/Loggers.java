@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -74,11 +73,11 @@ public class Loggers {
 
     public void logBeta(ArrayList<Double> betaArray) throws IOException {
         String toWrite = "";
-        for (int t=0; t < betaArray.size(); t++) {
-            toWrite = toWrite + betaArray.get(t) + ",";
+        for (Double aDouble : betaArray) {
+            toWrite = toWrite + aDouble + ",";
         }
         toWrite = toWrite + "\n";
-        System.out.println(toWrite);
+        //System.out.println(toWrite);
         betas.write(toWrite);
     }
 
@@ -98,16 +97,6 @@ public class Loggers {
     public void logAcceptance(int accept) throws IOException {
         String toWrite = accept + "\n";
         acceptance.write(toWrite);
-    }
-
-    public void logTrajectory(Trajectory trajectory, String acceptance) throws IOException {
-        String toWrite = "";
-        for (Day d : trajectory.trajectory) {
-            toWrite = toWrite + d.I + ",";
-        }
-        toWrite = toWrite + acceptance+ "\n";
-        //System.out.println(toWrite);
-        trajectories.write(toWrite);
     }
 
     public void logAllTrajectories(Particles particles) throws IOException {

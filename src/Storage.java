@@ -59,10 +59,6 @@ public class Storage {
         epiGrainyResolution = true;
     }
 
-    public static void setEpiResolution(boolean resolution) {
-        epiGrainyResolution = resolution;
-    }
-
     public static void setTree(Tree t) {
         tree = t;
     }

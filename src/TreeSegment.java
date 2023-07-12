@@ -7,8 +7,8 @@ public class TreeSegment {
     public int births;
     public int samplings;
     public int lineages;
-    private double startTime;
-    private double endTime;
+    private final double startTime;
+    private final double endTime;
     public ArrayList<Double> birthTimes;
     public ArrayList<Double> sampleTimes;
     public int[] observationOrder;
@@ -67,11 +67,7 @@ public class TreeSegment {
     }
 
     public int getNumLineages(Tree tree, double T) {
-        /*if (T == 0.0){
-            return 1;
-        }*/
-        int numLineages = traverseForLineagesInWindow(tree.getRoot(), T, 0);
-        return numLineages;
+        return traverseForLineagesInWindow(tree.getRoot(), T, 0);
     }
 
     public int getNumInternalNodes(Tree tree, double startTime, double endTime) {
@@ -80,7 +76,7 @@ public class TreeSegment {
         for (Node node : nodesInWindow) {
             if (node instanceof Internal) {
                 numInternalNodes++;
-                birthTimes.add((Double) node.getTime());
+                birthTimes.add(node.getTime());
             }
         }
         return numInternalNodes;
@@ -92,7 +88,7 @@ public class TreeSegment {
         for (Node node : nodesInWindow) {
             if (node instanceof Leaf) {
                 numExternalNodes++;
-                sampleTimes.add((Double) node.getTime());
+                sampleTimes.add(node.getTime());
             }
         }
         return numExternalNodes;

@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 
@@ -18,12 +17,12 @@ public class ParticleFilter {
     private final int filterSteps;
     private final int resampleEvery;
     int increments;
-    private int numParticles;
+    private final int numParticles;
     public Trajectory currentTrajectory;
     public ArrayList<Double> currentBeta;
     //private final Random random;
 
-    public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
+    public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) {
         this.numParticles = numParticles;
         this.tree = tree;
         this.caseIncidence = incidence;
@@ -147,8 +146,6 @@ public class ParticleFilter {
                 }
 
                 //System.out.println("Epi likelihoods checked");
-            } else {
-                //particles.printLikelihoods();
             }
         }
 
@@ -235,13 +232,13 @@ public class ParticleFilter {
 
 
     //Printers
+
     private void printRateVector(int index) {
         double[] rateVector = getRateVector(index);
         for (double r : rateVector) {
             System.out.println(r);
         }
     }
-
 
     public void clearCache() {
         particles = new Particles(numParticles);
