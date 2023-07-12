@@ -24,7 +24,7 @@ public class Loggers {
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
         params = new FileWriter(filePath+"/params.txt");
         acceptance = new FileWriter(filePath+"/acceptance.txt");
-        betas = new FileWriter(filePath+"/betas.txt");
+        betas = new FileWriter(filePath+"/beta.txt");
     }
 
     public Loggers() throws IOException {

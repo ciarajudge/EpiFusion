@@ -20,11 +20,20 @@ public class ProcessModel {
         }
         double[] propensities = particle.getVanillaPropensities(rates);
 
+        if (tree.lineages == 0) { //this means the tree must start in this interval, so we do a new propensity calc
+            double segmentBeginning = t + 1 - tree.birthTimes.get(0);
+            double segmentEnding = 1 - segmentBeginning;
+            int newBirths = poissonSampler(propensities[0]*segmentBeginning);
+            state = state + newBirths;
+            propensities = transformPropensities(propensities, segmentEnding);
+        }
+
 
         //Divide the propensities into their bits
         double unobservedInfectProp = state > 0
                 ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
                 : 0.0;
+        //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state+", unobserved infect prop: "+unobservedInfectProp+", and full infect prop "+propensities[0]);
         if (unobservedInfectProp < 0.0) {
             /*System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
                     "for day "+t+" is negative! This will disrupt the process model for the rest of the filter step!"+
@@ -96,6 +105,8 @@ public class ProcessModel {
         int increments = treeSegments.length;
         for (int i=0; i<increments; i++) {
             //Turn on tree if we've reached it
+            int actualDay = t+i;
+
             if (!Storage.treeOn && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
                 Storage.treeOn = true;
                 Storage.haveReachedTree = true;
@@ -103,16 +114,16 @@ public class ProcessModel {
                 Storage.treeOn = false;
             }
 
-
-            int actualDay = t+i;
             if (Storage.treeOn) { //If the tree is on we can just do the day no questions asked
                 day(particle, treeSegments[i], actualDay, rates[i]);
             } else if (!(Storage.isPhyloOnly())) { //If tree is off but we are running a combo this means we can use the epi only day
                 epiOnlyDay(particle, actualDay, rates[i]);
             } else if (Storage.isPhyloOnly()) { //If tree is off and we are phylo only we first need to know if it's before or after tree activation
                 if (Storage.haveReachedTree) {
+                    //System.out.println("Tree finished, quitting");
                     break;
                 } else {
+                    //System.out.println("Day "+actualDay+" tree not active yet");
                     epiOnlyDay(particle, actualDay, rates[i]);
                 }
             }
@@ -136,7 +147,7 @@ public class ProcessModel {
             particle.updateTrajectory(tmpDay);
             return;
         }
-
+        //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state);
         if (Storage.analysisType == 1) {
             particle.nextBeta(rates[4]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
@@ -163,6 +174,14 @@ public class ProcessModel {
             epiOnlyDay(particle, actualDay, rates[i]);
         }
 
+    }
+
+    public static double[] transformPropensities(double[] propensities, double segmentTime) {
+        double[] newPropensities = new double[propensities.length];
+        for ( int i=0; i<propensities.length; i++){
+            newPropensities[i] = propensities[i] * segmentTime;
+        }
+        return newPropensities;
     }
 
 

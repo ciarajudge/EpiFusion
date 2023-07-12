@@ -22,6 +22,7 @@ public class Main {
         Incidence caseIncidence = Storage.incidence;
         Tree tree = Storage.tree;
 
+
         //tree.printTree();
         //System.out.println(Arrays.toString(caseIncidence.incidence));
 

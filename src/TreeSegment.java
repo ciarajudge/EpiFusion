@@ -9,8 +9,8 @@ public class TreeSegment {
     public int lineages;
     private double startTime;
     private double endTime;
-    private ArrayList<Double> birthTimes;
-    private ArrayList<Double> sampleTimes;
+    public ArrayList<Double> birthTimes;
+    public ArrayList<Double> sampleTimes;
     public int[] observationOrder;
 
     public TreeSegment(Tree tree, double startTime, double endTime) {

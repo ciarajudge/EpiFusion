@@ -155,6 +155,7 @@ public class ParticleFilter {
         //if (particles.checkLikelihoods()) {
         //    return true;
         //}
+        //particles.printLikelihoods();
 
         particles.checkStates(Storage.maxEpidemicSize);
         if (Storage.tooBig) {
@@ -246,7 +247,7 @@ public class ParticleFilter {
         particles = new Particles(numParticles);
         logLikelihoodCandidate = 0.0;
         Storage.haveReachedTree = false;
-        Storage.treeOn = true;
+        Storage.treeOn = false;
         Storage.tooBig = false;
     }
 
