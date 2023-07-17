@@ -365,6 +365,7 @@ public class Particles {
     //Checkstates
     public void checkStates(int limit) {
         ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
+        Storage.tooBig = true;
         try {
             for (Particle particle : particles) {
                 executor.submit(() -> particle.checkState(limit));

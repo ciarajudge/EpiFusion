@@ -84,8 +84,8 @@ public class Particle {
         return this.state;
     }
     public void checkState(int limit) {
-        if(state > limit) {
-            Storage.tooBig = true;
+        if(state < limit) {
+            Storage.tooBig = false;
         }
     }
     public double getWeight() {return this.weight;}
