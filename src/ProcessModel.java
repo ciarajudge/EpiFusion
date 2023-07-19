@@ -75,7 +75,7 @@ public class ProcessModel {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
             //System.out.println("adjusted propensities: "+Arrays.toString(adjustedPropensities));
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities);
-            //System.out.println("Today's Phylo Likelihood: " +todayPhyloLikelihood);
+            System.out.println("Day "+t+", Particle "+particle.particleID+", Truth: "+Storage.truth[t]+" State:"+particle.getState()+" Phylo Likelihood: " +particle.getPhyloLikelihood());
             if (Double.isInfinite(todayPhyloLikelihood)) {
                 //System.out.println("WARNING: Particle "+particle.particleID+" likelihood for day "+t+" is Infinity!");
                 /*
@@ -106,23 +106,24 @@ public class ProcessModel {
             //Turn on tree if we've reached it
             int actualDay = t+i;
 
-            if (!Storage.treeOn && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
-                Storage.treeOn = true;
-                Storage.haveReachedTree = true;
-            } else if (Storage.haveReachedTree && (treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
-                Storage.treeOn = false;
+            if (!Storage.treeOn[particle.particleID] && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
+                Storage.treeOn[particle.particleID] = true;
+                Storage.haveReachedTree[particle.particleID] = true;
+            } else if (Storage.haveReachedTree[particle.particleID] && (treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
+                Storage.treeOn[particle.particleID] = false;
             }
 
-            if (Storage.treeOn) { //If the tree is on we can just do the day no questions asked
+            if (Storage.treeOn[particle.particleID]) { //If the tree is on we can just do the day no questions asked
                 day(particle, treeSegments[i], actualDay, rates[i]);
             } else if (!(Storage.isPhyloOnly())) { //If tree is off but we are running a combo this means we can use the epi only day
                 epiOnlyDay(particle, actualDay, rates[i]);
             } else if (Storage.isPhyloOnly()) { //If tree is off and we are phylo only we first need to know if it's before or after tree activation
-                if (Storage.haveReachedTree) {
+                if (Storage.haveReachedTree[particle.particleID]) {
                     //System.out.println("Tree finished, quitting");
                     break;
                 } else {
                     //System.out.println("Day "+actualDay+" tree not active yet");
+                    System.out.println("Sending particle "+particle.particleID+" for an epi only day");
                     epiOnlyDay(particle, actualDay, rates[i]);
                 }
             }
@@ -146,7 +147,7 @@ public class ProcessModel {
             particle.updateTrajectory(tmpDay);
             return;
         }
-        //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state);
+        System.out.println("EpiOnlyDay "+t+" Particle "+particle.particleID+" state: "+state);
         if (Storage.analysisType == 1) {
             particle.nextBeta(rates[4]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
@@ -156,9 +157,9 @@ public class ProcessModel {
 
         //Calculate the events
         int births = poissonSampler(propensities[0]);
-        //System.out.println("["+particle.particleID+"]"+"births: "+births);
+        System.out.println("[Day "+t+" Particle "+particle.particleID+"]"+"births: "+births);
         int deaths = poissonSampler(propensities[1]);
-        //System.out.println("["+particle.particleID+"]"+"deaths: "+deaths);
+        System.out.println("[Day "+t+" Particle "+particle.particleID+"]"+"deaths: "+deaths);
         state = state + births - deaths;
         particle.setState(state);
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
