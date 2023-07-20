@@ -23,21 +23,20 @@ public class Main {
         Tree tree = Storage.tree;
 
 
-        //tree.printTree();
-        //System.out.println(Arrays.toString(caseIncidence.incidence));
+        tree.treeEventsInSegments(59);
 
         //Initialise particle filter instance
-        ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
+        //ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
         //Debug debug = new Debug(particleFilter);
         //double[] trueParams = new double[] {0.0419, -0.0593, 0.5122, 0.233, 0.0075, 0.15};
         //debug.runDebug(trueParams);
         //Initialise and run MCMC instance
 
-        MCMC particleMCMC = new MCMC(particleFilter);
-        particleMCMC.runMCMC(Storage.numMCMCsteps);
+        //MCMC particleMCMC = new MCMC(particleFilter);
+        //particleMCMC.runMCMC(Storage.numMCMCsteps);
 
-        particleMCMC.loggers.terminateLoggers();
+        //particleMCMC.loggers.terminateLoggers();
         //debug.loggers.terminateLoggers();
 
     }
@@ -113,6 +112,7 @@ public class Main {
         // Extract parameters element values
         int numParticles = Integer.parseInt(parametersElement.getElementsByTagName("numParticles").item(0).getTextContent());
         Storage.setNumParticles(numParticles);
+        Storage.setTreeLogic();
 
         int numSteps = Integer.parseInt(parametersElement.getElementsByTagName("numSteps").item(0).getTextContent());
         Storage.setNumMCMCsteps(numSteps);
@@ -127,6 +127,8 @@ public class Main {
         if (grainyEpi) {
             Storage.setEpiGrainyResolution();
         }
+
+        Storage.segmentedDays = Boolean.parseBoolean(parametersElement.getElementsByTagName("segmentedDays").item(0).getTextContent());
 
         double stepCoefficient = Double.parseDouble(parametersElement.getElementsByTagName("stepCoefficient").item(0).getTextContent());
         Storage.setStepCoefficient(stepCoefficient);

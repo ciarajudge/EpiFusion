@@ -191,6 +191,19 @@ public class Tree {
         }
     }
 
+    public void treeEventsInSegments(int maxTime) {
+        int eventsInTree = 0;
+        int eventsInSegment = 0;
+        for (int i=0; i<maxTime; i++) {
+            eventsInSegment = 0;
+            double end = (double) i + 1;
+            TreeSegment treeSegment = new TreeSegment(this, i, end);
+            eventsInSegment += treeSegment.births + treeSegment.samplings;
+            eventsInTree += Integer.max(0, eventsInSegment);
+        }
+        System.out.println("Events in tree: "+eventsInTree);
+    }
+
     //Check if tree is 'active'
     public boolean treeFinished(int step){
         boolean treeFinished = false;
