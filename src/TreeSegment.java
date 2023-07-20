@@ -12,16 +12,19 @@ public class TreeSegment {
     public ArrayList<Double> birthTimes;
     public ArrayList<Double> sampleTimes;
     public int[] observationOrder;
+    public ArrayList<Double> observationTimes;
 
     public TreeSegment(Tree tree, double startTime, double endTime) {
         birthTimes = new ArrayList<>();
         sampleTimes = new ArrayList<>();
+        observationTimes = new ArrayList<>();
         this.startTime = startTime;
         this.endTime = endTime;
         births = getNumInternalNodes(tree, startTime, endTime);
         samplings = getNumExternalNodes(tree, startTime, endTime);
         lineages = getNumLineages(tree, startTime);
         observationOrder = getObservationOrder();
+        Collections.sort(observationTimes);
     }
 
     public List<Node> getNodesInWindow(Tree tree, double startTime, double endTime) {
@@ -77,6 +80,7 @@ public class TreeSegment {
             if (node instanceof Internal) {
                 numInternalNodes++;
                 birthTimes.add(node.getTime());
+                observationTimes.add(node.getTime());
             }
         }
         return numInternalNodes;
@@ -89,6 +93,7 @@ public class TreeSegment {
             if (node instanceof Leaf) {
                 numExternalNodes++;
                 sampleTimes.add(node.getTime());
+                observationTimes.add(node.getTime());
             }
         }
         return numExternalNodes;

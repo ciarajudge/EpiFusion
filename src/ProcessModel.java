@@ -195,104 +195,76 @@ public class ProcessModel {
             return;
         }
 
-        double deltaT;
-        double currentT = t;
-
-        //Loop through thingy
-        for (int e = 0; e < tree.observationOrder.length; e++ ) {
-            deltaT = tree.observationTimes.get(e) - currentT;
-            
-
-
-
-
-        }
-
-
-        int state = particle.getState();
+        //If beta is RW, get new propensity[0]
         if (Storage.analysisType == 1) {
             particle.nextBeta(rates[4]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
-        double[] propensities = particle.getVanillaPropensities(rates);
-
-        if (tree.lineages == 0) { //this means the tree must start in this interval, so we do a new propensity calc
-            double segmentBeginning = t + 1 - tree.birthTimes.get(0);
-            double segmentEnding = 1 - segmentBeginning;
-            int newBirths = poissonSampler(propensities[0]*segmentBeginning);
-            state = state + newBirths;
-            propensities = transformPropensities(propensities, segmentEnding);
-        }
 
 
-        //Divide the propensities into their bits
-        double unobservedInfectProp = state > 0
-                ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
-                : 0.0;
-        //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state+", unobserved infect prop: "+unobservedInfectProp+", and full infect prop "+propensities[0]);
-        if (unobservedInfectProp < 0.0) {
-            /*System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
-                    "for day "+t+" is negative! This will disrupt the process model for the rest of the filter step!"+
-                    " Returning neg infinity for the particle.");
-            */
-            particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+        double deltaT, nextT;
+        double currentT = t;
+        int state, births, deaths, eventType;
+        double[] propensities, adjustedPropensities;
+        double unobservedInfectProp, observedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp;
+        int treeLineages = tree.lineages;
 
-            return;
-        }
-        //System.out.println("unobserved infection prop: "+unobservedInfectProp);
+        //Loop through thingy
+        for (int e = 0; e < tree.observationOrder.length; e++ ) {
+            //Figure out what the segment time is
+            nextT = e == tree.observationOrder.length ? t+1 : tree.observationTimes.get(e);
+            deltaT = nextT - currentT;
 
-        double observedInfectProp = propensities[0] - unobservedInfectProp;
-        double allowedRecovProp, forbiddenRecovProp;
-        if (state > tree.lineages + propensities[1] +tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
-            allowedRecovProp = propensities[1];
-            forbiddenRecovProp = 0.0;
-        }
-        else {
-            allowedRecovProp = 0.0;
-            forbiddenRecovProp = propensities[1];
-        }
-        //System.out.println("allowed recov prop: "+allowedRecovProp);
-        double sampleProp = propensities[2];
-        if (tree.lineages < 1 && t > 1) {
-            unobservedInfectProp = propensities[0];
-            allowedRecovProp = propensities[1];
-        } else if (tree.lineages < 1) {
-            //System.out.println("No tree yet.");
-            unobservedInfectProp = propensities[0];
-            allowedRecovProp = 0.0;
-        }
-        //Calculate the events
-        int births = poissonSampler(unobservedInfectProp);
-        //System.out.println("births: "+births);
-        int deaths = poissonSampler(allowedRecovProp);
-        //System.out.println("deaths: "+deaths);
-        state = state + births - deaths;
-        particle.setState(state);
-        if (tree.lineages > 0) {
-            double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
-            //System.out.println("adjusted propensities: "+Arrays.toString(adjustedPropensities));
-            double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities);
-            System.out.println("Day "+t+", Particle "+particle.particleID+", Truth: "+Storage.truth[t]+" State:"+particle.getState()+" Phylo Likelihood: " +particle.getPhyloLikelihood());
-            if (Double.isInfinite(todayPhyloLikelihood)) {
-                //System.out.println("WARNING: Particle "+particle.particleID+" likelihood for day "+t+" is Infinity!");
-                /*
-                System.out.println("["+particle.particleID+"]State pre phylo likelihood calc: "+state);
-                System.out.println("["+particle.particleID+"]State post phylo likelihood calc: "+particle.getState());
-                System.out.println("["+particle.particleID+"]Likelihood: "+todayPhyloLikelihood);
-                System.out.println("["+particle.particleID+"]Tree lineages: "+tree.lineages);
-                System.out.println("["+particle.particleID+"]Unobserved births: "+births);
-                System.out.println("["+particle.particleID+"]Deaths: "+deaths);
-                System.out.println("["+particle.particleID+"]Adjusted propensities: "+Arrays.toString(adjustedPropensities)); */
-                particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY); //set phylo Likelihood of that particle to negative infinity which will quit the loop
+            //Get propensities and state
+            state = particle.getState();
+            propensities = particle.getSegmentPropensities(rates, deltaT);
+
+            //Adjust the propensities
+            unobservedInfectProp = state > 0
+                    ? propensities[0] * (1.0 - treeLineages * (treeLineages - 1) / (double) state/(state+1))
+                    : 0.0;
+            if (unobservedInfectProp < 0.0) {
+                System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity for day "+t+" is negative!");
+                particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
                 return;
             }
+            observedInfectProp = propensities[0] - unobservedInfectProp;
+            if (state > treeLineages + propensities[1]) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
+                allowedRecovProp = propensities[1];
+                forbiddenRecovProp = 0.0;
+            } else {
+                allowedRecovProp = 0.0;
+                forbiddenRecovProp = propensities[1];
+            }
+            sampleProp = propensities[2];
 
+            //Increment the states
+            births = poissonSampler(unobservedInfectProp);
+            deaths = poissonSampler(allowedRecovProp);
+            state = state + births - deaths;
+            particle.setState(state);
+
+
+            //Phylo likelihood calculation
+            adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
+            eventType = nextT == t+1 ? 2 : tree.observationOrder[e];
+            double todayPhyloLikelihood = PhyloLikelihood.calculateSegmentLikelihood(particle, adjustedPropensities, eventType);
+            if (Double.isInfinite(todayPhyloLikelihood)) {
+                particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+                return;
+            }
             particle.setPhyloLikelihood(particle.getPhyloLikelihood()+todayPhyloLikelihood);
-            //System.out.println("Overall Phylo Likelihood: "+particle.getPhyloLikelihood());
-        } else {
-            particle.setState(particle.getState()+tree.births);
+
+            //Adjust treeLineages and nextT
+            currentT = nextT;
+            if (eventType == 0) {
+                treeLineages += 1;
+            } else if (eventType == 1) {
+                treeLineages -= 1;
+            }
         }
-        Day tmpDay = new Day(t, particle.getState(), births, deaths);
+
+        Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
     }
 

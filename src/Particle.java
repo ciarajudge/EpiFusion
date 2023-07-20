@@ -108,6 +108,13 @@ public class Particle {
         }
         return newPropensities;
     }
+    public double[] getSegmentPropensities(double[] rates, double deltaT) {
+        double[] newPropensities = new double[rates.length];
+        for ( int i=0; i<rates.length; i++){
+            newPropensities[i] = rates[i] * state * deltaT;
+        }
+        return newPropensities;
+    }
 
     //More complex updators
     public void updateWeight(double confidenceSplit) {

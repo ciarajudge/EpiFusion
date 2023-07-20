@@ -23,20 +23,19 @@ public class Main {
         Tree tree = Storage.tree;
 
 
-        tree.treeEventsInSegments(59);
-
         //Initialise particle filter instance
-        //ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
+        ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
         //Debug debug = new Debug(particleFilter);
         //double[] trueParams = new double[] {0.0419, -0.0593, 0.5122, 0.233, 0.0075, 0.15};
         //debug.runDebug(trueParams);
         //Initialise and run MCMC instance
 
-        //MCMC particleMCMC = new MCMC(particleFilter);
-        //particleMCMC.runMCMC(Storage.numMCMCsteps);
+        System.out.println(Storage.segmentedDays);
+        MCMC particleMCMC = new MCMC(particleFilter);
+        particleMCMC.runMCMC(Storage.numMCMCsteps);
 
-        //particleMCMC.loggers.terminateLoggers();
+        particleMCMC.loggers.terminateLoggers();
         //debug.loggers.terminateLoggers();
 
     }
