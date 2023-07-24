@@ -46,8 +46,9 @@ public class ParticleFilter {
             System.out.println("Initialisation attempt");
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
+            System.out.println(Arrays.toString(Storage.truth));
             particles.particles[0].traj.printTrajectory();
-            particles.particles[0].printBeta();
+            //particles.particles[0].printBeta();
             if (likelihood < logLikelihoodCandidate) {
                 currentParameters = candidateParameters;
                 logLikelihoodCurrent = logLikelihoodCandidate;
@@ -221,7 +222,6 @@ public class ParticleFilter {
         this.logLikelihoodCurrent = this.logLikelihoodCandidate;
         this.logPriorCurrent = this.logPriorCandidate;
     }
-
 
     private double inverseLogistic(int t, double[] parameters) {
         double a = parameters[3];

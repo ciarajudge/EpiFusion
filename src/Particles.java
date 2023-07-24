@@ -291,12 +291,14 @@ public class Particles {
             int t = step*Storage.resampleEvery;
             //Tree segments made here
             TreeSegment[] treeSegments = new TreeSegment[increments];
+
             int ind = 0;
             for (int i=t; i<t+increments; i++) {
                 double end = (double) i + 1;
                 treeSegments[ind] = new TreeSegment(tree, i, end);
                 ind++;
             }
+
 
             for (Particle particle : particles) {
                 executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates));
