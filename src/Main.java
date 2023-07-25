@@ -64,6 +64,9 @@ public class Main {
         String type = analysisElement.getElementsByTagName("type").item(0).getTextContent();
         if (type.equals("looseformbeta")) {
             Storage.analysisType = 1;
+        } else if (type.equals("invlogisticbeta")) {
+            System.out.println("Invlogistic");
+            Storage.analysisType = 0;
         }
 
 
