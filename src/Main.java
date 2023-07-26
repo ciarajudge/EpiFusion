@@ -5,6 +5,7 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.io.IOException;
+import java.util.Objects;
 /*
 import java.util.Arrays;
 import javax.swing.*;
@@ -23,6 +24,7 @@ public class Main {
         Tree tree = Storage.tree;
 
 
+        Loggers loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
         //Initialise particle filter instance
         ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
@@ -32,7 +34,7 @@ public class Main {
         //Initialise and run MCMC instance
 
         System.out.println(Storage.segmentedDays);
-        MCMC particleMCMC = new MCMC(particleFilter);
+        MCMC particleMCMC = new MCMC(particleFilter, loggers);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
 
         particleMCMC.loggers.terminateLoggers();

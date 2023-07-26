@@ -1,5 +1,6 @@
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.io.IOException;
 
 public class ParticleFilter {
     private double[][] currentRates;
@@ -22,7 +23,7 @@ public class ParticleFilter {
     public ArrayList<Double> currentBeta;
     //private final Random random;
 
-    public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) {
+    public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
         this.numParticles = numParticles;
         this.tree = tree;
         this.caseIncidence = incidence;
@@ -40,9 +41,10 @@ public class ParticleFilter {
 
     }
 
-    public void initialisePF(int numAttempts) {
+    public void initialisePF(int numAttempts) throws IOException {
         double likelihood = Double.NEGATIVE_INFINITY;
         for (int i=0; i<numAttempts; i++) {
+            Storage.particleLoggers = new ParticleLoggers(i);
             System.out.println("Initialisation attempt");
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
@@ -56,13 +58,14 @@ public class ParticleFilter {
                 currentBeta = particles.particles[0].beta;
                 likelihood = logLikelihoodCandidate;
             }
+            Storage.particleLoggers.terminateLoggers();
         }
         System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
         System.out.println("Initial LL: "+logLikelihoodCurrent);
 
     }
 
-    public void runPF(double[] parameters) {
+    public void runPF(double[] parameters) throws IOException {
         clearCache();
         //Convert parameters into rates
         candidateParameters = parameters;
@@ -118,7 +121,7 @@ public class ParticleFilter {
     }
 
 
-    public boolean filterStep(int step)  {
+    public boolean filterStep(int step)  throws IOException {
         //System.out.println("STEP "+step);
         //Find out how many increments (days) in this step, useful housekeeping
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));

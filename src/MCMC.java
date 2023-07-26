@@ -11,10 +11,10 @@ public class MCMC {
     public int acceptanceRate = 0;
 
 
-    public MCMC(ParticleFilter particleFilter) throws IOException {
+    public MCMC(ParticleFilter particleFilter, Loggers loggers) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
-        this.loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
+        this.loggers = loggers;
         loggers.logTrajectory(particleFilter.currentTrajectory);
         loggers.logParams(particleFilter.getCurrentParameters());
         loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());

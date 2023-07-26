@@ -1,5 +1,6 @@
 import java.util.concurrent.*;
 import java.util.Random;
+import java.io.IOException;
 
 
 public class Particles {
@@ -333,7 +334,10 @@ public class Particles {
 
 
     //Resampling
-    public void resampleParticles() {
+    public void resampleParticles() throws IOException {
+        int[] resampledParticleIDs = new int[N];
+        int[] resampledParticleStates = new int[N];
+        double[] resampledParticleLikelihoods = new double[N];
 
         Particle[] resampledParticles = new Particle[N];
         double totalWeight = 0.0;
@@ -356,11 +360,15 @@ public class Particles {
                     continue;
                 }
                 if (runningSum >= randomWeight) {
+                    resampledParticleIDs[i] = particle.particleID;
+                    resampledParticleStates[i] = particle.getState();
+                    resampledParticleLikelihoods[i] = particle.getPhyloLikelihood();
                     resampledParticles[i] = new Particle(particle, i);
                     break;
                 }
             }
         }
+        Storage.particleLoggers.resamplingUpdate(resampledParticleIDs, resampledParticleStates, resampledParticleLikelihoods);
         particles = resampledParticles;
     }
 
