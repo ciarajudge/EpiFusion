@@ -18,6 +18,7 @@ public class Loggers {
         if (!folder.exists()){
             folder.mkdir();
         }
+        Storage.folder = filePath;
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
@@ -38,6 +39,7 @@ public class Loggers {
             folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         }
         String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
+        Storage.folder = filePath;
         folder = new File(filePath);
         if (!folder.exists()){
             folder.mkdir();
