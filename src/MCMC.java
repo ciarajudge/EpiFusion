@@ -21,6 +21,7 @@ public class MCMC {
         if (Storage.analysisType == 1) {
             loggers.logBeta(particleFilter.currentBeta);
         }
+        Storage.initialised = true;
    }
 
     public void runMCMC(int numIterations) throws IOException {

@@ -7,7 +7,7 @@ public class PhyloLikelihood {
 
         // Case 1: Likelihood given no events on the tree
         conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
-        System.out.println("Particle: "+particle.particleID+" Phylolikelihood main:" + conditionalLogP);
+        //System.out.println("Particle: "+particle.particleID+" Phylolikelihood main:" + conditionalLogP);
 
         if (treeBirths != 0 || treeSamples != 0) {
             // Case 2: Likelihood given something does happen

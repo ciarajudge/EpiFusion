@@ -75,7 +75,7 @@ public class ProcessModel {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
             //System.out.println("adjusted propensities: "+Arrays.toString(adjustedPropensities));
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities);
-            System.out.println("Day "+t+", Particle "+particle.particleID+", Truth: "+Storage.truth[t]+" State:"+particle.getState()+" Phylo Likelihood: " +todayPhyloLikelihood);
+            //System.out.println("Day "+t+", Particle "+particle.particleID+", Truth: "+Storage.truth[t]+" State:"+particle.getState()+" Phylo Likelihood: " +todayPhyloLikelihood);
             if (Double.isInfinite(todayPhyloLikelihood)) {
                 //System.out.println("WARNING: Particle "+particle.particleID+" likelihood for day "+t+" is Infinity!");
                 /*
@@ -266,9 +266,9 @@ public class ProcessModel {
             }
         }
 
-        /*System.out.println("["+particle.particleID+"] Day "+t+", TrueState "+Storage.truth[t]+", ParticleState "+particle.getState()+
+        System.out.println("["+particle.particleID+"] Day "+t+", TrueState "+Storage.truth[t]+", ParticleState "+particle.getState()+
                 ", TrueChange "+(Storage.truth[t]-Storage.truth[t-1])+", ParticleChange "+(particle.getState()-prevState)+
-                ", PhyloLikelihood "+(particle.getPhyloLikelihood()-prevLikelihood));*/
+                ", PhyloLikelihood "+(particle.getPhyloLikelihood()-prevLikelihood));
         Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
     }

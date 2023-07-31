@@ -239,8 +239,9 @@ public class ParticleFilter {
     private void printRateVector(int index) {
         double[] rateVector = getRateVector(index);
         for (double r : rateVector) {
-            System.out.println(r);
+            System.out.print(r+",");
         }
+        System.out.println();
     }
 
     public void clearCache() {

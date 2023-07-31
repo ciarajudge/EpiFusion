@@ -362,13 +362,15 @@ public class Particles {
                 if (runningSum >= randomWeight) {
                     resampledParticleIDs[i] = particle.particleID;
                     resampledParticleStates[i] = particle.getState();
-                    resampledParticleLikelihoods[i] = particle.getPhyloLikelihood();
+                    resampledParticleLikelihoods[i] = particle.getEpiLikelihood();
                     resampledParticles[i] = new Particle(particle, i);
                     break;
                 }
             }
         }
-        Storage.particleLoggers.resamplingUpdate(resampledParticleIDs, resampledParticleStates, resampledParticleLikelihoods);
+        if (!Storage.initialised) {
+            Storage.particleLoggers.resamplingUpdate(resampledParticleIDs, resampledParticleStates, resampledParticleLikelihoods);
+        }
         particles = resampledParticles;
     }
 

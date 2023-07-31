@@ -29,6 +29,7 @@ public class Storage {
     public static boolean segmentedDays = false;
     public static String folder;
     public static ParticleLoggers particleLoggers;
+    public static boolean initialised = false;
 
     public static void setNumParticles(int N) {numParticles = N;}
 
