@@ -42,6 +42,19 @@ public class ParticleLoggers {
         particleLikelihoods.write(toWrite);
     }
 
+    public void saveParticleLikelihoodBreakdown(double[][] likelihoodBreakdown, int step, double likelihood) throws IOException {
+        FileWriter likelihoodBreakdownFile = new FileWriter(Storage.folder+"/likelihoodbreakdown_"+step+"_"+likelihood+".csv");
+        for (double[] r : likelihoodBreakdown) {
+            String toWrite = "";
+            for (double c : r) {
+                toWrite = toWrite + c + ",";
+            }
+            toWrite = toWrite + "\n";
+            likelihoodBreakdownFile.write(toWrite);
+        }
+        likelihoodBreakdownFile.close();
+    }
+
     public void terminateLoggers() throws IOException {
         particles.close();
         particleLikelihoods.close();
