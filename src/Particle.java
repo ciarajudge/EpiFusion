@@ -12,6 +12,7 @@ public class Particle {
     double weight;
     Trajectory traj;
     ArrayList<Double> beta;
+    double[][] likelihoodMatrix;
 
     public Particle(int pID) {
         particleID = pID;
@@ -24,6 +25,7 @@ public class Particle {
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
+        this.likelihoodMatrix = new double[Storage.T][4];
     }
 
     public Particle(Particle other, int pID) {
@@ -36,6 +38,7 @@ public class Particle {
         this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.traj = new Trajectory(other.traj);
         this.beta = new ArrayList<>(other.beta);
+        this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
     }
 
     public void printStatus() {
@@ -114,6 +117,21 @@ public class Particle {
             newPropensities[i] = rates[i] * state * deltaT;
         }
         return newPropensities;
+    }
+
+    //Copy 2d array helper function
+    public static double[][] copy2DArray(double[][] source) {
+        int rows = source.length;
+        int columns = source[0].length;
+        double[][] destination = new double[rows][columns];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                destination[i][j] = source[i][j];
+            }
+        }
+
+        return destination;
     }
 
     //More complex updators

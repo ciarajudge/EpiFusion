@@ -21,6 +21,7 @@ public class ParticleFilter {
     private final int numParticles;
     public Trajectory currentTrajectory;
     public ArrayList<Double> currentBeta;
+    public Particle currentSampledParticle;
     //private final Random random;
 
     public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
@@ -50,6 +51,7 @@ public class ParticleFilter {
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
             System.out.println(Arrays.toString(Storage.truth));
             particles.particles[0].traj.printTrajectory();
+            Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
             //particles.particles[0].printBeta();
             if (likelihood < logLikelihoodCandidate) {
                 currentParameters = candidateParameters;
@@ -93,6 +95,7 @@ public class ParticleFilter {
         logLikelihoodCandidate = 0.0;
         //particles.printParticles();
         for (int step=0; step<filterSteps; step++) {
+        //for (int step=0; step<2; step++){
             if (!(Storage.isPhyloOnly() && tree.treeFinished(step))){
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps

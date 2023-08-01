@@ -362,7 +362,7 @@ public class Particles {
                 if (runningSum >= randomWeight) {
                     resampledParticleIDs[i] = particle.particleID;
                     resampledParticleStates[i] = particle.getState();
-                    resampledParticleLikelihoods[i] = particle.getEpiLikelihood();
+                    resampledParticleLikelihoods[i] = particle.getPhyloLikelihood();
                     resampledParticles[i] = new Particle(particle, i);
                     break;
                 }
