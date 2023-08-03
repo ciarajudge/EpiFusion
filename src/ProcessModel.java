@@ -145,7 +145,7 @@ public class ProcessModel {
         } else {
             particle.setState(particle.getState()+tree.births);
         }
-        particle.likelihoodMatrix[t][3] = particle.getState();
+        particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
     }
@@ -224,7 +224,7 @@ public class ProcessModel {
                 treeLineages -= 1;
             }
         }
-        particle.likelihoodMatrix[t][3] = particle.getState();
+        particle.likelihoodMatrix[t][5] = particle.getState();
 
         System.out.println("["+particle.particleID+"] Day "+t+", TrueState "+Storage.truth[t]+", ParticleState "+particle.getState()+
                 ", TrueChange "+(Storage.truth[t]-Storage.truth[t-1])+", ParticleChange "+(particle.getState()-prevState)+
@@ -261,7 +261,7 @@ public class ProcessModel {
         }
         state = state + births - deaths;
         particle.setState(state);
-        particle.likelihoodMatrix[t][3] = particle.getState();
+        particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
     }
@@ -342,7 +342,7 @@ public class ProcessModel {
         } else {
             particle.setState(particle.getState()+tree.births);
         }
-        particle.likelihoodMatrix[t][3] = particle.getState();
+        particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
     }

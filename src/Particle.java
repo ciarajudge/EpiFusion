@@ -25,7 +25,7 @@ public class Particle {
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
-        this.likelihoodMatrix = new double[Storage.T][4];
+        this.likelihoodMatrix = new double[Storage.T][6];
     }
 
     public Particle(Particle other, int pID) {

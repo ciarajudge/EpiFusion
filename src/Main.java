@@ -6,8 +6,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.io.IOException;
 import java.util.Objects;
-/*
-import java.util.Arrays;
+
+import java.util.Arrays;/*
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -23,6 +23,13 @@ public class Main {
         Incidence caseIncidence = Storage.incidence;
         Tree tree = Storage.tree;
 
+        /*
+        int[] test = new int[10000];
+        for (int i=0; i<10000; i++) {
+            test[i] = ProcessModel.poissonSampler(0.233);
+        }
+        System.out.println(Arrays.toString(test));
+*/
 
         Loggers loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
         //Initialise particle filter instance
@@ -69,6 +76,9 @@ public class Main {
         } else if (type.equals("invlogisticbeta")) {
             System.out.println("Invlogistic");
             Storage.analysisType = 0;
+        } else if (type.equals("invlogisticwjitter")) {
+            System.out.println("invlogisticwjitter");
+            Storage.analysisType = 2;
         }
 
 

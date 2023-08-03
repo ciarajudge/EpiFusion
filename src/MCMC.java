@@ -18,6 +18,7 @@ public class MCMC {
         loggers.logTrajectory(particleFilter.currentTrajectory);
         loggers.logParams(particleFilter.getCurrentParameters());
         loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
+        //loggers.saveParticleLikelihoodBreakdown(particleFilter.currentSampledParticle.likelihoodMatrix, -1, particleFilter.getLogLikelihoodCurrent());
         if (Storage.analysisType == 1) {
             loggers.logBeta(particleFilter.currentBeta);
         }
@@ -70,6 +71,7 @@ public class MCMC {
                 currentParameters = candidateParameters;
                 particleFilter.currentTrajectory = new Trajectory(particleFilter.particles.particles[0].traj);
                 particleFilter.currentBeta = particleFilter.particles.particles[0].beta;
+                particleFilter.currentSampledParticle = new Particle(particleFilter.particles.particles[0], i);
                 this.particleFilter.resetCurrentParameters();
                 loggers.logAcceptance(0);
                 acceptanceRate += 1;
