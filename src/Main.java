@@ -5,7 +5,12 @@ import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.util.Arrays;/*
 import javax.swing.*;
@@ -32,6 +37,12 @@ public class Main {
 */
 
         Loggers loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
+        Path sourcePath = Paths.get(args[0]);
+        Path destinationDir = Paths.get(Storage.folder);
+        String fileName = sourcePath.getFileName().toString();
+        Path destinationPath = destinationDir.resolve(fileName);
+        Files.copy(sourcePath, destinationPath);
+
         //Initialise particle filter instance
         ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 

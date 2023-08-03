@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
+
 public class Loggers {
     File folder;
     public FileWriter trajectories;
@@ -19,6 +20,7 @@ public class Loggers {
             folder.mkdir();
         }
         Storage.folder = filePath;
+
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
