@@ -19,83 +19,50 @@ public class ParticleFilter {
     private final int resampleEvery;
     int increments;
     private final int numParticles;
-    public Trajectory currentTrajectory;
-    public ArrayList<Double> currentBeta;
     public Particle currentSampledParticle;
-    //private final Random random;
 
-    public ParticleFilter(int numParticles, Tree tree, Incidence incidence, int T, int resampleEvery) throws IOException {
-        this.numParticles = numParticles;
-        this.tree = tree;
-        this.caseIncidence = incidence;
-        this.T = T;
-        //this.random = new Random();
+    public ParticleFilter() throws IOException {
+        this.numParticles = Storage.numParticles;
+        this.tree = Storage.tree;
+        this.caseIncidence = Storage.incidence;
+        this.T = Storage.T;
+        this.resampleEvery = Storage.resampleEvery;
+        this.filterSteps = (int) Math.ceil(this.T / (double) Storage.resampleEvery);
         this.candidateRates = new double[this.T][5];
-
-        this.filterSteps = (int) Math.ceil(this.T / (double) resampleEvery);
-        this.resampleEvery = resampleEvery;
 
         particles = new Particles(numParticles);
         initialisePF(Storage.numInitialisationAttempts);
-
-        System.out.println(logLikelihoodCurrent);
-
     }
 
     public void initialisePF(int numAttempts) throws IOException {
         double likelihood = Double.NEGATIVE_INFINITY;
         for (int i=0; i<numAttempts; i++) {
-            Storage.particleLoggers = new ParticleLoggers(i);
-            System.out.println("Initialisation attempt");
+            //Storage.particleLoggers = new ParticleLoggers(i);
+            System.out.println("Initialisation attempt "+(i+1));
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
-            System.out.println(Arrays.toString(Storage.truth));
             particles.particles[0].traj.printTrajectory();
-            Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
-            //particles.particles[0].printBeta();
+            //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
             if (likelihood < logLikelihoodCandidate) {
                 currentParameters = candidateParameters;
                 logLikelihoodCurrent = logLikelihoodCandidate;
-                currentTrajectory = new Trajectory(particles.particles[0].traj);
-                currentBeta = particles.particles[0].beta;
                 likelihood = logLikelihoodCandidate;
+                currentSampledParticle = new Particle(particles.particles[0], 0);
             }
-            Storage.particleLoggers.terminateLoggers();
+            //Storage.particleLoggers.terminateLoggers();
         }
         System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
         System.out.println("Initial LL: "+logLikelihoodCurrent);
-
     }
 
     public void runPF(double[] parameters) throws IOException {
         clearCache();
         //Convert parameters into rates
         candidateParameters = parameters;
-        if (Storage.analysisType == 0) {
-            candidateRates[0][0] = inverseLogistic(0, parameters);
-        } else if (Storage.analysisType == 1) {
-            candidateRates[0][0] = parameters[3];
-        }
-        candidateRates[0][1] = parameters[0];//assign day 0
-        candidateRates[0][2] = parameters[1];
-        candidateRates[0][3] = parameters[2];
-        candidateRates[0][4] = parameters[4];
-        for (int k = 1; k < T; k++) { //Random walk for gamma, inverse log for
-            if (Storage.analysisType == 0) {
-                candidateRates[k][0] = inverseLogistic(k, parameters);
-            }
-            candidateRates[k][1] = parameters[0];
-            candidateRates[k][2] = parameters[1];
-            candidateRates[k][3] = parameters[2];
-            candidateRates[k][4] = parameters[4];
-        }
+        parametersToRates();
 
-
-        particles.setInitialBeta(parameters[3]);
         logLikelihoodCandidate = 0.0;
-        //particles.printParticles();
         for (int step=0; step<filterSteps; step++) {
-        //for (int step=0; step<2; step++){
             if (!(Storage.isPhyloOnly() && tree.treeFinished(step))){
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps
@@ -111,73 +78,45 @@ public class ParticleFilter {
             }
 
         }
-        /*
-        for (int i = 0; i<numParticles; i++) {
-            particles.particles[i].traj.printTrajectory(i);
-        }*/
-        //System.out.println("Checkpoint PF complete");
-        checkParticles();
+
         logPriorCandidate = calculatePFLogPrior();
-        checkParticles();
-        //System.out.println("Log Likelihood Candidate: "+logLikelihoodCandidate);
-        //System.out.println("Log Prior Candidate: "+logPriorCandidate);
     }
 
 
     public boolean filterStep(int step)  throws IOException {
-        //System.out.println("STEP "+step);
-        //Find out how many increments (days) in this step, useful housekeeping
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
 
+        //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
             particles.getEpiLikelihoods(caseIncidence.incidence[step], candidateRates[step][3]);
+            if (particles.checkEpiLikelihoods()) {return true;}
+        }
 
-            //particles.printLikelihoods();
-            if (particles.checkEpiLikelihoods()) {
-                return true;
-            }
-        } else {
+        //If Phylo is involved at all
+        else {
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
+            if (particles.checkPhyloLikelihoods()) {return true;}
 
-            //particles.printLikelihoods();
-            if (particles.checkPhyloLikelihoods()) {
-                return true;
-            }
-
-            //particle likelihoods
+            //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[step][3]);
-                if (particles.checkEpiLikelihoods()) {
-                    return true;
-                }
-
-                //System.out.println("Epi likelihoods checked");
+                if (particles.checkEpiLikelihoods()) {return true;}
             }
         }
 
-        //if (particles.checkLikelihoods()) {
-        //    return true;
-        //}
-        //particles.printLikelihoods();
-
         particles.checkStates(Storage.maxEpidemicSize);
-        if (Storage.tooBig) {
-            return true;
-        }
+        if (Storage.tooBig) {return true;}
+
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP();
-
-
         logLikelihoodCandidate += logP;
-        //particles.printWeights();
-        //System.out.println("STEP "+step+" logP: "+logP);
+
         //resample
         particles.resampleParticles();
         checkParticles();
-        //print them
-        //particles.printParticles();
+
         return false;
     }
 
@@ -185,13 +124,11 @@ public class ParticleFilter {
     public double calculatePFLogPrior() {
         double logPrior = 1.0;
         for (int d=0; d<candidateParameters.length; d++) {
-            //System.out.println(Storage.priors.allPriors[d].density(currentParameters[d]));
             logPrior *= Storage.priors.priors[d].density(candidateParameters[d]);
         }
         logPrior = Math.log(logPrior);
         return logPrior;
     }
-
 
 
     //Getters
@@ -229,22 +166,56 @@ public class ParticleFilter {
         this.logPriorCurrent = this.logPriorCandidate;
     }
 
-    private double inverseLogistic(int t, double[] parameters) {
-        double a = parameters[3];
-        double b = parameters[4];
-        double c = parameters[5];
-        return c/(1+(a*Math.exp(-b*t)));
-    }
-
 
     //Printers
-
     private void printRateVector(int index) {
         double[] rateVector = getRateVector(index);
         for (double r : rateVector) {
             System.out.print(r+",");
         }
         System.out.println();
+    }
+
+    //Other utilities
+    private double inverseLogistic(int t, double[] parameters) {
+        double a = parameters[0];
+        double b = parameters[1];
+        double c = parameters[2];
+        return c/(1+(a*Math.exp(-b*t)));
+    }
+
+    private void parametersToRates() { //note for myself: rates are {beta, gamma, psi, phi}
+        if (Storage.analysisType == 0) { // inverse logistic beta
+            /*INVERSE LOGISTIC BETA PARAMETER ORDER
+            0:gamma, 1:psi, 2:phi, 3:a, 4:b, 5:c
+             */
+            double[] abc = new double[] {candidateParameters[3], candidateParameters[4], candidateParameters[5]};
+            candidateRates[0][0] = inverseLogistic(0, abc);
+            candidateRates[0][1] = candidateParameters[0];//assign day 0
+            candidateRates[0][2] = candidateParameters[1];
+            candidateRates[0][3] = candidateParameters[2];
+
+            for (int k = 1; k < T; k++) {
+                candidateRates[k][0] = inverseLogistic(k, abc);
+                candidateRates[k][1] = candidateParameters[0];
+                candidateRates[k][2] = candidateParameters[1];
+                candidateRates[k][3] = candidateParameters[2];
+            }
+        } else if (Storage.analysisType == 1) {
+            /*RANDOM WALK BETA PARAMETER ORDER
+            0:gamma, 1:psi, 2:phi, 3:initialbeta, 4:betajitter
+             */
+            particles.setInitialBeta(candidateParameters[3], candidateParameters[4]);
+            candidateRates[0][1] = candidateParameters[0];//assign day 0
+            candidateRates[0][2] = candidateParameters[1];
+            candidateRates[0][3] = candidateParameters[2];
+
+            for (int k = 1; k < T; k++) {
+                candidateRates[k][1] = candidateParameters[0];
+                candidateRates[k][2] = candidateParameters[1];
+                candidateRates[k][3] = candidateParameters[2];
+            }
+        }
     }
 
     public void clearCache() {

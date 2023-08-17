@@ -7,16 +7,9 @@ import org.w3c.dom.Element;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import java.util.Arrays;/*
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;*/
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
@@ -24,39 +17,19 @@ public class Main {
 
         parseXMLInput(args[0]);
 
-        int resampleEvery = Storage.resampleEvery;
-        Incidence caseIncidence = Storage.incidence;
-        Tree tree = Storage.tree;
-
-        /*
-        int[] test = new int[10000];
-        for (int i=0; i<10000; i++) {
-            test[i] = ProcessModel.poissonSampler(0.233);
-        }
-        System.out.println(Arrays.toString(test));
-*/
-
         Loggers loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
-        Path sourcePath = Paths.get(args[0]);
-        Path destinationDir = Paths.get(Storage.folder);
-        String fileName = sourcePath.getFileName().toString();
-        Path destinationPath = destinationDir.resolve(fileName);
-        Files.copy(sourcePath, destinationPath);
+        logXML(args[0]);
+
 
         //Initialise particle filter instance
-        ParticleFilter particleFilter = new ParticleFilter(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
+        ParticleFilter particleFilter = new ParticleFilter();
+        //ParticleFilterDebug particleFilter = new ParticleFilterDebug(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
-        //Debug debug = new Debug(particleFilter);
-        //double[] trueParams = new double[] {0.0419, -0.0593, 0.5122, 0.233, 0.0075, 0.15};
-        //debug.runDebug(trueParams);
         //Initialise and run MCMC instance
-
-        System.out.println(Storage.segmentedDays);
         MCMC particleMCMC = new MCMC(particleFilter, loggers);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
-
         particleMCMC.loggers.terminateLoggers();
-        //debug.loggers.terminateLoggers();
+
 
     }
 
@@ -85,10 +58,8 @@ public class Main {
         if (type.equals("looseformbeta")) {
             Storage.analysisType = 1;
         } else if (type.equals("invlogisticbeta")) {
-            System.out.println("Invlogistic");
             Storage.analysisType = 0;
         } else if (type.equals("invlogisticwjitter")) {
-            System.out.println("invlogisticwjitter");
             Storage.analysisType = 2;
         }
 
@@ -148,6 +119,9 @@ public class Main {
         int numInitialisationAttempts = Integer.parseInt(parametersElement.getElementsByTagName("numInitialisationAttempts").item(0).getTextContent());
         Storage.setNumInitialisationAttempts(numInitialisationAttempts);
 
+        int samplingsAsRemovals = Integer.parseInt(parametersElement.getElementsByTagName("samplingsAsRemovals").item(0).getTextContent());
+        Storage.removalProbability = samplingsAsRemovals;
+
         boolean grainyEpi = Boolean.parseBoolean(parametersElement.getElementsByTagName("grainyEpi").item(0).getTextContent());
         if (grainyEpi) {
             Storage.setEpiGrainyResolution();
@@ -185,6 +159,26 @@ public class Main {
 
     }
 
+    public static void logXML(String xml) throws IOException {
+        Path sourcePath = Paths.get(xml);
+        Path destinationDir = Paths.get(Storage.folder);
+        String fileName = sourcePath.getFileName().toString();
+        Path destinationPath = destinationDir.resolve(fileName);
+        Files.copy(sourcePath, destinationPath);
+    }
 
+        /*
+        Debug debug = new Debug(particleFilter);
+        ArrayList<Double> likelihoods = new ArrayList<>();
+        double[] deathRates = new double[] {0.1, 0.1291, 0.1668, 0.2154, 0.2782, 0.3593, 0.4641, 0.5994, 0.7742, 0.9999};
+        double[] sampleRates = new double[] {0.001, 0.0016, 0.0027, 0.0046, 0.0077, 0.0129, 0.0215, 0.0359, 0.0599, 0.1};
+        System.out.println("Made it as far as debug");
+        for (double d:sampleRates) {
+            double[] trueParams = new double[] {0.233, 0.15, d, 0.6, 1,33, 0.05};
+            for (int i = 0; i < 1000; i++) {
+                likelihoods.add(debug.runDebug(trueParams));
+            }
+        }
+        debug.loggers.flexiLogger("likelihoodLog.txt", likelihoods);*/
 
 }

@@ -13,6 +13,7 @@ public class Loggers {
     public FileWriter params;
     public FileWriter acceptance;
     public FileWriter betas;
+    private String filePath;
 
     public Loggers(String filePath) throws IOException {
         folder = new File(filePath);
@@ -20,6 +21,7 @@ public class Loggers {
             folder.mkdir();
         }
         Storage.folder = filePath;
+        this.filePath = filePath;
 
         trajectories = new FileWriter(filePath+"/trajectories.csv");
         trajectoryHeader();
@@ -40,7 +42,9 @@ public class Loggers {
         } else {
             folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         }
+
         String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
+        this.filePath = filePath;
         Storage.folder = filePath;
         folder = new File(filePath);
         if (!folder.exists()){
@@ -127,6 +131,14 @@ public class Loggers {
             likelihoodBreakdownFile.write(toWrite);
         }
         likelihoodBreakdownFile.close();
+    }
+
+    public void flexiLogger(String filename, ArrayList<Double> list) throws IOException{
+        FileWriter file = new FileWriter(filePath+"/"+filename);
+        for (Double a:list) {
+            file.write(a+"\n");
+        }
+        file.close();
     }
 
 
