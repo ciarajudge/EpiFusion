@@ -11,7 +11,6 @@ public class ProcessModel {
             int actualDay = t+i;
             //System.out.println("\nDay "+actualDay);
 
-
             if (!Storage.treeOn[particle.particleID] && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
                 Storage.treeOn[particle.particleID] = true;
                 Storage.haveReachedTree[particle.particleID] = true;
@@ -63,8 +62,12 @@ public class ProcessModel {
         }
 
         int state = particle.getState();
+
         if (Storage.analysisType == 1) {
-            particle.nextBeta(rates[4]);
+            particle.nextBeta();
+            rates[0] = particle.beta.get(particle.beta.size()-1);
+        } else if (Storage.analysisType == 2) {
+            particle.nextBeta(rates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
         double[] propensities = particle.getVanillaPropensities(rates);
@@ -84,16 +87,16 @@ public class ProcessModel {
                 : 0.0;
         //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state+", unobserved infect prop: "+unobservedInfectProp+", and full infect prop "+propensities[0]);
         if (unobservedInfectProp < 0.0) {
-            /*System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
+            /*
+            System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
                     "for day "+t+" is negative! This will disrupt the process model for the rest of the filter step!"+
-                    " Returning neg infinity for the particle.");
-            */
+                    " Returning neg infinity for the particle.");*/
+
             particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
 
             return;
         }
         //System.out.println("unobserved infection prop: "+unobservedInfectProp);
-
         double observedInfectProp = propensities[0] - unobservedInfectProp;
         double allowedRecovProp, forbiddenRecovProp;
         if (state > tree.lineages + propensities[1] +tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
@@ -123,7 +126,6 @@ public class ProcessModel {
         particle.setState(state);
         if (tree.lineages > 0) {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
-            //System.out.println("adjusted propensities: "+Arrays.toString(adjustedPropensities));
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities, t);
             //System.out.println("Day "+t+", Particle "+particle.particleID+", Truth: "+Storage.truth[t]+" State:"+particle.getState()+" Phylo Likelihood: " +todayPhyloLikelihood);
             if (Double.isInfinite(todayPhyloLikelihood)) {
@@ -136,6 +138,7 @@ public class ProcessModel {
                 System.out.println("["+particle.particleID+"]Unobserved births: "+births);
                 System.out.println("["+particle.particleID+"]Deaths: "+deaths);
                 System.out.println("["+particle.particleID+"]Adjusted propensities: "+Arrays.toString(adjustedPropensities)); */
+                //System.out.println("particle likelihood being set to neg inf because it came back from the PL funct with neg inf");
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY); //set phylo Likelihood of that particle to negative infinity which will quit the loop
                 return;
             }
@@ -158,7 +161,7 @@ public class ProcessModel {
 
         //If beta is RW, get new propensity[0]
         if (Storage.analysisType == 1) {
-            particle.nextBeta(rates[4]);
+            particle.nextBeta();
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
 
@@ -187,10 +190,11 @@ public class ProcessModel {
                     : 0.0;
             if (unobservedInfectProp < 0.0) {
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+                //System.out.println("Particle ["+particle.particleID+"] unobserved inf prop is negative, setting likelihood to neg infinity");
                 return;
             }
             observedInfectProp = propensities[0] - unobservedInfectProp;
-            if (state > treeLineages + propensities[1]) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
+            if (state > treeLineages + propensities[1]+ tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
                 allowedRecovProp = propensities[1];
                 forbiddenRecovProp = 0.0;
             } else {
@@ -208,10 +212,13 @@ public class ProcessModel {
 
             //Phylo likelihood calculation
             adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
+            //System.out.println(Arrays.toString(adjustedPropensities));
             eventType = nextT == t+1 ? 2 : tree.observationOrder[e];
             double todayPhyloLikelihood = PhyloLikelihood.calculateSegmentLikelihood(particle, adjustedPropensities, eventType, t);
             if (Double.isInfinite(todayPhyloLikelihood) || Double.isNaN(todayPhyloLikelihood)) {
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+                //System.out.println("Particle ["+particle.particleID+"] phylo likelihood is neginf/nan, setting likelihood to neg infinity, state was "+state);
+
                 return;
             }
             particle.setPhyloLikelihood(particle.getPhyloLikelihood()+todayPhyloLikelihood);
@@ -226,9 +233,9 @@ public class ProcessModel {
         }
         particle.likelihoodMatrix[t][5] = particle.getState();
 
-        System.out.println("["+particle.particleID+"] Day "+t+", TrueState "+Storage.truth[t]+", ParticleState "+particle.getState()+
+        /*System.out.println("["+particle.particleID+"] Day "+t+", TrueState "+Storage.truth[t]+", ParticleState "+particle.getState()+
                 ", TrueChange "+(Storage.truth[t]-Storage.truth[t-1])+", ParticleChange "+(particle.getState()-prevState)+
-                ", PhyloLikelihood "+(particle.getPhyloLikelihood()-prevLikelihood));
+                ", PhyloLikelihood "+(particle.getPhyloLikelihood()-prevLikelihood));*/
         Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
     }
@@ -243,7 +250,7 @@ public class ProcessModel {
         }
         //System.out.println("EpiOnlyDay "+t+" Particle "+particle.particleID+" state: "+state);
         if (Storage.analysisType == 1) {
-            particle.nextBeta(rates[4]);
+            particle.nextBeta();
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
 
@@ -266,6 +273,7 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
     }
 
+    /*
     public static void bruteForceTruthDay(Particle particle, TreeSegment tree, int t, double[] rates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
@@ -274,7 +282,7 @@ public class ProcessModel {
 
         int state = particle.getState();
         if (Storage.analysisType == 1) {
-            particle.nextBeta(rates[4]);
+            particle.nextBeta();
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
         double[] propensities = particle.getVanillaPropensities(rates);
@@ -345,7 +353,7 @@ public class ProcessModel {
         particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
-    }
+    }*/
 
     //Housekeeping functions
     public static double[] transformPropensities(double[] propensities, double segmentTime) {

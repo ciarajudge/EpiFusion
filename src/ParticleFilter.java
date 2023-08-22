@@ -41,6 +41,9 @@ public class ParticleFilter {
             System.out.println("Initialisation attempt "+(i+1));
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
+            System.out.println("Parameters: "+Arrays.toString(candidateParameters));
+            System.out.println("Betas:");
+            //particles.printBetas();
             particles.particles[0].traj.printTrajectory();
             //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
             if (likelihood < logLikelihoodCandidate) {
@@ -60,16 +63,17 @@ public class ParticleFilter {
         //Convert parameters into rates
         candidateParameters = parameters;
         parametersToRates();
-
+        //printRateVector(0);
         logLikelihoodCandidate = 0.0;
         for (int step=0; step<filterSteps; step++) {
             if (!(Storage.isPhyloOnly() && tree.treeFinished(step))){
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps
                     logLikelihoodCandidate = Double.NEGATIVE_INFINITY;
-                    logPriorCandidate = calculatePFLogPrior();
-                    System.out.println("Full run not completed");
+                    //System.out.println("Full run not completed");
                     break;
+                } else {
+                    Storage.completedRuns++;
                 }
             }
             else {
@@ -80,6 +84,7 @@ public class ParticleFilter {
         }
 
         logPriorCandidate = calculatePFLogPrior();
+        //particles.printTrajectories();
     }
 
 
@@ -116,6 +121,7 @@ public class ParticleFilter {
         //resample
         particles.resampleParticles();
         checkParticles();
+
 
         return false;
     }
@@ -205,7 +211,6 @@ public class ParticleFilter {
             /*RANDOM WALK BETA PARAMETER ORDER
             0:gamma, 1:psi, 2:phi, 3:initialbeta, 4:betajitter
              */
-            particles.setInitialBeta(candidateParameters[3], candidateParameters[4]);
             candidateRates[0][1] = candidateParameters[0];//assign day 0
             candidateRates[0][2] = candidateParameters[1];
             candidateRates[0][3] = candidateParameters[2];
@@ -215,6 +220,19 @@ public class ParticleFilter {
                 candidateRates[k][2] = candidateParameters[1];
                 candidateRates[k][3] = candidateParameters[2];
             }
+        } else if (Storage.analysisType == 2) {
+            double[] abc = new double[] {candidateParameters[3], candidateParameters[4], candidateParameters[5]};
+            candidateRates[0][0] = inverseLogistic(0, abc);
+            candidateRates[0][1] = candidateParameters[0];//assign day 0
+            candidateRates[0][2] = candidateParameters[1];
+            candidateRates[0][3] = candidateParameters[2];
+            for (int k = 1; k < T; k++) {
+                candidateRates[k][0] = inverseLogistic(k, abc);
+                candidateRates[k][1] = candidateParameters[0];
+                candidateRates[k][2] = candidateParameters[1];
+                candidateRates[k][3] = candidateParameters[2];
+            }
+            particles.setInitialBeta(candidateRates[0][0], candidateParameters[6]);
         }
     }
 

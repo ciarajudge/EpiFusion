@@ -13,6 +13,7 @@ public class Particle {
     Trajectory traj;
     ArrayList<Double> beta;
     double[][] likelihoodMatrix;
+    private double stdDev;
 
     public Particle(int pID) {
         particleID = pID;
@@ -39,6 +40,7 @@ public class Particle {
         this.traj = new Trajectory(other.traj);
         this.beta = new ArrayList<>(other.beta);
         this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
+        this.stdDev = other.stdDev;
     }
 
     public void printStatus() {
@@ -72,13 +74,20 @@ public class Particle {
         this.phyloLikelihood = newLikelihood;
     }
     public void setWeight(double weight) {this.weight = weight;  }
-    public void setBeta(Double betaT) {
+    public void setBeta(Double betaT, double stdDev) {
         beta.add(betaT);
+        this.stdDev = stdDev;
     }
-    public void nextBeta(double stdDev) {
+    public void nextBeta() {
         Double current = beta.get(beta.size()-1);
         TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
         Double newBeta = truncatedNormalDistribution.sample();
+        beta.add(newBeta);
+    }
+    public void nextBeta(double skeleton) {
+        Double current = beta.get(beta.size()-1);
+        TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
+        Double newBeta = (truncatedNormalDistribution.sample()+skeleton)/2;
         beta.add(newBeta);
     }
 

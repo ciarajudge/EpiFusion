@@ -15,12 +15,12 @@ public class MCMC {
         this.particleFilter = particleFilter;
         this.random = new Random();
         this.loggers = loggers;
-        loggers.logTrajectory(particleFilter.currentTrajectory);
+        loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
         loggers.logParams(particleFilter.getCurrentParameters());
         loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
         //loggers.saveParticleLikelihoodBreakdown(particleFilter.currentSampledParticle.likelihoodMatrix, -1, particleFilter.getLogLikelihoodCurrent());
         if (Storage.analysisType == 1) {
-            loggers.logBeta(particleFilter.currentBeta);
+            loggers.logBeta(particleFilter.currentSampledParticle.beta);
         }
         Storage.initialised = true;
    }
@@ -55,11 +55,13 @@ public class MCMC {
                 System.out.println("Candidate likelihood: "+ particleFilter.getLogLikelihoodCandidate());
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
+                System.out.println("Completed runs: "+  Storage.completedRuns);
+                Storage.completedRuns = 0;
                 acceptanceRate = 0;
                 loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
-                loggers.logTrajectory(particleFilter.currentTrajectory);
-                if (Storage.analysisType == 1) {
-                    loggers.logBeta(particleFilter.currentBeta);
+                loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
+                if (Storage.analysisType != 0) {
+                    loggers.logBeta(particleFilter.currentSampledParticle.beta);
                 }
                 loggers.logParams(currentParameters);
             }
@@ -69,8 +71,6 @@ public class MCMC {
                 //particleFilter.particles.printTrajectories();
                 //System.out.println("Step Accepted");
                 currentParameters = candidateParameters;
-                particleFilter.currentTrajectory = new Trajectory(particleFilter.particles.particles[0].traj);
-                particleFilter.currentBeta = particleFilter.particles.particles[0].beta;
                 particleFilter.currentSampledParticle = new Particle(particleFilter.particles.particles[0], i);
                 this.particleFilter.resetCurrentParameters();
                 loggers.logAcceptance(0);
