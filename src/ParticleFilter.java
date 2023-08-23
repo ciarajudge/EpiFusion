@@ -42,7 +42,7 @@ public class ParticleFilter {
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
             System.out.println("Parameters: "+Arrays.toString(candidateParameters));
-            System.out.println("Betas:");
+            //System.out.println("Betas:");
             //particles.printBetas();
             particles.particles[0].traj.printTrajectory();
             //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
@@ -90,7 +90,6 @@ public class ParticleFilter {
 
     public boolean filterStep(int step)  throws IOException {
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
-
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
@@ -214,7 +213,7 @@ public class ParticleFilter {
             candidateRates[0][1] = candidateParameters[0];//assign day 0
             candidateRates[0][2] = candidateParameters[1];
             candidateRates[0][3] = candidateParameters[2];
-
+            particles.setInitialBeta(candidateParameters[3], candidateParameters[4]);
             for (int k = 1; k < T; k++) {
                 candidateRates[k][1] = candidateParameters[0];
                 candidateRates[k][2] = candidateParameters[1];
