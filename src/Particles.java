@@ -19,6 +19,7 @@ public class Particles {
     public void printParticles() {
         for (int i = 0; i < N; i++) {
             particles[i].printStatus();
+            particles[i].printBeta();
         }
     }
     public void printLikelihoods() {
@@ -49,14 +50,18 @@ public class Particles {
             particle.traj.printTrajectory(particle.particleID);
         }
     }
+    public void printBetas() {
+        for (int i = 0; i < N; i++) {
+            particles[i].printBeta();
+        }
+    }
 
-    //Check for all particle states being 0
-    public void setInitialBeta(Double beta) {
+    public void setInitialBeta(Double beta, double stdDev) {
         try {
             ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
 
             for (Particle particle : particles) {
-                executor.submit(() -> particle.setBeta(beta));
+                executor.submit(() -> particle.setBeta(beta, stdDev));
             }
 
             executor.shutdown();
@@ -297,6 +302,7 @@ public class Particles {
             for (int i=t; i<t+increments; i++) {
                 double end = (double) i + 1;
                 treeSegments[ind] = new TreeSegment(tree, i, end);
+                //treeSegments[ind].printTreeSegment();
                 ind++;
             }
 
@@ -346,6 +352,7 @@ public class Particles {
         for (Particle particle : particles) {
             totalWeight += particle.weight;
         }
+
         // Generate a random number between 0 and total weight
         Random random = new Random();
         for (int i = 0; i < N; i++) {
@@ -368,9 +375,11 @@ public class Particles {
                 }
             }
         }
+        /*
         if (!Storage.initialised) {
             Storage.particleLoggers.resamplingUpdate(resampledParticleIDs, resampledParticleStates, resampledParticleLikelihoods);
         }
+        System.out.println("checkpoint"); */
         particles = resampledParticles;
     }
 
