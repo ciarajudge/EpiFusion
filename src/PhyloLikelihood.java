@@ -23,7 +23,6 @@ public class PhyloLikelihood {
                 else {
                     conditionalLogP += observedEventProbability(observation, particle, propensities[4], t);
                 }
-
             }
         }
 

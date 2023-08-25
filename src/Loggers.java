@@ -27,6 +27,7 @@ public class Loggers {
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
         params = new FileWriter(filePath+"/params.txt");
+        paramsHeader();
         acceptance = new FileWriter(filePath+"/acceptance.txt");
         betas = new FileWriter(filePath+"/beta.txt");
     }
@@ -59,6 +60,7 @@ public class Loggers {
         trajectoryHeader();
         likelihoods = new FileWriter(filePath+"/likelihoods.txt");
         params = new FileWriter(filePath+"/params.txt");
+        paramsHeader();
         acceptance = new FileWriter(filePath+"/acceptance.txt");
         betas = new FileWriter(filePath+"/beta.txt");
     }
@@ -106,6 +108,17 @@ public class Loggers {
         toWrite = toWrite + "\n";
         params.write(toWrite);
     }
+
+    public void paramsHeader() throws IOException {
+        String toWrite = "";
+        for (Prior p : Storage.priors.priors) {
+            toWrite = toWrite + p.label + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        params.write(toWrite);
+    }
+
     public void logAcceptance(int accept) throws IOException {
         String toWrite = accept + "\n";
         acceptance.write(toWrite);
