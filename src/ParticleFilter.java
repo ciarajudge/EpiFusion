@@ -1,5 +1,4 @@
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.io.IOException;
 
 public class ParticleFilter {
@@ -31,14 +30,16 @@ public class ParticleFilter {
         this.candidateRates = new double[this.T][5];
 
         particles = new Particles(numParticles);
-        initialisePF(Storage.numInitialisationAttempts);
+        initialisePF();
     }
 
-    public void initialisePF(int numAttempts) throws IOException {
+    public void initialisePF() throws IOException {
         double likelihood = Double.NEGATIVE_INFINITY;
-        for (int i=0; i<numAttempts; i++) {
+        int i = 0;
+        while (Double.isInfinite(likelihood)) {
+            i += 1;
             //Storage.particleLoggers = new ParticleLoggers(i);
-            System.out.println("Initialisation attempt "+(i+1));
+            System.out.println("Initialisation attempt "+(i));
             runPF(Storage.priors.sampleInitial());
             System.out.println("Log Likelihood: "+logLikelihoodCandidate);
             System.out.println("Parameters: "+Arrays.toString(candidateParameters));
@@ -46,12 +47,10 @@ public class ParticleFilter {
             //particles.printBetas();
             particles.particles[0].traj.printTrajectory();
             //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
-            if (likelihood < logLikelihoodCandidate) {
-                currentParameters = candidateParameters;
-                logLikelihoodCurrent = logLikelihoodCandidate;
-                likelihood = logLikelihoodCandidate;
-                currentSampledParticle = new Particle(particles.particles[0], 0);
-            }
+            currentParameters = candidateParameters;
+            logLikelihoodCurrent = logLikelihoodCandidate;
+            likelihood = logLikelihoodCandidate;
+            currentSampledParticle = new Particle(particles.particles[0], 0);
             //Storage.particleLoggers.terminateLoggers();
         }
         System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
@@ -70,10 +69,8 @@ public class ParticleFilter {
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps
                     logLikelihoodCandidate = Double.NEGATIVE_INFINITY;
-                    //System.out.println("Full run not completed");
+                    System.out.println("Full run not completed");
                     break;
-                } else {
-                    Storage.completedRuns++;
                 }
             }
             else {
@@ -81,6 +78,10 @@ public class ParticleFilter {
                 break;
             }
 
+        }
+
+        if (!Double.isInfinite(logLikelihoodCandidate)) {
+            Storage.completedRuns += 1;
         }
 
         logPriorCandidate = calculatePFLogPrior();
@@ -169,6 +170,7 @@ public class ParticleFilter {
         this.currentRates = this.candidateRates;
         this.logLikelihoodCurrent = this.logLikelihoodCandidate;
         this.logPriorCurrent = this.logPriorCandidate;
+        this.currentSampledParticle = new Particle(particles.particles[0], 0);
     }
 
 

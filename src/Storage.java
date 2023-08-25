@@ -15,7 +15,6 @@ public class Storage {
     public static int T;
     public static String fileBase;
     public static int logEvery;
-    public static int numInitialisationAttempts;
     public static boolean[] treeOn;
     public static boolean[] haveReachedTree;
     public static boolean tooBig = false;
@@ -27,6 +26,7 @@ public class Storage {
     public static ParticleLoggers particleLoggers;
     public static boolean initialised = false;
     public static int completedRuns = 0;
+    public static String argument = "foo";
 
     public static void setNumParticles(int N) {numParticles = N;}
 
@@ -36,8 +36,6 @@ public class Storage {
     }
 
     public static void setNumMCMCsteps(int T) {numMCMCsteps = T;}
-
-    public static void setNumInitialisationAttempts(int T) {numInitialisationAttempts = T;}
 
     public static void setPhyloOnly() {
         phyloOnly = true;

@@ -25,6 +25,11 @@ public class Prior {
             distrib = new FixedParameter(value);
             isFixed = true;
         }
+        if (disttype.equals("Uniform")) {
+            double min = Double.parseDouble(element.getElementsByTagName("min").item(0).getTextContent());
+            double max = Double.parseDouble(element.getElementsByTagName("max").item(0).getTextContent());
+            distrib = new UniformDist(min, max);
+        }
     }
 
     public double sample() {
