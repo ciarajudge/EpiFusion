@@ -39,20 +39,37 @@ public class MCMC {
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);
 
-            for (Particle particle : particleFilter.particles.particles) {
-                if (particle == null) {
-                    System.out.println("Particle Null");
-                }
-            }
-
 
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
+
+            // Accept or reject the proposal based on the acceptance probability
+            if (this.random.nextDouble() < acceptanceProbability) {
+                //particleFilter.particles.printTrajectories();
+                //System.out.println("Step Accepted");
+                //System.out.println("Current Log Likelihood: "+particleFilter.getLogLikelihoodCurrent());
+                //System.out.println("Candidate Log Likelihood: "+particleFilter.getLogLikelihoodCandidate());
+                //System.out.println("Acceptance Probability: "+acceptanceProbability);
+                //System.out.println();
+                currentParameters = candidateParameters;
+                this.particleFilter.resetCurrentParameters();
+                loggers.logAcceptance(0);
+                acceptanceRate += 1;
+            } else {
+                //System.out.println("Step Not Accepted");
+                //System.out.println("Current Log Likelihood: "+particleFilter.getLogLikelihoodCurrent());
+                //System.out.println("Candidate Log Likelihood: "+particleFilter.getLogLikelihoodCandidate());
+                //System.out.println("Acceptance Probability: "+acceptanceProbability);
+                //System.out.println();
+                loggers.logAcceptance(1);
+
+                //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
+            }
+
             if (i % Storage.logEvery == 0 ) {
                 System.out.println();
                 System.out.println("MCMC STEP "+i);
                 System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
-                System.out.println("Candidate likelihood: "+ particleFilter.getLogLikelihoodCandidate());
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
                 System.out.println("Completed runs: "+  Storage.completedRuns);
@@ -64,21 +81,6 @@ public class MCMC {
                     loggers.logBeta(particleFilter.currentSampledParticle.beta);
                 }
                 loggers.logParams(currentParameters);
-            }
-
-            // Accept or reject the proposal based on the acceptance probability
-            if (this.random.nextDouble() < acceptanceProbability) {
-                //particleFilter.particles.printTrajectories();
-                //System.out.println("Step Accepted");
-                currentParameters = candidateParameters;
-                particleFilter.currentSampledParticle = new Particle(particleFilter.particles.particles[0], i);
-                this.particleFilter.resetCurrentParameters();
-                loggers.logAcceptance(0);
-                acceptanceRate += 1;
-            } else {
-                //System.out.println("Step Not Accepted");
-                loggers.logAcceptance(1);
-                //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
             }
 
             // Clear the pf cache
