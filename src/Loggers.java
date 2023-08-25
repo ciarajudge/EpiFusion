@@ -35,12 +35,16 @@ public class Loggers {
         LocalDateTime currentDateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
         String folderName;
+        String[] decomposedArgument = Storage.argument.split("/");
+        String xmlFile = decomposedArgument[decomposedArgument.length-1];
+        String dataCode = xmlFile.split("_")[0];
+        System.out.println(dataCode);
         if (Storage.isPhyloOnly()) {
-            folderName = "PhyloOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
+            folderName = dataCode+"_PhyloOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         } else if (Storage.isEpiOnly()) {
-            folderName = "EpiOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
+            folderName = dataCode+"_EpiOnly_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         } else {
-            folderName = "Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
+            folderName = dataCode+"_Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         }
 
         String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/"+folderName;
