@@ -26,6 +26,8 @@ public class Main {
         //ParticleFilterDebug particleFilter = new ParticleFilterDebug(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
         //Initialise and run MCMC instance
+
+
         MCMC particleMCMC = new MCMC(particleFilter, loggers);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
         particleMCMC.loggers.terminateLoggers();
@@ -36,6 +38,7 @@ public class Main {
     public static void parseXMLInput(String xmlFile) throws IOException, ParserConfigurationException, SAXException {
         Incidence incidence = null;
         Tree tree = null;
+        Storage.argument = xmlFile;
 
         // Create a DocumentBuilder
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -115,9 +118,6 @@ public class Main {
 
         int logEvery = Integer.parseInt(parametersElement.getElementsByTagName("logEvery").item(0).getTextContent());
         Storage.setLogEvery(logEvery);
-
-        int numInitialisationAttempts = Integer.parseInt(parametersElement.getElementsByTagName("numInitialisationAttempts").item(0).getTextContent());
-        Storage.setNumInitialisationAttempts(numInitialisationAttempts);
 
         int samplingsAsRemovals = Integer.parseInt(parametersElement.getElementsByTagName("samplingsAsRemovals").item(0).getTextContent());
         Storage.removalProbability = samplingsAsRemovals;
