@@ -69,7 +69,7 @@ public class ParticleFilter {
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps
                     logLikelihoodCandidate = Double.NEGATIVE_INFINITY;
-                    System.out.println("Full run not completed");
+                    //System.out.println("Full run not completed");
                     break;
                 }
             }
