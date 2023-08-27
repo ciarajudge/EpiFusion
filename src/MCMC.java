@@ -99,10 +99,12 @@ public class MCMC {
 
     public double checkParams(double[] candidateParameters) {
         double logPrior = 1.0;
-        for (int d=0; d<candidateParameters.length; d++) {
-            //System.out.println(Storage.priors.allPriors[d].density(currentParameters[d]));
-            //System.out.println("Prior prob:"+Storage.priors.priors[d].density(candidateParameters[d]));
-            logPrior *= Storage.priors.priors[d].density(candidateParameters[d]);
+        int d = 0;
+        for (Parameter param: Storage.priors.parameters) {
+            for (Prior prior:param.priors) {
+                logPrior *= prior.density(candidateParameters[d]);
+                d+=1;
+            }
         }
         //System.out.println(logPrior);
         return logPrior;
@@ -125,7 +127,7 @@ public class MCMC {
         double[] candidateParameters = new double[currentParameters.length]; //empty array for candidates
         do {
             for (int j = 0; j < candidateParameters.length; j++) {
-                if (Storage.priors.priors[j].isFixed()) {
+                if (Storage.priors.fixed[j]) {
                     candidateParameters[j] = currentParameters[j];
                     continue;
                 }

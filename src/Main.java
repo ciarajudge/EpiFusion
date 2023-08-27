@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 import java.nio.file.Files;
 
@@ -20,8 +21,15 @@ public class Main {
         Loggers loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
         logXML(args[0]);
 
+        //Lets unpack these priors and seem if I've done them right
+        Priors priors = Storage.priors;
+
+        System.out.println(Arrays.toString(priors.sampleInitial()));
+
+
 
         //Initialise particle filter instance
+        /*
         ParticleFilter particleFilter = new ParticleFilter();
         //ParticleFilterDebug particleFilter = new ParticleFilterDebug(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
@@ -31,7 +39,7 @@ public class Main {
         MCMC particleMCMC = new MCMC(particleFilter, loggers);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
         particleMCMC.loggers.terminateLoggers();
-
+        */
 
     }
 

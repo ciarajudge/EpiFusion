@@ -111,8 +111,8 @@ public class Loggers {
 
     public void paramsHeader() throws IOException {
         String toWrite = "";
-        for (Prior p : Storage.priors.priors) {
-            toWrite = toWrite + p.label + ",";
+        for (int i=0; i<Storage.priors.labels.size(); i++) {
+            toWrite = toWrite + Storage.priors.labels.get(i) + ",";
         }
         toWrite = toWrite + "\n";
         //System.out.println(toWrite);
