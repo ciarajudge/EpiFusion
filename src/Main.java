@@ -23,13 +23,10 @@ public class Main {
 
         //Lets unpack these priors and seem if I've done them right
         Priors priors = Storage.priors;
-
-        System.out.println(Arrays.toString(priors.sampleInitial()));
-
-
+        System.out.println(Arrays.toString(priors.fixed));
 
         //Initialise particle filter instance
-        /*
+
         ParticleFilter particleFilter = new ParticleFilter();
         //ParticleFilterDebug particleFilter = new ParticleFilterDebug(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
@@ -39,7 +36,7 @@ public class Main {
         MCMC particleMCMC = new MCMC(particleFilter, loggers);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
         particleMCMC.loggers.terminateLoggers();
-        */
+
 
     }
 

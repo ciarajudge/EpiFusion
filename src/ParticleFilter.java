@@ -1,6 +1,7 @@
 import java.util.Arrays;
 import java.io.IOException;
 
+
 public class ParticleFilter {
     private double[][] currentRates;
     private double[][] candidateRates;
@@ -19,6 +20,7 @@ public class ParticleFilter {
     int increments;
     private final int numParticles;
     public Particle currentSampledParticle;
+
 
     public ParticleFilter() throws IOException {
         this.numParticles = Storage.numParticles;
@@ -62,6 +64,7 @@ public class ParticleFilter {
         //Convert parameters into rates
         candidateParameters = parameters;
         parametersToRates();
+
         //printRateVector(0);
         logLikelihoodCandidate = 0.0;
         for (int step=0; step<filterSteps; step++) {
@@ -129,8 +132,12 @@ public class ParticleFilter {
     //PF Calculators
     public double calculatePFLogPrior() {
         double logPrior = 1.0;
-        for (int d=0; d<candidateParameters.length; d++) {
-            logPrior *= Storage.priors.priors[d].density(candidateParameters[d]);
+        int d = 0;
+        for (Parameter param: Storage.priors.parameters) {
+            for (Prior prior:param.priors) {
+                logPrior *= prior.density(candidateParameters[d]);
+                d+=1;
+            }
         }
         logPrior = Math.log(logPrior);
         return logPrior;
@@ -173,68 +180,13 @@ public class ParticleFilter {
         this.currentSampledParticle = new Particle(particles.particles[0], 0);
     }
 
-
-    //Printers
+    //Utilities
     private void printRateVector(int index) {
         double[] rateVector = getRateVector(index);
         for (double r : rateVector) {
             System.out.print(r+",");
         }
         System.out.println();
-    }
-
-    //Other utilities
-    private double inverseLogistic(int t, double[] parameters) {
-        double a = parameters[0];
-        double b = parameters[1];
-        double c = parameters[2];
-        return c/(1+(a*Math.exp(-b*t)));
-    }
-
-    private void parametersToRates() { //note for myself: rates are {beta, gamma, psi, phi}
-        if (Storage.analysisType == 0) { // inverse logistic beta
-            /*INVERSE LOGISTIC BETA PARAMETER ORDER
-            0:gamma, 1:psi, 2:phi, 3:a, 4:b, 5:c
-             */
-            double[] abc = new double[] {candidateParameters[3], candidateParameters[4], candidateParameters[5]};
-            candidateRates[0][0] = inverseLogistic(0, abc);
-            candidateRates[0][1] = candidateParameters[0];//assign day 0
-            candidateRates[0][2] = candidateParameters[1];
-            candidateRates[0][3] = candidateParameters[2];
-
-            for (int k = 1; k < T; k++) {
-                candidateRates[k][0] = inverseLogistic(k, abc);
-                candidateRates[k][1] = candidateParameters[0];
-                candidateRates[k][2] = candidateParameters[1];
-                candidateRates[k][3] = candidateParameters[2];
-            }
-        } else if (Storage.analysisType == 1) {
-            /*RANDOM WALK BETA PARAMETER ORDER
-            0:gamma, 1:psi, 2:phi, 3:initialbeta, 4:betajitter
-             */
-            candidateRates[0][1] = candidateParameters[0];//assign day 0
-            candidateRates[0][2] = candidateParameters[1];
-            candidateRates[0][3] = candidateParameters[2];
-            particles.setInitialBeta(candidateParameters[3], candidateParameters[4]);
-            for (int k = 1; k < T; k++) {
-                candidateRates[k][1] = candidateParameters[0];
-                candidateRates[k][2] = candidateParameters[1];
-                candidateRates[k][3] = candidateParameters[2];
-            }
-        } else if (Storage.analysisType == 2) {
-            double[] abc = new double[] {candidateParameters[3], candidateParameters[4], candidateParameters[5]};
-            candidateRates[0][0] = inverseLogistic(0, abc);
-            candidateRates[0][1] = candidateParameters[0];//assign day 0
-            candidateRates[0][2] = candidateParameters[1];
-            candidateRates[0][3] = candidateParameters[2];
-            for (int k = 1; k < T; k++) {
-                candidateRates[k][0] = inverseLogistic(k, abc);
-                candidateRates[k][1] = candidateParameters[0];
-                candidateRates[k][2] = candidateParameters[1];
-                candidateRates[k][3] = candidateParameters[2];
-            }
-            particles.setInitialBeta(candidateRates[0][0], candidateParameters[6]);
-        }
     }
 
     public void clearCache() {
@@ -253,5 +205,118 @@ public class ParticleFilter {
         }
     }
 
+    private double[][] setColumn(double[][] matrix, int columnID, double[] values) {
+        for (int i = 0; i< matrix.length; i++) {
+            matrix[i][columnID] = values[i];
+        }
+        return matrix;
+    }
+
+    //Parameter and Rate Things
+    private void parametersToRates() { //note for myself: rates are {beta, gamma, psi, phi}
+        if (Storage.analysisType == 0) { // inverse logistic beta
+            candidateRates = invLogisticRateParsing();
+
+        } else if (Storage.analysisType == 1) {
+            candidateRates = randomWalkRateParsing();
+        } else if (Storage.analysisType == 2) {
+            double[] abc = new double[] {candidateParameters[3], candidateParameters[4], candidateParameters[5]};
+            candidateRates[0][0] = inverseLogistic(0, abc);
+            candidateRates[0][1] = candidateParameters[0];//assign day 0
+            candidateRates[0][2] = candidateParameters[1];
+            candidateRates[0][3] = candidateParameters[2];
+            for (int k = 1; k < T; k++) {
+                candidateRates[k][0] = inverseLogistic(k, abc);
+                candidateRates[k][1] = candidateParameters[0];
+                candidateRates[k][2] = candidateParameters[1];
+                candidateRates[k][3] = candidateParameters[2];
+            }
+            particles.setInitialBeta(candidateRates[0][0], candidateParameters[6]);
+        }
+    }
+
+    private double[] getParamAcrossTime(String paramLabel) {
+        int[] indexes = Storage.priors.parameterIndexes.get(paramLabel);
+        double[] paramAcrossTime = new double[T];
+        if (indexes.length == 1) {
+            double value = candidateParameters[indexes[0]];
+            for (int t = 0; t < T; t++) {
+                paramAcrossTime[t] = value;
+            }
+        } else {
+            int start = 0;
+            for (int i=0; i<indexes.length-1; i+=2) {
+                int changeTime = (int) candidateParameters[indexes[i+1]];
+                double value = candidateParameters[indexes[i]];
+                for (int k = start; k < changeTime; k++) {
+                    paramAcrossTime[k] = value;
+                }
+                start = changeTime;
+            }
+            double value = candidateParameters[indexes[indexes.length-1]];
+            for (int k = start; k < T; k++) {
+                paramAcrossTime[k] = value;
+            }
+        }
+        return paramAcrossTime;
+    }
+
+    //Inverse Logistic Things
+    private double[][] invLogisticRateParsing() {
+        /*RATES ORDER
+            0:beta, 2:gamma, 3:psi, 4:phi
+         */
+        double[][] candidateRates = new double[T][4];
+        candidateRates = setColumn(candidateRates, 0, invLogisticBeta(invLogisticParameters()));
+        candidateRates = setColumn(candidateRates, 1, getParamAcrossTime("gamma"));
+        candidateRates = setColumn(candidateRates, 2, getParamAcrossTime("psi"));
+        candidateRates = setColumn(candidateRates, 3, getParamAcrossTime("phi"));
+        return candidateRates;
+    }
+
+    private double[][] invLogisticParameters() {
+        double[][] invLogParams = new double[T][3];
+
+        //find the a values somehow
+        invLogParams = setColumn(invLogParams, 0, getParamAcrossTime("a"));
+
+        //find the b values somehow
+        invLogParams = setColumn(invLogParams, 1, getParamAcrossTime("b"));
+
+        //find the c values somehow lol
+        invLogParams = setColumn(invLogParams, 2, getParamAcrossTime("c"));
+
+        return invLogParams;
+    }
+
+    private double[] invLogisticBeta(double[][] abcMatrix) {
+        double[] beta = new double[abcMatrix.length];
+        for (int i=0; i<abcMatrix.length; i++) {
+            beta[i] = inverseLogistic(i, abcMatrix[i]);
+        }
+        return beta;
+    }
+
+    private double inverseLogistic(int t, double[] parameters) {
+        double a = parameters[0];
+        double b = parameters[1];
+        double c = parameters[2];
+        return c/(1+(a*Math.exp(-b*t)));
+    }
+
+    //Random Walk Things
+    private double[][] randomWalkRateParsing() {
+                /*RATES ORDER
+            0:beta, 2:gamma, 3:psi, 4:phi
+         */
+        double[][] cRates = new double[T][4];
+        cRates = setColumn(cRates, 1, getParamAcrossTime("gamma"));
+        cRates = setColumn(cRates, 2, getParamAcrossTime("psi"));
+        cRates = setColumn(cRates, 3, getParamAcrossTime("phi"));
+        int startIndex = Storage.priors.parameterIndexes.get("initialBeta")[0];
+        int stdDevIndex = Storage.priors.parameterIndexes.get("betaJitter")[0];
+        particles.setInitialBeta(candidateParameters[startIndex], candidateParameters[stdDevIndex]);
+        return cRates;
+    }
 
 }

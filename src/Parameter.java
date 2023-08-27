@@ -92,12 +92,12 @@ public class Parameter {
             ind += 2;
 
             //Add to the labels
-            subLabels.add(label+"_value_"+i);
-            subLabels.add(label+"_changeTime_"+i);
+            subLabels.add(label+"_distribs_"+i);
+            subLabels.add(label+"_changetime_"+i);
         }
 
         priors[priors.length-1] = values[values.length-1];
-        subLabels.add(label+"_value_"+(values.length-1));
+        subLabels.add(label+"_distribs_"+(values.length-1));
 
     }
 

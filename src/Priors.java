@@ -75,6 +75,7 @@ public class Priors {
         for (Parameter param:parameters) {
             for (Prior prior:param.priors) {
                 fixed[ind] = prior.isFixed();
+                ind += 1;
             }
         }
     }
