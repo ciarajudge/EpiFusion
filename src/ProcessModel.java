@@ -51,7 +51,7 @@ public class ProcessModel {
     }
 
     //Days functions
-    public static void day(Particle particle, TreeSegment tree, int t, double[] rates) {
+    public static void day(Particle particle, TreeSegment tree, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         if (particle == null) {
             System.out.println("null particle here ProcessMod line 9");
@@ -62,9 +62,12 @@ public class ProcessModel {
         }
 
         int state = particle.getState();
+        double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
 
         if (Storage.analysisType == 1) {
-            particle.nextBeta();
+            //System.out.println(particle.beta.get(particle.beta.size()-1));
+            particle.nextBeta(dayRates[0]);
+            //System.out.println(particle.beta.get(particle.beta.size()-1));
             rates[0] = particle.beta.get(particle.beta.size()-1);
         } else if (Storage.analysisType == 2) {
             particle.nextBeta(rates[0]);
@@ -153,15 +156,17 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
     }
 
-    public static void segmentedDay(Particle particle, TreeSegment tree, int t, double[] rates) {
+    public static void segmentedDay(Particle particle, TreeSegment tree, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
             return;
         }
 
+        double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
+
         //If beta is RW, get new propensity[0]
         if (Storage.analysisType == 1) {
-            particle.nextBeta();
+            particle.nextBeta(dayRates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
 
@@ -240,7 +245,7 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
     }
 
-    public static void epiOnlyDay(Particle particle, int t, double[] rates) {
+    public static void epiOnlyDay(Particle particle, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         int state = particle.getState();
         if (state <= 0) {
@@ -248,9 +253,11 @@ public class ProcessModel {
             particle.updateTrajectory(tmpDay);
             return;
         }
+        double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
+
         //System.out.println("EpiOnlyDay "+t+" Particle "+particle.particleID+" state: "+state);
         if (Storage.analysisType == 1) {
-            particle.nextBeta();
+            particle.nextBeta(dayRates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
 

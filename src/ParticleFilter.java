@@ -48,11 +48,15 @@ public class ParticleFilter {
             //System.out.println("Betas:");
             //particles.printBetas();
             particles.particles[0].traj.printTrajectory();
+
+
             //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
             currentParameters = candidateParameters;
             logLikelihoodCurrent = logLikelihoodCandidate;
             likelihood = logLikelihoodCandidate;
             currentSampledParticle = new Particle(particles.particles[0], 0);
+            System.out.println("Beta: "+currentSampledParticle.beta);
+            likelihood = 1;
             //Storage.particleLoggers.terminateLoggers();
         }
         System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
@@ -97,6 +101,7 @@ public class ParticleFilter {
 
     public boolean filterStep(int step)  throws IOException {
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
+
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
@@ -264,6 +269,26 @@ public class ParticleFilter {
         return paramAcrossTime;
     }
 
+    private double[] rwRefactorAcrossTime() {
+        int[] indexes = Storage.priors.parameterIndexes.get("betaRefactor");
+        double[] paramAcrossTime = new double[T];
+        int start = 0;
+        for (int i=0; i<indexes.length-1; i+=2) {
+            int changeTime = (int) candidateParameters[indexes[i+1]];
+            double value = candidateParameters[indexes[i+2]];
+            for (int k = start; k < changeTime; k++) {
+                paramAcrossTime[k] = 1;
+            }
+            paramAcrossTime[changeTime] = value;
+            start = changeTime+1;
+        }
+        for (int k = start; k < T; k++) {
+            paramAcrossTime[k] = 1;
+        }
+
+        return paramAcrossTime;
+    }
+
     //Inverse Logistic Things
     private double[][] invLogisticRateParsing() {
         /*RATES ORDER
@@ -319,6 +344,11 @@ public class ParticleFilter {
         int startIndex = Storage.priors.parameterIndexes.get("initialBeta")[0];
         int stdDevIndex = Storage.priors.parameterIndexes.get("betaJitter")[0];
         particles.setInitialBeta(candidateParameters[startIndex], candidateParameters[stdDevIndex]);
+        //If there's a step change needed to be fitted, put that into the beta
+        if (Storage.priors.labels.contains("betaRefactor_distribs_0")) {
+            cRates = setColumn(cRates, 0, rwRefactorAcrossTime());
+        }
+
         return cRates;
     }
 

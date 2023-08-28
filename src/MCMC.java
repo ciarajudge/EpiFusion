@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.Arrays;
+
 import java.util.Objects;
 import java.util.Random;
 
@@ -75,6 +76,7 @@ public class MCMC {
                 System.out.println("Completed runs: "+  Storage.completedRuns);
                 Storage.completedRuns = 0;
                 acceptanceRate = 0;
+                System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
                 loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
                 if (Storage.analysisType != 0) {

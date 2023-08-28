@@ -23,7 +23,6 @@ public class Main {
 
         //Lets unpack these priors and seem if I've done them right
         Priors priors = Storage.priors;
-        System.out.println(Arrays.toString(priors.fixed));
 
         //Initialise particle filter instance
 

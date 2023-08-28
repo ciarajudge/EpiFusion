@@ -78,16 +78,16 @@ public class Particle {
         beta.add(betaT);
         this.stdDev = stdDev;
     }
-    public void nextBeta() {
-        Double current = beta.get(beta.size()-1);
+    public void nextBeta(double reFactor) {
+        Double current = beta.get(beta.size()-1)*reFactor;
         TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
-        Double newBeta = truncatedNormalDistribution.sample();
+        Double newBeta = (truncatedNormalDistribution.sample());
         beta.add(newBeta);
     }
-    public void nextBeta(double skeleton) {
+    public void nextBeta(double skeleton, double reFactor) {
         Double current = beta.get(beta.size()-1);
         TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
-        Double newBeta = (truncatedNormalDistribution.sample()+skeleton)/2;
+        Double newBeta = ((truncatedNormalDistribution.sample()+skeleton)/2)*reFactor;
         beta.add(newBeta);
     }
 
