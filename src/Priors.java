@@ -13,6 +13,7 @@ public class Priors {
     public HashMap<String, Parameter> parameterDict;
     public HashMap<String, int[]> parameterIndexes;
     public Boolean[] fixed;
+    public Boolean[] discrete;
 
     public Priors(Element priorElement) {
         NodeList priorElementChildNodes = priorElement.getChildNodes();
@@ -53,6 +54,7 @@ public class Priors {
         }
 
         getFixed();
+        getDiscrete();
     }
 
     public double[] sampleInitial() {
@@ -75,6 +77,17 @@ public class Priors {
         for (Parameter param:parameters) {
             for (Prior prior:param.priors) {
                 fixed[ind] = prior.isFixed();
+                ind += 1;
+            }
+        }
+    }
+
+    private void getDiscrete() {
+        int ind = 0;
+        discrete = new Boolean[numPriors];
+        for (Parameter param:parameters) {
+            for (Prior prior:param.priors) {
+                discrete[ind] = prior.isDiscrete();
                 ind += 1;
             }
         }

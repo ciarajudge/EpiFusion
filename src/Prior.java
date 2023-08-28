@@ -5,6 +5,7 @@ public class Prior {
     public String label;
     public Dist distrib;
     private boolean isFixed = false;
+    private boolean isDiscrete = false;
 
     public Prior(Element element) {
         label = element.getTagName();
@@ -30,6 +31,11 @@ public class Prior {
             double max = Double.parseDouble(element.getElementsByTagName("max").item(0).getTextContent());
             distrib = new UniformDist(min, max);
         }
+        if (disttype.equals("Poisson")) {
+            double mean = Double.parseDouble(element.getElementsByTagName("mean").item(0).getTextContent());
+            distrib = new PoissonDist(mean);
+            isDiscrete = true;
+        }
     }
 
     public double sample() {
@@ -41,4 +47,6 @@ public class Prior {
     }
 
     public boolean isFixed() {return isFixed;}
+
+    public boolean isDiscrete() {return isDiscrete;}
 }

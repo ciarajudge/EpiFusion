@@ -64,6 +64,9 @@ public class ParticleFilter {
         //Convert parameters into rates
         candidateParameters = parameters;
         parametersToRates();
+        //for (double[] day:candidateRates) {
+        //    System.out.println(Arrays.toString(day));
+        //}
 
         //printRateVector(0);
         logLikelihoodCandidate = 0.0;

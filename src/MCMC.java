@@ -134,6 +134,9 @@ public class MCMC {
                 boolean negative = currentParameters[j] < 0;
                 double newparam = untransform(transform(currentParameters[j]) + this.random.nextGaussian() * cooling);
                 candidateParameters[j] = negative ? -newparam : newparam;
+                if (Storage.priors.discrete[j]) {
+                    candidateParameters[j] = Math.round(candidateParameters[j]);
+                }
             }
         } while (checkParams(candidateParameters) == 0);
         return candidateParameters;
