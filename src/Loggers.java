@@ -77,7 +77,7 @@ public class Loggers {
 
     public void trajectoryHeader() throws IOException {
         String toWrite = "";
-        for (int i = 0; i < Storage.T+1; i++) {
+        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
             toWrite = toWrite + "T_"+ i + ",";
         }
         toWrite = toWrite + "\n";

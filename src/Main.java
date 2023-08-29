@@ -22,16 +22,12 @@ public class Main {
         logXML(args[0]);
 
         //Lets unpack these priors and seem if I've done them right
-        Priors priors = Storage.priors;
 
         //Initialise particle filter instance
-
         ParticleFilter particleFilter = new ParticleFilter();
         //ParticleFilterDebug particleFilter = new ParticleFilterDebug(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
 
         //Initialise and run MCMC instance
-
-
         MCMC particleMCMC = new MCMC(particleFilter, loggers);
         particleMCMC.runMCMC(Storage.numMCMCsteps);
         particleMCMC.loggers.terminateLoggers();
@@ -69,6 +65,7 @@ public class Main {
         } else if (type.equals("invlogisticwjitter")) {
             Storage.analysisType = 2;
         }
+
 
 
         // Get boolean values of epi or phylo only
@@ -148,6 +145,7 @@ public class Main {
         }
 
 
+
         int resampleEvery = Integer.parseInt(parametersElement.getElementsByTagName("resampleEvery").item(0).getTextContent());
         Storage.setResampling(resampleEvery);
 
@@ -158,8 +156,25 @@ public class Main {
         int T = Math.max(epiLength, (int) Math.round(phyloLength));
         Storage.setT(T);
 
+        //Find out if a start and end time has been specified
+        String startTime =analysisElement.getElementsByTagName("startTime").item(0).getTextContent();
+        if (!(startTime.equals("null"))) {
+            int firstDay = Integer.parseInt(startTime);
+            int firstStep = Math.round(firstDay/resampleEvery);
+            Storage.firstStep = firstStep;
+        } else {
+            Storage.firstStep = 0;
+        }
+
+        String endTime =analysisElement.getElementsByTagName("endTime").item(0).getTextContent();
+        if (!(endTime.equals("null"))) {
+            int lastDay = Integer.parseInt(endTime);
+            Storage.T = lastDay;
+        }
+
         Element priorElement = (Element) root.getElementsByTagName("priors").item(0);
         Storage.setPriors(priorElement);
+
 
     }
 

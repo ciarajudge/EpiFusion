@@ -43,7 +43,6 @@ public class MCMC {
 
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
-
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
                 //particleFilter.particles.printTrajectories();

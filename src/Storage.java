@@ -27,6 +27,7 @@ public class Storage {
     public static boolean initialised = false;
     public static int completedRuns = 0;
     public static String argument = "foo";
+    public static int firstStep = 0;
 
     public static void setNumParticles(int N) {numParticles = N;}
 

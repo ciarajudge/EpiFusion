@@ -71,10 +71,14 @@ public class ParticleFilter {
         //for (double[] day:candidateRates) {
         //    System.out.println(Arrays.toString(day));
         //}
-
+        if (Storage.firstStep > 0 ){
+            int initialState = (int) parameters[Storage.priors.parameterIndexes.get("initialI")[0]];
+            particles.setStates(initialState);
+        }
         //printRateVector(0);
         logLikelihoodCandidate = 0.0;
-        for (int step=0; step<filterSteps; step++) {
+        for (int step=Storage.firstStep; step<filterSteps; step++) {
+
             if (!(Storage.isPhyloOnly() && tree.treeFinished(step))){
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps

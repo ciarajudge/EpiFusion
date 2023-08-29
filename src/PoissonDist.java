@@ -13,8 +13,9 @@ public class PoissonDist implements Dist {
     }
 
     @Override
-    public double density(int candidate) {
-        return poissonDistribution.probability(candidate);
+    public double density(double candidate) {
+        int integerCandidate = (int) candidate;
+        return poissonDistribution.probability(integerCandidate);
     }
 
 }
