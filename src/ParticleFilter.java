@@ -67,6 +67,7 @@ public class ParticleFilter {
         clearCache();
         //Convert parameters into rates
         candidateParameters = parameters;
+
         parametersToRates();
         //for (double[] day:candidateRates) {
         //    System.out.println(Arrays.toString(day));

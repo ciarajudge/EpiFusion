@@ -36,6 +36,12 @@ public class Prior {
             distrib = new PoissonDist(mean);
             isDiscrete = true;
         }
+        if (disttype.equals("UniformDiscrete")) {
+            double min = Double.parseDouble(element.getElementsByTagName("min").item(0).getTextContent());
+            double max = Double.parseDouble(element.getElementsByTagName("max").item(0).getTextContent());
+            distrib = new UniformDiscreteDist(min, max);
+            isDiscrete = true;
+        }
     }
 
     public double sample() {
