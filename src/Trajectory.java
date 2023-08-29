@@ -3,8 +3,9 @@ import java.util.ArrayList;
 public class Trajectory {
     ArrayList<Day> trajectory;
 
-    public Trajectory() {
+    public Trajectory(Day day) {
         trajectory = new ArrayList<>();
+        trajectory.add(day);
     }
 
     public Trajectory(Trajectory copyTrajectory) {

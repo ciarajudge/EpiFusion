@@ -20,7 +20,7 @@ public class Particle {
         //PoissonDistribution initialI = new PoissonDistribution(100);
         state = 1;
         setState(state);
-        this.traj = new Trajectory();
+        this.traj = new Trajectory(new Day(0, 1, 0,0));
         this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
         this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
@@ -59,6 +59,10 @@ public class Particle {
     //Setters
     public void setState(int newState) {
         this.state = newState;
+    }
+    public void setInitialState(int newState) {
+        this.state = newState;
+        this.traj.trajectory.set(0, new Day(0, newState, 0,0));
     }
     public void setPhyloWeight(double newWeight) {
         this.phyloWeight = newWeight;

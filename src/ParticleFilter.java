@@ -73,7 +73,7 @@ public class ParticleFilter {
         //}
         if (Storage.firstStep > 0 ){
             int initialState = (int) parameters[Storage.priors.parameterIndexes.get("initialI")[0]];
-            particles.setStates(initialState);
+            particles.setInitialStates(initialState);
         }
         //printRateVector(0);
         logLikelihoodCandidate = 0.0;

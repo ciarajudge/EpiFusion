@@ -74,12 +74,12 @@ public class Particles {
             throw new RuntimeException("Interrupted while waiting", e);
         }
     }
-    public void setStates(int newState) {
+    public void setInitialStates(int newState) {
         try {
             ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
 
             for (Particle particle : particles) {
-                executor.submit(() -> particle.setState(newState));
+                executor.submit(() -> particle.setInitialState(newState));
             }
 
             executor.shutdown();
