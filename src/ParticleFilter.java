@@ -56,7 +56,6 @@ public class ParticleFilter {
             likelihood = logLikelihoodCandidate;
             currentSampledParticle = new Particle(particles.particles[0], 0);
             System.out.println("Beta: "+currentSampledParticle.beta);
-            likelihood = 1;
             //Storage.particleLoggers.terminateLoggers();
         }
         System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
@@ -97,6 +96,10 @@ public class ParticleFilter {
 
         if (!Double.isInfinite(logLikelihoodCandidate)) {
             Storage.completedRuns += 1;
+        }
+
+        if (Storage.isPhyloOnly()){
+            logLikelihoodCandidate = logLikelihoodCandidate/10; //Really important to remember I've done this
         }
 
         logPriorCandidate = calculatePFLogPrior();

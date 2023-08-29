@@ -36,7 +36,6 @@ public class MCMC {
             double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
             //System.out.println("Candidate params " + Arrays.toString(candidateParameters));
 
-
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);
 
