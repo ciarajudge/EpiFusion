@@ -98,9 +98,6 @@ public class ParticleFilter {
             Storage.completedRuns += 1;
         }
 
-        if (Storage.isPhyloOnly()){
-            logLikelihoodCandidate = logLikelihoodCandidate/10; //Really important to remember I've done this
-        }
 
         logPriorCandidate = calculatePFLogPrior();
         //particles.printTrajectories();
@@ -137,6 +134,7 @@ public class ParticleFilter {
         double logP = particles.scaleWeightsAndGetLogP();
         logLikelihoodCandidate += logP;
 
+        //particles.printParticles();
         //resample
         particles.resampleParticles();
         checkParticles();
