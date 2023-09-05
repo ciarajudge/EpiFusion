@@ -225,6 +225,12 @@ public class ParticleFilter {
         }
         return matrix;
     }
+    private double[][] setColumn(double[][] matrix, int columnID, double value) {
+        for (int i = 0; i< matrix.length; i++) {
+            matrix[i][columnID] = value;
+        }
+        return matrix;
+    }
 
     //Parameter and Rate Things
     private void parametersToRates() { //note for myself: rates are {beta, gamma, psi, phi}
@@ -353,6 +359,8 @@ public class ParticleFilter {
         //If there's a step change needed to be fitted, put that into the beta
         if (Storage.priors.labels.contains("betaRefactor_distribs_0")) {
             cRates = setColumn(cRates, 0, rwRefactorAcrossTime());
+        } else {
+            cRates = setColumn(cRates, 0, 1);
         }
 
         return cRates;
