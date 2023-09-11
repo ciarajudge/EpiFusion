@@ -90,8 +90,12 @@ public class MCMC {
 
             // Clear the pf cache
             this.particleFilter.clearCache();
-
         }
+
+        System.out.println();
+        System.out.println("CHAIN "+particleFilter.chainID+" COMPLETE");
+        System.out.println("Final likelihood: "+ particleFilter.getLogLikelihoodCurrent());
+        System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
     }
 
     private double transform(double param) {
