@@ -11,14 +11,14 @@ public class ProcessModel {
             int actualDay = t+i;
             //System.out.println("\nDay "+actualDay);
 
-            if (!Storage.treeOn[particle.particleID] && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
-                Storage.treeOn[particle.particleID] = true;
-                Storage.haveReachedTree[particle.particleID] = true;
-            } else if (Storage.haveReachedTree[particle.particleID] && (treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
-                Storage.treeOn[particle.particleID] = false;
+            if (!particle.treeOn && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
+                particle.treeOn = true;
+                particle.haveReachedTree = true;
+            } else if (particle.haveReachedTree && (treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
+                particle.treeOn = false;
             }
 
-            if (Storage.treeOn[particle.particleID]) { //If the tree is on we can just do the day no questions asked
+            if (particle.treeOn) { //If the tree is on we can just do the day no questions asked
                 if (!Storage.segmentedDays) {
                     day(particle, treeSegments[i], actualDay, rates[i]);
                 } else {
@@ -27,7 +27,7 @@ public class ProcessModel {
             } else if (!(Storage.isPhyloOnly())) { //If tree is off but we are running a combo this means we can use the epi only day
                 epiOnlyDay(particle, actualDay, rates[i]);
             } else if (Storage.isPhyloOnly()) { //If tree is off and we are phylo only we first need to know if it's before or after tree activation
-                if (Storage.haveReachedTree[particle.particleID]) {
+                if (particle.haveReachedTree) {
                     //System.out.println("Tree finished, quitting");
                     break;
                 } else {
@@ -259,6 +259,9 @@ public class ProcessModel {
         if (Storage.analysisType == 1) {
             particle.nextBeta(dayRates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
+        } else if (Storage.analysisType == 2) {
+            particle.nextBeta(rates[0]);
+            rates[0] = particle.beta.get(particle.beta.size()-1);
         }
 
         double[] propensities = particle.getVanillaPropensities(rates);
@@ -269,7 +272,7 @@ public class ProcessModel {
         int births = poissonSampler(propensities[0]);
         //System.out.println("[Day "+t+" Particle "+particle.particleID+"]"+"births: "+births);
         int deaths = 0;
-        if (t != 0) {
+        if (t > 1) {
             deaths = poissonSampler(propensities[1]);
             //System.out.println("[Day "+t+" Particle "+particle.particleID+"]"+"deaths: "+deaths);
         }

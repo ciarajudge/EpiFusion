@@ -9,14 +9,13 @@ public class Storage {
     public static int numParticles = 0;
     public static int numMCMCsteps = 0;
     public static int numThreads = 10;
+    public static int numChains = 1;
     public static double stepCoefficient;
     public static Tree tree = null;
     public static Incidence incidence = null;
     public static int T;
     public static String fileBase;
     public static int logEvery;
-    public static boolean[] treeOn;
-    public static boolean[] haveReachedTree;
     public static boolean tooBig = false;
     public static int removalProbability = 0;
     public static int maxEpidemicSize = 50000;
@@ -28,13 +27,9 @@ public class Storage {
     public static int completedRuns = 0;
     public static String argument = "foo";
     public static int firstStep = 0;
+    public static MasterLoggers loggers = null;
 
     public static void setNumParticles(int N) {numParticles = N;}
-
-    public static void setTreeLogic() {
-        haveReachedTree = new boolean[numParticles];
-        treeOn = new boolean[numParticles];
-    }
 
     public static void setNumMCMCsteps(int T) {numMCMCsteps = T;}
 

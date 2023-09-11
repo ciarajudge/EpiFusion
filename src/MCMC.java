@@ -8,23 +8,21 @@ import java.util.Random;
 public class MCMC {
     private final ParticleFilter particleFilter;
     private final Random random;
-    public Loggers loggers;
     public int acceptanceRate = 0;
 
 
-    public MCMC(ParticleFilter particleFilter, Loggers loggers) throws IOException {
+    public MCMC(ParticleFilter particleFilter) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
-        this.loggers = loggers;
-        loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
-        loggers.logParams(particleFilter.getCurrentParameters());
-        loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
+        particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
+        particleFilter.loggers.logParams(particleFilter.getCurrentParameters());
+        particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
         //loggers.saveParticleLikelihoodBreakdown(particleFilter.currentSampledParticle.likelihoodMatrix, -1, particleFilter.getLogLikelihoodCurrent());
         if (Storage.analysisType == 1) {
-            loggers.logBeta(particleFilter.currentSampledParticle.beta);
+            particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
         }
         Storage.initialised = true;
-   }
+    }
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
@@ -36,12 +34,18 @@ public class MCMC {
             double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
             //System.out.println("Candidate params " + Arrays.toString(candidateParameters));
 
+
             // Run particle filter to generate logPrior and logLikelihood for new params
             particleFilter.runPF(candidateParameters);
+            //particleFilter.particles.particles[0].traj.printTrajectory();
+            //System.out.println(particleFilter.getLogLikelihoodCandidate());
+            //System.out.println(particleFilter.getLogPriorCandidate());
 
 
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
+            //System.out.println(acceptanceProbability);
+            //System.out.println();
             // Accept or reject the proposal based on the acceptance probability
             if (this.random.nextDouble() < acceptanceProbability) {
                 //particleFilter.particles.printTrajectories();
@@ -52,7 +56,7 @@ public class MCMC {
                 //System.out.println();
                 currentParameters = candidateParameters;
                 this.particleFilter.resetCurrentParameters();
-                loggers.logAcceptance(0);
+                particleFilter.loggers.logAcceptance(0);
                 acceptanceRate += 1;
             } else {
                 //System.out.println("Step Not Accepted");
@@ -60,13 +64,14 @@ public class MCMC {
                 //System.out.println("Candidate Log Likelihood: "+particleFilter.getLogLikelihoodCandidate());
                 //System.out.println("Acceptance Probability: "+acceptanceProbability);
                 //System.out.println();
-                loggers.logAcceptance(1);
+                particleFilter.loggers.logAcceptance(1);
 
                 //loggers.logTrajectory(particleFilter.particles.particles[0].traj, "notaccepted");
             }
 
             if (i % Storage.logEvery == 0 ) {
                 System.out.println();
+                System.out.println("CHAIN "+particleFilter.chainID);
                 System.out.println("MCMC STEP "+i);
                 System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
@@ -75,12 +80,12 @@ public class MCMC {
                 Storage.completedRuns = 0;
                 acceptanceRate = 0;
                 System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
-                loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
-                loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
+                particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
+                particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
                 if (Storage.analysisType != 0) {
-                    loggers.logBeta(particleFilter.currentSampledParticle.beta);
+                    particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
                 }
-                loggers.logParams(currentParameters);
+                particleFilter.loggers.logParams(currentParameters);
             }
 
             // Clear the pf cache
@@ -140,6 +145,10 @@ public class MCMC {
             }
         } while (checkParams(candidateParameters) == 0);
         return candidateParameters;
+    }
+
+    public void terminateLoggers() throws IOException {
+        particleFilter.loggers.terminateLoggers();
     }
 
 }

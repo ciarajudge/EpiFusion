@@ -14,6 +14,8 @@ public class Particle {
     ArrayList<Double> beta;
     double[][] likelihoodMatrix;
     private double stdDev;
+    public boolean treeOn;
+    public boolean haveReachedTree;
 
     public Particle(int pID) {
         particleID = pID;
@@ -27,6 +29,8 @@ public class Particle {
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
         this.likelihoodMatrix = new double[Storage.T][6];
+        this.treeOn = false;
+        this.haveReachedTree = false;
     }
 
     public Particle(Particle other, int pID) {
@@ -41,6 +45,8 @@ public class Particle {
         this.beta = new ArrayList<>(other.beta);
         this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
         this.stdDev = other.stdDev;
+        this.treeOn = other.treeOn;
+        this.haveReachedTree = other.haveReachedTree;
     }
 
     public void printStatus() {

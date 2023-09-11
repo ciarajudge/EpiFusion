@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.nio.file.Files;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
@@ -18,19 +22,27 @@ public class Main {
 
         parseXMLInput(args[0]);
 
-        Loggers loggers = Objects.equals(Storage.fileBase, "null") ? new Loggers() : new Loggers(Storage.fileBase);
+        MasterLoggers loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
+        Storage.loggers = loggers;
         logXML(args[0]);
 
-        //Lets unpack these priors and seem if I've done them right
+        ExecutorService executor = Executors.newFixedThreadPool(Storage.numChains);
+        for (int i=0; i<Storage.numChains; i++) {
+            int finalI = i;
+            executor.submit(() -> {
+                try {
+                    ParticleFilter particleFilter = new ParticleFilter(finalI);
+                    MCMC particleMCMC = new MCMC(particleFilter);
+                    System.out.println("check");
+                    particleMCMC.runMCMC(Storage.numMCMCsteps);
+                    particleMCMC.terminateLoggers();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+        executor.shutdown();
 
-        //Initialise particle filter instance
-        ParticleFilter particleFilter = new ParticleFilter();
-        //ParticleFilterDebug particleFilter = new ParticleFilterDebug(Storage.numParticles, tree, caseIncidence, Storage.T, resampleEvery);
-
-        //Initialise and run MCMC instance
-        MCMC particleMCMC = new MCMC(particleFilter, loggers);
-        particleMCMC.runMCMC(Storage.numMCMCsteps);
-        particleMCMC.loggers.terminateLoggers();
 
 
     }
@@ -112,7 +124,12 @@ public class Main {
         // Extract parameters element values
         int numParticles = Integer.parseInt(parametersElement.getElementsByTagName("numParticles").item(0).getTextContent());
         Storage.setNumParticles(numParticles);
-        Storage.setTreeLogic();
+
+        int numChains = Integer.parseInt(parametersElement.getElementsByTagName("numChains").item(0).getTextContent());
+        Storage.numChains = numChains;
+
+        int numThreads = Integer.parseInt(parametersElement.getElementsByTagName("numThreads").item(0).getTextContent());
+        Storage.numThreads = numThreads / numChains;
 
         int numSteps = Integer.parseInt(parametersElement.getElementsByTagName("numSteps").item(0).getTextContent());
         Storage.setNumMCMCsteps(numSteps);

@@ -3,6 +3,7 @@ import java.io.IOException;
 
 
 public class ParticleFilter {
+    public int chainID;
     private double[][] currentRates;
     private double[][] candidateRates;
     private double[] currentParameters;
@@ -20,9 +21,11 @@ public class ParticleFilter {
     int increments;
     private final int numParticles;
     public Particle currentSampledParticle;
+    public Loggers loggers;
 
 
-    public ParticleFilter() throws IOException {
+    public ParticleFilter(int chainID) throws IOException {
+        this.chainID = chainID;
         this.numParticles = Storage.numParticles;
         this.tree = Storage.tree;
         this.caseIncidence = Storage.incidence;
@@ -30,7 +33,7 @@ public class ParticleFilter {
         this.resampleEvery = Storage.resampleEvery;
         this.filterSteps = (int) Math.ceil(this.T / (double) Storage.resampleEvery);
         this.candidateRates = new double[this.T][5];
-
+        this.loggers = new Loggers(chainID);
         particles = new Particles(numParticles);
         initialisePF();
     }
@@ -41,13 +44,8 @@ public class ParticleFilter {
         while (Double.isInfinite(likelihood)) {
             i += 1;
             //Storage.particleLoggers = new ParticleLoggers(i);
-            System.out.println("Initialisation attempt "+(i));
             runPF(Storage.priors.sampleInitial());
-            System.out.println("Log Likelihood: "+logLikelihoodCandidate);
-            System.out.println("Parameters: "+Arrays.toString(candidateParameters));
-            //System.out.println("Betas:");
             //particles.printBetas();
-            particles.particles[0].traj.printTrajectory();
 
 
             //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
@@ -55,11 +53,12 @@ public class ParticleFilter {
             logLikelihoodCurrent = logLikelihoodCandidate;
             likelihood = logLikelihoodCandidate;
             currentSampledParticle = new Particle(particles.particles[0], 0);
-            System.out.println("Beta: "+currentSampledParticle.beta);
+            System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
+                    +"\nLog Likelihood: "+logLikelihoodCandidate+"\nParameters: "
+                    +Arrays.toString(candidateParameters)+"\nBeta: "+currentSampledParticle.beta);
             //Storage.particleLoggers.terminateLoggers();
         }
-        System.out.println("Final parameter set: "+Arrays.toString(currentParameters));
-        System.out.println("Initial LL: "+logLikelihoodCurrent);
+        System.out.println("CHAIN "+chainID+"\nFinal parameter set: "+Arrays.toString(currentParameters)+"\nInitial LL: "+logLikelihoodCurrent);
     }
 
     public void runPF(double[] parameters) throws IOException {
@@ -206,8 +205,6 @@ public class ParticleFilter {
     public void clearCache() {
         particles = new Particles(numParticles);
         logLikelihoodCandidate = 0.0;
-        Storage.haveReachedTree = new boolean[numParticles];
-        Storage.treeOn = new boolean[numParticles];
         Storage.tooBig = false;
     }
 
