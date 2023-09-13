@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 import java.util.Objects;
 import java.util.Random;
@@ -41,7 +42,6 @@ public class MCMC {
             //System.out.println(particleFilter.getLogLikelihoodCandidate());
             //System.out.println(particleFilter.getLogPriorCandidate());
 
-
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
             //System.out.println(acceptanceProbability);
@@ -82,7 +82,7 @@ public class MCMC {
                 System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
                 particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
-                if (Storage.analysisType != 0) {
+                if (Storage.analysisType != 0 && Storage.analysisType != 3) {
                     particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
                 }
                 particleFilter.loggers.logParams(currentParameters);
@@ -91,7 +91,6 @@ public class MCMC {
             // Clear the pf cache
             this.particleFilter.clearCache();
         }
-
         System.out.println();
         System.out.println("CHAIN "+particleFilter.chainID+" COMPLETE");
         System.out.println("Final likelihood: "+ particleFilter.getLogLikelihoodCurrent());

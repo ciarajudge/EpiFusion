@@ -33,7 +33,6 @@ public class Main {
                 try {
                     ParticleFilter particleFilter = new ParticleFilter(finalI);
                     MCMC particleMCMC = new MCMC(particleFilter);
-                    System.out.println("check");
                     particleMCMC.runMCMC(Storage.numMCMCsteps);
                     particleMCMC.terminateLoggers();
                 } catch (IOException e) {
@@ -76,6 +75,8 @@ public class Main {
             Storage.analysisType = 0;
         } else if (type.equals("invlogisticwjitter")) {
             Storage.analysisType = 2;
+        } else if (type.equals("fixedbeta")) {
+            Storage.analysisType = 3;
         }
 
 

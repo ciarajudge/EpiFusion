@@ -249,6 +249,8 @@ public class ParticleFilter {
                 candidateRates[k][3] = candidateParameters[2];
             }
             particles.setInitialBeta(candidateRates[0][0], candidateParameters[6]);
+        } else if (Storage.analysisType == 3) {
+            candidateRates = fixedBetaRateParsing();
         }
     }
 
@@ -359,6 +361,19 @@ public class ParticleFilter {
         } else {
             cRates = setColumn(cRates, 0, 1);
         }
+
+        return cRates;
+    }
+
+    private double[][] fixedBetaRateParsing() {
+                /*RATES ORDER
+            0:beta, 2:gamma, 3:psi, 4:phi
+         */
+        double[][] cRates = new double[T][4];
+        cRates = setColumn(cRates, 0, getParamAcrossTime("beta"));
+        cRates = setColumn(cRates, 1, getParamAcrossTime("gamma"));
+        cRates = setColumn(cRates, 2, getParamAcrossTime("psi"));
+        cRates = setColumn(cRates, 3, getParamAcrossTime("phi"));
 
         return cRates;
     }
