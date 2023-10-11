@@ -131,7 +131,15 @@ public class Loggers {
     }
 
     public void flexiLogger(String filename, ArrayList<Double> list) throws IOException{
-        FileWriter file = new FileWriter(filePath+"/"+filename);
+        FileWriter file = new FileWriter(filePath+"/"+filename+"_"+chainID);
+        for (Double a:list) {
+            file.write(a+"\n");
+        }
+        file.close();
+    }
+
+    public void flexiLogger(String filename, double[] list) throws IOException{
+        FileWriter file = new FileWriter(filePath+"/"+filename+"_"+chainID);
         for (Double a:list) {
             file.write(a+"\n");
         }

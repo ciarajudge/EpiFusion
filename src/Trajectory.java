@@ -30,6 +30,14 @@ public class Trajectory {
         }
         System.out.println();
     }
+
+    public int[] getTrajArray() {
+        int[] trajArray = new int[trajectory.size()];
+        for (int d = 0; d<trajectory.size(); d++) {
+            trajArray[d] = trajectory.get(d).I;
+        }
+        return(trajArray);
+    }
 }
 
 class Day {
