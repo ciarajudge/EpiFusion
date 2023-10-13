@@ -27,7 +27,7 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-
+        double[] ll = new double[numIterations];
 
         for (int i = 0; i < numIterations; i++) {
 
@@ -41,7 +41,7 @@ public class MCMC {
             //particleFilter.particles.particles[0].traj.printTrajectory();
             //System.out.println(particleFilter.getLogLikelihoodCandidate());
             //System.out.println(particleFilter.getLogPriorCandidate());
-
+            ll[i] = particleFilter.getLogLikelihoodCandidate();
             // Evaluate the acceptance probability for the proposal
             double acceptanceProbability = this.computeAcceptanceProbability();
             //System.out.println(acceptanceProbability);
@@ -95,6 +95,7 @@ public class MCMC {
         System.out.println("CHAIN "+particleFilter.chainID+" COMPLETE");
         System.out.println("Final likelihood: "+ particleFilter.getLogLikelihoodCurrent());
         System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
+        //particleFilter.loggers.flexiLogger("alllikelihoods",ll);
     }
 
     private double transform(double param) {

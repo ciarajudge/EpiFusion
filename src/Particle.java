@@ -55,13 +55,14 @@ public class Particle {
         traj.printTrajectory();
         System.out.println("Phylo Likelihood:"+ phyloLikelihood);
         System.out.println("Epi Likelihood:"+ Math.log(epiLikelihood));
-        System.out.println();
+        //System.out.println();
     }
     public void printBeta() {
         System.out.print("Beta: ");
         for (int i=0; i<beta.size(); i++) {
             System.out.print(beta.get(i)+",");
         }
+        System.out.println();
         System.out.println();
     }
 
