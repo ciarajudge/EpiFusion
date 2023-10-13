@@ -42,6 +42,7 @@ public class ProcessModel {
 
     public static void epiOnlyStep(Particle particle, int step, double[][] rates, int increments) {
         int t = step*Storage.resampleEvery;
+
         for (int i=0; i<increments; i++) {
             int actualDay = t+i;
             //System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
@@ -53,6 +54,7 @@ public class ProcessModel {
     //Days functions
     public static void day(Particle particle, TreeSegment tree, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
+        //System.out.println("Day "+t);
         if (particle == null) {
             System.out.println("null particle here ProcessMod line 9");
         }
@@ -122,9 +124,9 @@ public class ProcessModel {
         }
         //Calculate the events
         int births = poissonSampler(unobservedInfectProp);
-        //System.out.println("births: "+births);
+        //System.out.println("["+particle.particleID+"]births: "+births);
         int deaths = poissonSampler(allowedRecovProp);
-        //System.out.println("deaths: "+deaths);
+        //System.out.println("["+particle.particleID+"]deaths: "+deaths);
         state = state + births - deaths;
         particle.setState(state);
         if (tree.lineages > 0) {
@@ -263,6 +265,7 @@ public class ProcessModel {
             particle.nextBeta(rates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
         }
+        //System.out.println("beta is "+rates[0]);
 
         double[] propensities = particle.getVanillaPropensities(rates);
 

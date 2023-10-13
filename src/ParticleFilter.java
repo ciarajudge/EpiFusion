@@ -46,8 +46,6 @@ public class ParticleFilter {
             //Storage.particleLoggers = new ParticleLoggers(i);
             runPF(Storage.priors.sampleInitial());
             //particles.printBetas();
-
-
             //Storage.particleLoggers.saveParticleLikelihoodBreakdown(particles.particles[0].likelihoodMatrix, i, logLikelihoodCandidate);
             currentParameters = candidateParameters;
             logLikelihoodCurrent = logLikelihoodCandidate;
@@ -55,7 +53,7 @@ public class ParticleFilter {
             currentSampledParticle = new Particle(particles.particles[0], 0);
             System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
                     +"\nLog Likelihood: "+logLikelihoodCandidate+"\nParameters: "
-                    +Arrays.toString(candidateParameters)+"\nBeta: "+currentSampledParticle.beta);
+                    +Arrays.toString(candidateParameters)+"\nBeta: "+currentSampledParticle.beta+"\nTrajectory"+Arrays.toString(particles.particles[0].traj.getTrajArray()));
             //Storage.particleLoggers.terminateLoggers();
         }
         System.out.println("CHAIN "+chainID+"\nFinal parameter set: "+Arrays.toString(currentParameters)+"\nInitial LL: "+logLikelihoodCurrent);
@@ -74,6 +72,7 @@ public class ParticleFilter {
             int initialState = (int) parameters[Storage.priors.parameterIndexes.get("initialI")[0]];
             particles.setInitialStates(initialState);
         }
+
         //printRateVector(0);
         logLikelihoodCandidate = 0.0;
         for (int step=Storage.firstStep; step<filterSteps; step++) {
@@ -105,11 +104,15 @@ public class ParticleFilter {
 
     public boolean filterStep(int step)  throws IOException {
         increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
+        //System.out.println("STEP "+step);
+        int phiIndex = step*increments;
 
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
-            particles.getEpiLikelihoods(caseIncidence.incidence[step], candidateRates[step][3]);
+            //System.out.println("check111");
+            particles.getEpiLikelihoods(caseIncidence.incidence[step], candidateRates[phiIndex][3]);
+            //System.out.println("check113");
             if (particles.checkEpiLikelihoods()) {return true;}
         }
 
@@ -120,24 +123,28 @@ public class ParticleFilter {
 
             //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
-                particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[step][3]);
+                particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[phiIndex][3]);
                 if (particles.checkEpiLikelihoods()) {return true;}
             }
         }
-
+        //System.out.println("check126");
         particles.checkStates(Storage.maxEpidemicSize);
-        if (Storage.tooBig) {return true;}
-
+        if (Storage.tooBig) {
+            //System.out.println("epidemic size too large, quitting now");
+            return true;
+        }
+        //System.out.println("check132");
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP();
         logLikelihoodCandidate += logP;
-
+        //System.out.println("check137");
         //particles.printParticles();
         //resample
         particles.resampleParticles();
         checkParticles();
-
+        //System.out.println("resample");
+        //particles.printParticles();
 
         return false;
     }
