@@ -190,6 +190,12 @@ public class Main {
             Storage.T = lastDay;
         }
 
+        double[] epiContrib = readDoubleArray(dataElement.getElementsByTagName("epicontrib").item(0).getTextContent());
+        int[] weightChangeTimes = readIntegerArray(dataElement.getElementsByTagName("changetimes").item(0).getTextContent());
+        double[] weightsOverTime = getArrayAcrossTime(epiContrib, weightChangeTimes);
+        System.out.println(Arrays.toString(weightsOverTime));
+        Storage.confidenceSplit = weightsOverTime;
+
         Element priorElement = (Element) root.getElementsByTagName("priors").item(0);
         Storage.setPriors(priorElement);
 
@@ -204,18 +210,48 @@ public class Main {
         Files.copy(sourcePath, destinationPath);
     }
 
-        /*
-        Debug debug = new Debug(particleFilter);
-        ArrayList<Double> likelihoods = new ArrayList<>();
-        double[] deathRates = new double[] {0.1, 0.1291, 0.1668, 0.2154, 0.2782, 0.3593, 0.4641, 0.5994, 0.7742, 0.9999};
-        double[] sampleRates = new double[] {0.001, 0.0016, 0.0027, 0.0046, 0.0077, 0.0129, 0.0215, 0.0359, 0.0599, 0.1};
-        System.out.println("Made it as far as debug");
-        for (double d:sampleRates) {
-            double[] trueParams = new double[] {0.233, 0.15, d, 0.6, 1,33, 0.05};
-            for (int i = 0; i < 1000; i++) {
-                likelihoods.add(debug.runDebug(trueParams));
+    private static double[] readDoubleArray(String incidenceString) {
+        String[] stringArray = incidenceString.split(" ");
+        double[] array = new double[stringArray.length];
+        for (int i = 0; i<stringArray.length; i++) {
+            array[i] = Double.parseDouble(stringArray[i]);
+        }
+        return(array);
+    }
+
+    private static int[] readIntegerArray(String incidenceString) {
+        String[] stringArray = incidenceString.split(" ");
+        int[] array = new int[stringArray.length];
+        for (int i = 0; i<stringArray.length; i++) {
+            array[i] = Integer.parseInt(stringArray[i]);
+        }
+        return(array);
+    }
+
+    public static double[] getArrayAcrossTime(double[] values, int[] indexes) {
+        double[] arrayAcrossTime = new double[Storage.T];
+        if (values.length == 0) {
+            double value = values[0];
+            for (int t = 0; t < Storage.T; t++) {
+                arrayAcrossTime[t] = value;
+            }
+        } else {
+            int start = 0;
+            for (int i=0; i<indexes.length; i++) {
+                int changeTime = indexes[i];
+                double value = values[i];
+                for (int k = start; k < changeTime; k++) {
+                    arrayAcrossTime[k] = value;
+                }
+                start = changeTime;
+            }
+            double value = values[values.length-1];
+            for (int k = start; k < Storage.T; k++) {
+                arrayAcrossTime[k] = value;
             }
         }
-        debug.loggers.flexiLogger("likelihoodLog.txt", likelihoods);*/
+        return arrayAcrossTime;
+    }
+
 
 }

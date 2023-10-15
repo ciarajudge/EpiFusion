@@ -136,7 +136,7 @@ public class ParticleFilter {
         //System.out.println("check132");
 
         //Scale weights and add to logP
-        double logP = particles.scaleWeightsAndGetLogP();
+        double logP = particles.scaleWeightsAndGetLogP(Storage.confidenceSplit[phiIndex]);
         logLikelihoodCandidate += logP;
         //System.out.println("check137");
         //particles.printParticles();

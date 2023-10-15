@@ -264,7 +264,7 @@ public class Particles {
         //double logP = Math.log(sumOfScaledWeights);
         return logP;
     }
-    public double scaleWeightsAndGetLogP() {
+    public double scaleWeightsAndGetLogP(double split) {
         if (Storage.isEpiOnly()) {
             double logP = scaleEpiWeights();
             for (int p=0; p<N; p++){
@@ -280,7 +280,7 @@ public class Particles {
             return logP;
         }
         else {
-            updateWeights(0.5);
+            updateWeights(split);
             double[] particleWeights = new double[N];
             double[] logParticleWeights = new double[N];
             double maxLogWeight = Double.NEGATIVE_INFINITY;
