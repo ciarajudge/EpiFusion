@@ -15,7 +15,7 @@ We recommend using a parameter file from the examples folder for your first atte
 
 ## Contributing, Collaborating and Feedback
 
-We encourage any user to point out problems or suggest ideas for improvement by raising an issue, and we will address these (particularly bugs) as quickly as possible. Pull requests are also welcome, but please allow grace in the time we take to review. For an insight into our planned improvements, to the program, check some of the open issues left by the development team.
+We encourage any user to point out problems or suggest ideas for improvement by raising an issue, and we will address these (particularly bugs) as quickly as possible. Pull requests are also welcome, but please allow grace in the time we take to review. For an insight into our planned improvements, to the program, check the project tab.
 
 
 ## License
