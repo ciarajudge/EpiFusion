@@ -1,4 +1,3 @@
-
 public class PhyloLikelihood {
     public static double calculateLikelihood(TreeSegment tree, Particle particle, double[] propensities, int t) {
         int treeBirths = tree.births;
@@ -7,7 +6,6 @@ public class PhyloLikelihood {
 
         // Case 1: Likelihood given no events on the tree
         conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
-        //System.out.println("Particle: "+particle.particleID+" Phylolikelihood main:" + conditionalLogP);
         particle.likelihoodMatrix[t][0] += propensities[4];
         particle.likelihoodMatrix[t][1] += propensities[0];
         particle.likelihoodMatrix[t][2] += propensities[3];
@@ -38,7 +36,7 @@ public class PhyloLikelihood {
 
         // Case 1: Likelihood given no events on the tree
         conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
-        //System.out.println("Particle: "+particle.particleID+" State "+particle.getState()+", Phylolikelihood main:" + conditionalLogP);
+
         if (eventType != 2) {
             double prop = eventType == 0 ? propensities[0] + propensities[1] : propensities[4];
             conditionalLogP += observedEventProbability(eventType, particle, prop, t);
@@ -60,13 +58,12 @@ public class PhyloLikelihood {
             particle.setState(state+1);
             conditionalLogP += Math.log(2.0 / state / (state-1) * prop);
             particle.likelihoodMatrix[t][3] += Math.log(2.0 / state / (state-1) * prop);
-            //System.out.println("Particle: "+particle.particleID+" Phylolikelihood birth:" + conditionalLogP);
+            particle.setState(state + 1); //This was here on July 6th and I removed it but idk why?? it's back in now but god knows whats happening
         }
         else { //sampling
             conditionalLogP += Math.log(prop);
             particle.likelihoodMatrix[t][4] += Math.log(prop);
-            //particle.setState(state-Storage.removalProbability);
-            //System.out.println("Particle: "+particle.particleID+" Phylolikelihood sampling:" + conditionalLogP);
+            particle.setState(state-Storage.removalProbability);
         }
 
         return conditionalLogP;

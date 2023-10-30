@@ -110,9 +110,7 @@ public class ParticleFilter {
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
-            //System.out.println("check111");
             particles.getEpiLikelihoods(caseIncidence.incidence[step], candidateRates[phiIndex][3]);
-            //System.out.println("check113");
             if (particles.checkEpiLikelihoods()) {return true;}
         }
 
@@ -120,30 +118,27 @@ public class ParticleFilter {
         else {
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
             if (particles.checkPhyloLikelihoods()) {return true;}
-
             //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
                 particles.getEpiLikelihoods(caseIncidence.incidence[step],  candidateRates[phiIndex][3]);
                 if (particles.checkEpiLikelihoods()) {return true;}
             }
         }
-        //System.out.println("check126");
+
         particles.checkStates(Storage.maxEpidemicSize);
         if (Storage.tooBig) {
             //System.out.println("epidemic size too large, quitting now");
             return true;
         }
-        //System.out.println("check132");
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP(Storage.confidenceSplit[phiIndex]);
         logLikelihoodCandidate += logP;
-        //System.out.println("check137");
+
         //particles.printParticles();
         //resample
         particles.resampleParticles();
         checkParticles();
-        //System.out.println("resample");
         //particles.printParticles();
 
         return false;

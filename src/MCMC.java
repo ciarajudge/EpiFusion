@@ -73,19 +73,25 @@ public class MCMC {
                 System.out.println();
                 System.out.println("CHAIN "+particleFilter.chainID);
                 System.out.println("MCMC STEP "+i);
+                System.out.println("Current params: "+ Arrays.toString(currentParameters));
                 System.out.println("Candidate params: "+ Arrays.toString(candidateParameters));
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
-                System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
-                System.out.println("Completed runs: "+  Storage.completedRuns);
-                Storage.completedRuns = 0;
-                acceptanceRate = 0;
-                System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
+                System.out.println("Candidate likelihood: "+ particleFilter.getLogLikelihoodCandidate());
+                System.out.println("CurrentBeta: "+particleFilter.currentSampledParticle.beta);
+                System.out.println("CandidateBeta"+particleFilter.particles.particles[0].beta);
+
                 particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
+                particleFilter.particles.particles[0].traj.printTrajectory();
                 if (Storage.analysisType != 0 && Storage.analysisType != 3) {
                     particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
                 }
                 particleFilter.loggers.logParams(currentParameters);
+                System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
+                System.out.println("Completed runs: "+  Storage.completedRuns);
+                Storage.completedRuns = 0;
+                acceptanceRate = 0;
+                //particleFilter.particles.printTrajectories();
             }
 
             // Clear the pf cache
@@ -95,7 +101,7 @@ public class MCMC {
         System.out.println("CHAIN "+particleFilter.chainID+" COMPLETE");
         System.out.println("Final likelihood: "+ particleFilter.getLogLikelihoodCurrent());
         System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
-        //particleFilter.loggers.flexiLogger("alllikelihoods",ll);
+        particleFilter.loggers.flexiLogger("birth_0.0522.txt",ll);
     }
 
     private double transform(double param) {

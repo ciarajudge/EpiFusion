@@ -55,9 +55,6 @@ public class ProcessModel {
     public static void day(Particle particle, TreeSegment tree, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         //System.out.println("Day "+t);
-        if (particle == null) {
-            System.out.println("null particle here ProcessMod line 9");
-        }
 
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
             return;
@@ -90,7 +87,6 @@ public class ProcessModel {
         double unobservedInfectProp = state > 0
                 ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
                 : 0.0;
-        //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state+", unobserved infect prop: "+unobservedInfectProp+", and full infect prop "+propensities[0]);
         if (unobservedInfectProp < 0.0) {
             /*
             System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
@@ -103,6 +99,7 @@ public class ProcessModel {
         }
         //System.out.println("unobserved infection prop: "+unobservedInfectProp);
         double observedInfectProp = propensities[0] - unobservedInfectProp;
+
         double allowedRecovProp, forbiddenRecovProp;
         if (state > tree.lineages + propensities[1] +tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
             allowedRecovProp = propensities[1];
@@ -112,19 +109,22 @@ public class ProcessModel {
             allowedRecovProp = 0.0;
             forbiddenRecovProp = propensities[1];
         }
+        //System.out.println("Day "+t+" Particle "+particle.particleID+" state: "+state+", unobserved infect prop: "+unobservedInfectProp+", and full infect prop "+propensities[0]+
+          //      " allowed recov prop "+allowedRecovProp+" forbiddenrecovprop "+forbiddenRecovProp);
+
         //System.out.println("allowed recov prop: "+allowedRecovProp);
         double sampleProp = propensities[2];
-        if (tree.lineages < 1 && t > 1) {
-            unobservedInfectProp = propensities[0];
-            allowedRecovProp = propensities[1];
-        } else if (tree.lineages < 1) {
-            //System.out.println("No tree yet.");
-            unobservedInfectProp = propensities[0];
-            allowedRecovProp = 0.0;
-        }
+        //if (tree.lineages < 1 && t > 1) {
+        //    unobservedInfectProp = propensities[0];
+         //   allowedRecovProp = propensities[1];
+        //} else if (tree.lineages < 1) {
+        //    //System.out.println("No tree yet."); Commented this block out, I don't think it should trigger cause I've tken care of this eventuality in 'step'
+         //   unobservedInfectProp = propensities[0];
+         //   allowedRecovProp = 0.0;
+        //}
         //Calculate the events
         int births = poissonSampler(unobservedInfectProp);
-        //System.out.println("["+particle.particleID+"]births: "+births);
+        //System.out.println("Day "+t+" ["+particle.particleID+"]births: "+births);
         int deaths = poissonSampler(allowedRecovProp);
         //System.out.println("["+particle.particleID+"]deaths: "+deaths);
         state = state + births - deaths;
@@ -197,11 +197,10 @@ public class ProcessModel {
                     : 0.0;
             if (unobservedInfectProp < 0.0) {
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
-                //System.out.println("Particle ["+particle.particleID+"] unobserved inf prop is negative, setting likelihood to neg infinity");
                 return;
             }
             observedInfectProp = propensities[0] - unobservedInfectProp;
-            if (state > treeLineages + propensities[1]+ tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
+            if (state > treeLineages + propensities[1] + tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
                 allowedRecovProp = propensities[1];
                 forbiddenRecovProp = 0.0;
             } else {
@@ -219,13 +218,10 @@ public class ProcessModel {
 
             //Phylo likelihood calculation
             adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
-            //System.out.println(Arrays.toString(adjustedPropensities));
             eventType = nextT == t+1 ? 2 : tree.observationOrder[e];
             double todayPhyloLikelihood = PhyloLikelihood.calculateSegmentLikelihood(particle, adjustedPropensities, eventType, t);
             if (Double.isInfinite(todayPhyloLikelihood) || Double.isNaN(todayPhyloLikelihood)) {
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
-                //System.out.println("Particle ["+particle.particleID+"] phylo likelihood is neginf/nan, setting likelihood to neg infinity, state was "+state);
-
                 return;
             }
             particle.setPhyloLikelihood(particle.getPhyloLikelihood()+todayPhyloLikelihood);
@@ -240,9 +236,6 @@ public class ProcessModel {
         }
         particle.likelihoodMatrix[t][5] = particle.getState();
 
-        /*System.out.println("["+particle.particleID+"] Day "+t+", TrueState "+Storage.truth[t]+", ParticleState "+particle.getState()+
-                ", TrueChange "+(Storage.truth[t]-Storage.truth[t-1])+", ParticleChange "+(particle.getState()-prevState)+
-                ", PhyloLikelihood "+(particle.getPhyloLikelihood()-prevLikelihood));*/
         Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
     }
@@ -286,87 +279,6 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
     }
 
-    /*
-    public static void bruteForceTruthDay(Particle particle, TreeSegment tree, int t, double[] rates) {
-        //Check if the particle phylo likelihood is negative infinity, if so just quit
-        if (Double.isInfinite(particle.getPhyloLikelihood())) {
-            return;
-        }
-
-        int state = particle.getState();
-        if (Storage.analysisType == 1) {
-            particle.nextBeta();
-            rates[0] = particle.beta.get(particle.beta.size()-1);
-        }
-        double[] propensities = particle.getVanillaPropensities(rates);
-
-        if (tree.lineages == 0) { //this means the tree must start in this interval, so we do a new propensity calc
-            double segmentBeginning = t + 1 - tree.birthTimes.get(0);
-            double segmentEnding = 1 - segmentBeginning;
-            int newBirths = Storage.births[t] - tree.births;
-            int newDeaths = Storage.deaths[t];
-            state = state + newBirths - newDeaths;
-            propensities = transformPropensities(propensities, segmentEnding);
-        }
-
-
-        //Divide the propensities into their bits
-        double unobservedInfectProp = state > 0
-                ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
-                : 0.0;
-        if (unobservedInfectProp < 0.0) {
-            System.out.println("WARNING: Particle "+particle.particleID+" unobserved infection propensity " +
-                    "for day "+t+" is negative! This will disrupt the process model for the rest of the filter step!"+
-                    " Returning neg infinity for the particle.");
-            particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
-            return;
-        }
-
-        double observedInfectProp = propensities[0] - unobservedInfectProp;
-        double allowedRecovProp, forbiddenRecovProp;
-        if (state > tree.lineages + propensities[1]) {
-            allowedRecovProp = propensities[1];
-            forbiddenRecovProp = 0.0;
-        }
-        else {
-            allowedRecovProp = 0.0;
-            forbiddenRecovProp = propensities[1];
-        }
-        double sampleProp = propensities[2];
-        if (tree.lineages < 1 && t > 1) {
-            unobservedInfectProp = propensities[0];
-            allowedRecovProp = propensities[1];
-        } else if (tree.lineages < 1) {
-            //System.out.println("No tree yet.");
-            unobservedInfectProp = propensities[0];
-            allowedRecovProp = 0.0;
-        }
-
-        //Calculate the events
-        int births = Storage.births[t] - tree.births;
-        int deaths = Storage.deaths[t];
-        state = state + births - deaths;
-        particle.setState(state);
-
-        if (tree.lineages > 0) {
-            double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
-            //System.out.println("adjusted propensities: "+Arrays.toString(adjustedPropensities));
-            double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities, t);
-            System.out.println("Day "+t+", Particle "+particle.particleID+", Truth: "+Storage.truth[t]+" State:"+particle.getState()+" Phylo Likelihood: " +todayPhyloLikelihood);
-            if (Double.isInfinite(todayPhyloLikelihood)) {
-                particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY); //set phylo Likelihood of that particle to negative infinity which will quit the loop
-                return;
-            }
-
-            particle.setPhyloLikelihood(particle.getPhyloLikelihood()+todayPhyloLikelihood);
-            //System.out.println("Overall Phylo Likelihood: "+particle.getPhyloLikelihood());
-        } else {
-            particle.setState(particle.getState()+tree.births);
-        }
-        particle.likelihoodMatrix[t][5] = particle.getState();
-        Day tmpDay = new Day(t, particle.getState(), births, deaths);
-        particle.updateTrajectory(tmpDay);
-    }*/
 
     //Housekeeping functions
     public static double[] transformPropensities(double[] propensities, double segmentTime) {

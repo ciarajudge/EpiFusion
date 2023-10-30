@@ -85,40 +85,40 @@ public class Main {
         boolean epiOnly = Boolean.parseBoolean(parametersElement.getElementsByTagName("epiOnly").item(0).getTextContent());
         boolean phyloOnly = Boolean.parseBoolean(parametersElement.getElementsByTagName("phyloOnly").item(0).getTextContent());
 
-       // if (!phyloOnly) {
+        // if (!phyloOnly) {
         boolean incidenceFileExists = dataElement.getElementsByTagName("incidenceFile").getLength() > 0;
-            if (incidenceFileExists) {
-                String incidenceFile = dataElement.getElementsByTagName("incidenceFile").item(0).getTextContent();
-                incidence = new Incidence(incidenceFile);
+        if (incidenceFileExists) {
+            String incidenceFile = dataElement.getElementsByTagName("incidenceFile").item(0).getTextContent();
+            incidence = new Incidence(incidenceFile);
+            Storage.setIncidence(incidence);
+        } else {
+            boolean incidenceExists = dataElement.getElementsByTagName("incidence").getLength() > 0;
+            if (incidenceExists) {
+                String incidenceString = dataElement.getElementsByTagName("incidence").item(0).getTextContent();
+                incidence = new Incidence(incidenceString, true);
                 Storage.setIncidence(incidence);
             } else {
-                boolean incidenceExists = dataElement.getElementsByTagName("incidence").getLength() > 0;
-                if (incidenceExists) {
-                    String incidenceString = dataElement.getElementsByTagName("incidence").item(0).getTextContent();
-                    incidence = new Incidence(incidenceString, true);
-                    Storage.setIncidence(incidence);
-                } else {
-                    System.out.println("ERROR: Analysis includes epi model but no incidence data provided");
-                }
+                System.out.println("ERROR: Analysis includes epi model but no incidence data provided");
             }
-       // }
+        }
+        // }
 
         //if (!epiOnly) {
-            boolean treeFileExists = dataElement.getElementsByTagName("treeFile").getLength() > 0;
-            if (treeFileExists) {
-                String treeFile = dataElement.getElementsByTagName("treeFile").item(0).getTextContent();
-                tree = new Tree(treeFile);
+        boolean treeFileExists = dataElement.getElementsByTagName("treeFile").getLength() > 0;
+        if (treeFileExists) {
+            String treeFile = dataElement.getElementsByTagName("treeFile").item(0).getTextContent();
+            tree = new Tree(treeFile);
+            Storage.setTree(tree);
+        } else {
+            boolean treeExists = dataElement.getElementsByTagName("tree").getLength() > 0;
+            if (treeExists) {
+                String treeString = dataElement.getElementsByTagName("tree").item(0).getTextContent();
+                tree = new Tree(treeString, true);
                 Storage.setTree(tree);
             } else {
-                boolean treeExists = dataElement.getElementsByTagName("tree").getLength() > 0;
-                if (treeExists) {
-                    String treeString = dataElement.getElementsByTagName("tree").item(0).getTextContent();
-                    tree = new Tree(treeString, true);
-                    Storage.setTree(tree);
-                } else {
-                    System.out.println("ERROR: Analysis includes phylo model but no tree data provided");
-                }
+                System.out.println("ERROR: Analysis includes phylo model but no tree data provided");
             }
+        }
         //}
 
 
