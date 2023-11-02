@@ -58,7 +58,7 @@ public class PhyloLikelihood {
             particle.setState(state+1);
             conditionalLogP += Math.log(2.0 / state / (state-1) * prop);
             particle.likelihoodMatrix[t][3] += Math.log(2.0 / state / (state-1) * prop);
-            particle.setState(state + 1); //This was here on July 6th and I removed it but idk why?? it's back in now but god knows whats happening
+            particle.setState(state + 1);
         }
         else { //sampling
             conditionalLogP += Math.log(prop);

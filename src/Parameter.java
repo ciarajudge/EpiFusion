@@ -38,7 +38,6 @@ public class Parameter {
             priors = new Prior[1];
             priors[0] = values[0];
         }
-
     }
 
     private void getChangeTimes(Element changeTimeElement) {

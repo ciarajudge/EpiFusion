@@ -65,15 +65,12 @@ public class ParticleFilter {
         candidateParameters = parameters;
 
         parametersToRates();
-        //for (double[] day:candidateRates) {
-        //    System.out.println(Arrays.toString(day));
-        //}
+
         if (Storage.firstStep > 0 ){
             int initialState = (int) parameters[Storage.priors.parameterIndexes.get("initialI")[0]];
             particles.setInitialStates(initialState);
         }
 
-        //printRateVector(0);
         logLikelihoodCandidate = 0.0;
         for (int step=Storage.firstStep; step<filterSteps; step++) {
 
@@ -96,9 +93,8 @@ public class ParticleFilter {
             Storage.completedRuns += 1;
         }
 
-
         logPriorCandidate = calculatePFLogPrior();
-        //particles.printTrajectories();
+
     }
 
 
@@ -135,11 +131,9 @@ public class ParticleFilter {
         double logP = particles.scaleWeightsAndGetLogP(Storage.confidenceSplit[phiIndex]);
         logLikelihoodCandidate += logP;
 
-        //particles.printParticles();
         //resample
         particles.resampleParticles();
         checkParticles();
-        //particles.printParticles();
 
         return false;
     }
