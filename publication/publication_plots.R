@@ -11,7 +11,7 @@ sampling_combined <- "model_results/SS3OC_Combined_300Particles_50000Steps_Analy
 
 transmission_epi <- "model_results/ST3RC_EpiOnly_200Particles_50000Steps_AnalysisType1_AAADM/"
 transmission_phylo <- "model_results/ST3RC_PhyloOnly_200Particles_50000Steps_AnalysisType1_AAADN/"
-transmission_combined <- "model_results/ST3RC_Combined_200Particles_50000Steps_AnalysisType1_AAADL/"
+transmission_combined <- "/Users/ciarajudge/Desktop/PhD/EpiFusionResults/ST3RC_Combined_100Particles_10000Steps_AnalysisType1_2023-10-30_13-40-44/"
 
 #Figure 1 particle filter diagram (made in powerpoint)
 
@@ -327,19 +327,22 @@ supplementary_table2_valuesandrhat(introduction_combined, 0.1, "betaJitter")
 
 #Sampling Scenario
 supplementary_table2_valuesandrhat(sampling_epi, 0.1, "gamma")
-#supplementary_table2_valuesandrhat(sampling_epi, 0.1, "phi")
+supplementary_table2_valuesandrhat(sampling_epi, 0.1, "phi_distribs_0")
+supplementary_table2_valuesandrhat(sampling_epi, 0.1, "phi_distribs_1")
 supplementary_table2_valuesandrhat(sampling_epi, 0.1, "initialBeta")
 supplementary_table2_valuesandrhat(sampling_epi, 0.1, "betaJitter")
 
 supplementary_table2_valuesandrhat(sampling_phylo, 0.1, "gamma")
-#supplementary_table2_valuesandrhat(sampling_phylo, 0.1, "psi")
+supplementary_table2_valuesandrhat(sampling_phylo, 0.1, "psi_distribs_0")
+supplementary_table2_valuesandrhat(sampling_phylo, 0.1, "psi_distribs_1")
 supplementary_table2_valuesandrhat(sampling_phylo, 0.1, "initialBeta")
 supplementary_table2_valuesandrhat(sampling_phylo, 0.1, "betaJitter")
 
 supplementary_table2_valuesandrhat(sampling_combined, 0.1, "gamma")
 supplementary_table2_valuesandrhat(sampling_combined, 0.1, "psi_distribs_0")
 supplementary_table2_valuesandrhat(sampling_combined, 0.1, "psi_distribs_1")
-#supplementary_table2_valuesandrhat(sampling_combined, 0.1, "phi")
+supplementary_table2_valuesandrhat(sampling_combined, 0.1, "phi_distribs_0")
+supplementary_table2_valuesandrhat(sampling_combined, 0.1, "phi_distribs_1")
 supplementary_table2_valuesandrhat(sampling_combined, 0.1, "initialBeta")
 supplementary_table2_valuesandrhat(sampling_combined, 0.1, "betaJitter")
 
