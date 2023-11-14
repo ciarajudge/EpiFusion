@@ -3,9 +3,9 @@ library(phangorn)
 library(tidyverse)
 
 
-tree <- read.tree("SB4RC/SB4RC_downsampledtree.tree")
-sequences <- simSeq(tree, l=8000, type = "DNA", rate = 1e-3)
-write.phyDat(sequences, file = "SB4RC_sequences.fa", format = "fasta")
+tree <- read.tree("simulateddata_data/SB4RC/SB4RC_downsampledtree.tree")
+sequences <- simSeq(tree, l=8000, type = "DNA", rate = (1/365))
+write.phyDat(sequences, file = "simulateddata_data/SB4RC/SB4RC_sequences_higherrate.fa", format = "fasta")
 
 
 #fix dates

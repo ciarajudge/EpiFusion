@@ -10,6 +10,12 @@ library(Metrics)
 library(stableGR)
 library(dplyr)
 library(stringr)
+library(fitdistrplus)
+library(scoringRules)
+library(scoringutils)
+library(forestplot)
+library(dplyr)
+library(magrittr)
 
 
 fig2_plottruth <- function(datacode) {
@@ -119,6 +125,29 @@ fig5_plotparamposterior <- function(foldername, parameter, truth, linecolour, sh
   }
 }
 
+fig5_getrowentries <- function(foldername, burnin, truth, scenario, approach, colour) {
+  params <- loadparamsminusburnin(foldername, burnin)
+  paramlabels <- colnames(params)
+  means <- c()
+  upper <- c()
+  lower <- c()
+  for (i in 1:(length(paramlabels)-1)) {
+    scaled <- (params[,i] - truth[i])/truth[i]
+    means <- append(means,mean(scaled))
+    hpd <- hdi(scaled, 0.95)
+    upper <- append(upper, hpd[2])
+    lower <- append(lower, hpd[1])
+  }
+  df <- data.frame(Scenario = rep(scenario, length(paramlabels)-1),
+                   Approach = rep(approach, length(paramlabels)-1),
+                   Parameter = paramlabels[1:length(paramlabels)-1],
+                   mean = means,
+                   upper = upper,
+                   lower = lower,
+                   colour = rep(colour, length(paramlabels)-1))
+  return(df)
+}
+
 fig6_plottrajectories <- function(datacode, foldername, linecolour, shapecolour, xlabel, xlimits, ylimits) {
   truth <- read.csv(paste0("simulateddata_data/", datacode, "/", datacode, "_table.csv"), header = T)
   analysisstart <- getanalysisstart(foldername)
@@ -174,40 +203,13 @@ fig8_plotrt <- function(datacode, foldername, linecolour, shapecolour, xaxis, xl
   trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
   rt <- trajectorytabletort(trajectories, delay)
   hpds <- hdi(rt, 0.95)
-  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  hpds <- hdi(rt, 0.8)
-  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  hpds <- hdi(rt, 0.66)
-  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  means <- colMeans(rt, na.rm = T)
-  lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
+  means <- colMeans(rt)
+  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), 
+          col = adjustcolor(shapecolour, alpha.f = 0.3), border = F)
+    lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
 }
 
-fig8b_plotrt <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
-  realrt <- slidingwindow(slidingwindow(slidingwindow(getrealrt_option2(datacode))))
-  if (xaxis) {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "", xlab = "Time")
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  } else {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "", xaxt = "n", xlab = "", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  }
-  
-  analysisstart <- getanalysisstart(foldername)
-  analysisend <- getanalysisend(foldername) - delay
-  trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
-  rt <- trajectorytabletort(trajectories, delay)
-  hpds <- hdi(rt, 0.95)
-  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  hpds <- hdi(rt, 0.8)
-  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  hpds <- hdi(rt, 0.66)
-  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  means <- colMeans(rt, na.rm = T)
-  lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
-}
-
-fig8_plotEpiNow2 <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
+fig8_plotEpiNow2 <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, title) {
   realrt <- getrealrt_option2(datacode)
   if (xaxis) {
     plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xlab = "Time", main = title)
@@ -223,11 +225,12 @@ fig8_plotEpiNow2 <- function(datacode, foldername, linecolour, shapecolour, xaxi
   EpiRs <- EpiRs[summarised$variable=="R"]
   EpiRLow90 <- summarised$lower_90[summarised$variable=="R"] 
   EpiRUp90 <- summarised$upper_90[summarised$variable=="R"]
-  lines(seq(7, xlimits[2]), EpiRs[1:(xlimits[2]-6)], col = "blue")
-  polygon(c(seq(7, xlimits[2]), seq(xlimits[2],7)), c(EpiRLow90[1:(xlimits[2]-6)], rev(EpiRUp90[1:(xlimits[2]-6)])), col = adjustcolor("blue", alpha.f = 0.3), border = F)
+  lines(seq(7, xlimits[2]), EpiRs[1:(xlimits[2]-6)], col = linecolour)
+  polygon(c(seq(7, xlimits[2]), seq(xlimits[2],7)), c(EpiRLow90[1:(xlimits[2]-6)], rev(EpiRUp90[1:(xlimits[2]-6)])), 
+          col = adjustcolor(shapecolour, alpha.f = 0.3), border = F)
 }
 
-fig8b_plotEpiNow2 <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
+fig8_plotBDSky <- function(datacode, filename, changetimes, lastsequence, linecolour, shapecolour, xaxis, xlimits, ylimits, title) {
   realrt <- getrealrt_option2(datacode)
   if (xaxis) {
     plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xlab = "Time", main = title)
@@ -236,18 +239,26 @@ fig8b_plotEpiNow2 <- function(datacode, foldername, linecolour, shapecolour, xax
     plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xaxt = "n", xlab = "", main = title)
     lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
   }
-  out <- readRDS(foldername)
-  estimates <- out$estimates
-  summarised <- estimates$summarised
-  EpiRs <- summarised$mean
-  EpiRs <- EpiRs[summarised$variable=="R"]
-  EpiRLow90 <- summarised$lower_90[summarised$variable=="R"] 
-  EpiRUp90 <- summarised$upper_90[summarised$variable=="R"]
-  lines(seq(7, xlimits[2]), EpiRs[1:(xlimits[2]-6)], col = "blue")
-  polygon(c(seq(7, xlimits[2]), seq(xlimits[2],7)), c(EpiRLow90[1:(xlimits[2]-6)], rev(EpiRUp90[1:(xlimits[2]-6)])), col = adjustcolor("blue", alpha.f = 0.3), border = F)
+  tab <- read.table(filename, sep = "\t", header = T)
+  means <- as.numeric(tab[1,2:(ncol(tab))])
+  hpds <- tab[8,2:(ncol(tab))]
+  gethpd <- function(str, ind) {
+    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
+    return(val)
+  }
+  upperhpds <- sapply(hpds, gethpd, 2)
+  lowerhpds <- sapply(hpds, gethpd, 1)
+  changetimes <- lastsequence - (changetimes*365)
+  for (d in seq(2, length(changetimes)-1)) {
+    start <- changetimes[d]
+    end <- changetimes[d+1]
+    lines(c(start,end), rep(means[d], 2), col = linecolour, lwd =2)
+    polygon(c(start, start, end, end), c(upperhpds[d], lowerhpds[d], lowerhpds[d], upperhpds[d]), 
+              col = adjustcolor(shapecolour, alpha.f = 0.3), border = F)
+  }
 }
 
-fig8_plotBDSky <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
+fig8_plotTimTam <- function(datacode, foldername, changetimes, lastsequence, linecolour, shapecolour, xaxis, xlimits, ylimits, title) {
   realrt <- getrealrt_option2(datacode)
   if (xaxis) {
     plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xlab = "Time", main = title)
@@ -255,82 +266,34 @@ fig8_plotBDSky <- function(datacode, foldername, linecolour, shapecolour, xaxis,
   } else {
     plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xaxt = "n", xlab = "", main = title)
     lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  }
-  #analysisstart <- getanalysisstart(foldername)
-  #analysisend <- getanalysisend(foldername) - delay
+  }  
+  tab <- read.table(foldername, sep = "\t", header = T)
+    means <- as.numeric(tab[1,2:ncol(tab)])
+    hpds <- tab[8,2:ncol(tab)]
+    gethpd <- function(str, ind) {
+      val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
+      return(val)
+    }
+    upperhpds <- sapply(hpds, gethpd, 2)
+    lowerhpds <- sapply(hpds, gethpd, 1)
+    changetimes <- lastsequence - (changetimes)
+    means <- means
+    upperhpds <- upperhpds
+    lowerhpds <- lowerhpds
+    print(changetimes)
+    print(means)
+    for (d in seq(2, length(changetimes)-1)) {
+      start <- changetimes[d]
+      end <- changetimes[d+1]
+      lines(c(start,end), rep(means[d], 2), col = linecolour, lwd =2)
+      polygon(c(start, start, end, end), c(upperhpds[d], lowerhpds[d], lowerhpds[d], upperhpds[d]), 
+              col = adjustcolor(shapecolour, alpha.f = 0.3), border = F)
+    }
   
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.8)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.66)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #means <- colMeans(rt, na.rm = T)
-  #lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
 }
 
-fig8b_plotBDSky <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
-  realrt <- getrealrt_option2(datacode)
-  if (xaxis) {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xlab = "Time", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  } else {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xaxt = "n", xlab = "", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  }
-  #analysisstart <- getanalysisstart(foldername)
-  #analysisend <- getanalysisend(foldername) - delay
-  
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.8)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.66)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #means <- colMeans(rt, na.rm = T)
-  #lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
-}
 
-fig8_plotEpiInf <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
-  realrt <- getrealrt_option2(datacode)
-  if (xaxis) {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xlab = "Time", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  } else {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xaxt = "n", xlab = "", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  }
-  #analysisstart <- getanalysisstart(foldername)
-  #analysisend <- getanalysisend(foldername) - delay
-  
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.8)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.66)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #means <- colMeans(rt, na.rm = T)
-  #lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
-}
-
-fig8b_plotEpiInf <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, delay, title) {
-  realrt <- getrealrt_option2(datacode)
-  if (xaxis) {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xlab = "Time", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  } else {
-    plot(realrt, type = "l", lty = 5, lwd = 1.5, xlim = xlimits, ylim = ylimits, ylab = "Effective Reproduction Number", xaxt = "n", xlab = "", main = title)
-    lines(c(0, length(realrt)), c(1,1), lty = 2, col = "grey")
-  }
-  #analysisstart <- getanalysisstart(foldername)
-  #analysisend <- getanalysisend(foldername) - delay
-  
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.8)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #hpds <- hdi(rt, 0.66)
-  #polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
-  #means <- colMeans(rt, na.rm = T)
-  #lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
-}
-
+#####Table functions #####
 table2_rtrmse <- function(datacode, foldername, delay) {
   realrt <- getrealrt_option2(datacode)
   analysisstart <- getanalysisstart(foldername) + 10
@@ -392,18 +355,28 @@ table2_trajaccuracy2 <- function(datacode,foldername) {
 }
 
 table2_trajhpd <- function(datacode,foldername) {
+  truth <- gettrueI(datacode)
+  analysisstart <- getanalysisstart(foldername)
+  analysisend <- getanalysisend(foldername)
   trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
   hpds <- hdi(trajectories, 0.95)
-  widths <- hpds[2,]-hpds[1,]
-  print(paste0("HPD width: ", mean(widths)))
+  truth <- truth[analysisstart:length(truth)]
+  widths <- (hpds[2,]-hpds[1,])
+  scaledwidths <- widths[1:min(length(widths), length(truth))]/truth[1:min(length(widths), length(truth))]
+  print(paste0("HPD width: ", mean(scaledwidths)))
 }
 
 table2_rthpd <- function(datacode,foldername, delay) {
   trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
   rt <- trajectorytabletort(trajectories, delay)
+  analysisstart <- getanalysisstart(foldername)
+  analysisend <- getanalysisend(foldername)
+  truth <- getrealrt_option2(datacode)
   hpds <- hdi(rt, 0.95)
   widths <- hpds[2,]-hpds[1,]
-  print(paste0("HPD width: ", mean(widths)))
+  truth <- truth[analysisstart:length(truth)]
+  scaledwidths <- widths[1:min(length(widths), length(truth))]/truth[1:min(length(widths), length(truth))]
+  print(paste0("HPD width: ", mean(scaledwidths)))
 }
 
 table2_rttransmitaccuracy1 <- function(datacode, foldername, delay) {
@@ -432,6 +405,45 @@ table2_rttransmitaccuracy2 <- function(datacode, foldername, delay) {
   print(paste0("Phase accuracy: ", mean(percent)))
 }
 
+table2_CRPS <- function(datacode, foldername) {
+  realtraj <- gettrueI(datacode)
+  analysisstart <- getanalysisstart(foldername)
+  analysisend <- getanalysisend(foldername)
+  trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
+  means <- c()
+  sds <- c()
+  for (i in 1:ncol(trajectories)) {
+    fit <- fitdistr(trajectories[,i], "normal")
+    means[i] <- fit$estimate[1]
+    sds[i] <- fit$estimate[2]
+  }
+  distributions <- data.frame(means, sds)
+  score <- crps_norm(na.omit(realtraj[analysisstart:analysisend]), mean = means, sd = sds)
+  return(mean(score))
+}
+
+table2_brierscore <- function(datacode, foldername, delay) {
+  realrt <- getrealrt_option2(datacode)
+  trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
+  analysisstart <- getanalysisstart(foldername)
+  analysisend <- getanalysisend(foldername) - delay
+  rt <- trajectorytabletort(trajectories, delay)
+  realrtphase <- realrt
+  realrtphase[realrtphase<=1] <- 0
+  realrtphase[realrtphase>1] <- 1
+  probabilities <- c()
+  for (i in 1:ncol(rt)) {
+    fit <- fitdistr(rt[,i], "normal")
+    mean <- fit$estimate[1]
+    sd <- fit$estimate[2]
+    probabilities[i] <- pnorm(1, mean, sd)
+  }
+  probabilities <- 1-probabilities
+  realrtphase <- realrtphase[analysisstart:length(realrtphase)]
+  brier <- brier_score(realrtphase[1:min(length(realrtphase), length(probabilities))], probabilities[1:min(length(realrtphase), length(probabilities))])
+  print(paste0("Brier score: ", mean(brier)))
+}
+
 supplementary_table2_valuesandrhat <- function(foldername, burnin, variable) {
   table <- loadparamsminusburnin(foldername, burnin)
   labels <- colnames(table)
@@ -453,7 +465,7 @@ supplementary_table2_valuesandrhat <- function(foldername, burnin, variable) {
 
 
 
-#####Useful functions
+#####Useful functions#####
 getpercentvector <- function(hpds, posneg) {
   lower <- na.omit(hpds[1,])
   upper <- na.omit(hpds[2,])
