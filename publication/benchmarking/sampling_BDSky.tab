@@ -1,0 +1,12 @@
+Summary Statistic	reproductiveNumber_BDSKY_Serial.1	reproductiveNumber_BDSKY_Serial.2	reproductiveNumber_BDSKY_Serial.3	reproductiveNumber_BDSKY_Serial.4	reproductiveNumber_BDSKY_Serial.5	reproductiveNumber_BDSKY_Serial.6	reproductiveNumber_BDSKY_Serial.7	reproductiveNumber_BDSKY_Serial.8	reproductiveNumber_BDSKY_Serial.9
+mean	2.1731	2.242	2.2617	2.1274	2.2453	0.9139	0.5527	0.3916	0.6449
+stderr of mean	0.0664	6.2374E-3	6.6349E-3	9.3694E-3	0.0129	3.6395E-3	2.0235E-3	2.9491E-3	3.8455E-3
+stdev	2.3487	0.298	0.2075	0.2303	0.2771	0.1318	0.093	0.1703	0.2825
+variance	5.5162	0.0888	0.0431	0.053	0.0768	0.0174	8.6493E-3	0.029	0.0798
+median	1.0442	2.2217	2.2474	2.1168	2.2257	0.9141	0.5546	0.3951	0.6513
+value range	[5.6965E-4, 9.9887]	[1.1637, 4.0664]	[1.6088, 3.3645]	[1.3435, 3.1213]	[1.4713, 3.6925]	[0.3283, 1.4516]	[0.1407, 0.9139]	[1.5291E-4, 0.9519]	[2.2426E-3, 1.6321]
+geometric mean	1.1786	2.2226	2.2522	2.115	2.2285	0.9041	0.5443	0.3375	0.5558
+95% HPD interval	[5.6965E-4, 7.6255]	[1.6715, 2.8171]	[1.8572, 2.6611]	[1.6788, 2.5805]	[1.7336, 2.7955]	[0.6613, 1.167]	[0.3706, 0.7293]	[0.0417, 0.6912]	[0.0614, 1.1383]
+auto-correlation time (ACT)	7663.4827	4196.646	9789.7963	15855.7811	20876.1437	7298.4027	4534.0589	2872.2987	1775.1327
+effective sample size (ESS)	1249.7	2282.1	978.3	604	458.8	1312.2	2112.2	3334.3	5395.1
+number of samples	9577	9577	9577	9577	9577	9577	9577	9577	9577
