@@ -77,6 +77,7 @@ public class ProcessModel {
             propensities = transformPropensities(propensities, segmentEnding);
         }
 
+
         //Divide the propensities into their bits
         double unobservedInfectProp = state > 0
                 ? propensities[0] * (1.0 - tree.lineages * (tree.lineages - 1) / (double) state/(state+1))
@@ -105,6 +106,7 @@ public class ProcessModel {
         int deaths = poissonSampler(allowedRecovProp);
         state = state + births - deaths;
         particle.setState(state);
+        particle.todaysInfs = particle.todaysInfs + births;
 
         if (tree.lineages > 0) {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
@@ -121,6 +123,7 @@ public class ProcessModel {
         particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
+        particle.incrementCumInfections();
     }
 
     public static void segmentedDay(Particle particle, TreeSegment tree, int t, double[] dayRates) {
@@ -178,6 +181,7 @@ public class ProcessModel {
             deaths = poissonSampler(allowedRecovProp);
             state = state + births - deaths;
             particle.setState(state);
+            particle.todaysInfs = particle.todaysInfs + births;
 
 
             //Phylo likelihood calculation
@@ -202,6 +206,7 @@ public class ProcessModel {
 
         Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
+        particle.incrementCumInfections();
     }
 
     public static void epiOnlyDay(Particle particle, int t, double[] dayRates) {
@@ -230,6 +235,7 @@ public class ProcessModel {
         //System.out.println(Arrays.toString(propensities));
         //Calculate the events
         int births = poissonSampler(propensities[0]);
+        particle.todaysInfs = particle.todaysInfs + births;
         //System.out.println("[Day "+t+" Particle "+particle.particleID+"]"+"births: "+births);
         int deaths = 0;
         if (t > 1) {
@@ -241,6 +247,7 @@ public class ProcessModel {
         particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
+        particle.incrementCumInfections();
     }
 
     //Housekeeping functions

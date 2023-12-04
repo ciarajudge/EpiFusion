@@ -29,6 +29,7 @@ public class Storage {
     public static int firstStep = 0;
     public static MasterLoggers loggers = null;
     public static double[] confidenceSplit = null;
+    public static double[] genTime = null;
 
     public static void setNumParticles(int N) {numParticles = N;}
 

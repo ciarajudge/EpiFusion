@@ -184,7 +184,7 @@ public class Main {
             Storage.firstStep = 0;
         }
 
-        String endTime =analysisElement.getElementsByTagName("endTime").item(0).getTextContent();
+        String endTime = analysisElement.getElementsByTagName("endTime").item(0).getTextContent();
         if (!(endTime.equals("null"))) {
             int lastDay = Integer.parseInt(endTime);
             Storage.T = lastDay;
@@ -193,8 +193,10 @@ public class Main {
         double[] epiContrib = readDoubleArray(dataElement.getElementsByTagName("epicontrib").item(0).getTextContent());
         int[] weightChangeTimes = readIntegerArray(dataElement.getElementsByTagName("changetimes").item(0).getTextContent());
         double[] weightsOverTime = getArrayAcrossTime(epiContrib, weightChangeTimes);
-        System.out.println(Arrays.toString(weightsOverTime));
         Storage.confidenceSplit = weightsOverTime;
+
+        double[] genTime = readDoubleArray(parametersElement.getElementsByTagName("generationPMF").item(0).getTextContent());
+        Storage.genTime = genTime;
 
         Element priorElement = (Element) root.getElementsByTagName("priors").item(0);
         Storage.setPriors(priorElement);

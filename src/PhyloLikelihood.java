@@ -59,6 +59,7 @@ public class PhyloLikelihood {
             conditionalLogP += Math.log(2.0 / state / (state-1) * prop);
             particle.likelihoodMatrix[t][3] += Math.log(2.0 / state / (state-1) * prop);
             particle.setState(state + 1);
+            particle.todaysInfs = particle.todaysInfs + 1;
         }
         else { //sampling
             conditionalLogP += Math.log(prop);

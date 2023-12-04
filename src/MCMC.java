@@ -19,6 +19,7 @@ public class MCMC {
         if (Storage.analysisType == 1) {
             particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
         }
+        particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
         Storage.initialised = true;
     }
 
@@ -26,7 +27,6 @@ public class MCMC {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
 
         for (int i = 0; i < numIterations; i++) {
-
             // Generate a proposal for the next set of parameters
             double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
 
@@ -59,6 +59,7 @@ public class MCMC {
                 if (Storage.analysisType != 0 && Storage.analysisType != 3) {
                     particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
                 }
+                particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
                 particleFilter.loggers.logParams(currentParameters);
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
                 Storage.completedRuns = 0;

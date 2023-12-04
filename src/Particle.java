@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import org.apache.commons.math3.distribution.NormalDistribution;
 //import org.apache.commons.math3.distribution.PoissonDistribution;
 
@@ -16,6 +17,8 @@ public class Particle {
     private double stdDev;
     public boolean treeOn;
     public boolean haveReachedTree;
+    ArrayList<Integer> cumInfections;
+    public int todaysInfs;
 
     public Particle(int pID) {
         particleID = pID;
@@ -31,6 +34,9 @@ public class Particle {
         this.likelihoodMatrix = new double[Storage.T][6];
         this.treeOn = false;
         this.haveReachedTree = false;
+        this.cumInfections = new ArrayList<>();
+        this.cumInfections.add(0);
+        this.todaysInfs = 0;
     }
 
     public Particle(Particle other, int pID) {
@@ -47,6 +53,8 @@ public class Particle {
         this.stdDev = other.stdDev;
         this.treeOn = other.treeOn;
         this.haveReachedTree = other.haveReachedTree;
+        this.cumInfections = new ArrayList<>(other.cumInfections);
+        this.todaysInfs = 0;
     }
 
     public void printStatus() {
@@ -103,6 +111,10 @@ public class Particle {
         TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
         Double newBeta = ((truncatedNormalDistribution.sample()+skeleton)/2)*reFactor;
         beta.add(newBeta);
+    }
+    public void incrementCumInfections() {
+        cumInfections.add(todaysInfs);
+        this.todaysInfs = 0;
     }
 
     //Getters
@@ -181,4 +193,5 @@ public class Particle {
     public void updateTrajectory(Day day) {
         traj.updateTrajectory(day);
     }
+
 }

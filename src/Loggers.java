@@ -13,6 +13,7 @@ public class Loggers {
     public FileWriter params;
     public FileWriter acceptance;
     public FileWriter betas;
+    public FileWriter Rs;
     private String filePath;
     private int chainID;
 
@@ -24,6 +25,7 @@ public class Loggers {
         startParams();
         startAcceptance();
         startBetas();
+        startRs();
     }
 
 
@@ -48,6 +50,10 @@ public class Loggers {
     public void startBetas() throws IOException {
         FileWriter betas = new FileWriter(filePath+"/betas_chain"+chainID+".txt");
         this.betas = betas;
+    }
+    public void startRs() throws IOException {
+        FileWriter Rs = new FileWriter(filePath+"/rt_chain"+chainID+".txt");
+        this.Rs = Rs;
     }
 
     public void trajectoryHeader() throws IOException {
@@ -85,6 +91,15 @@ public class Loggers {
         toWrite = toWrite + "\n";
         //System.out.println(toWrite);
         betas.write(toWrite);
+    }
+    public void logRs(ArrayList<Double> rArray) throws IOException {
+        String toWrite = "";
+        for (Double aDouble : rArray) {
+            toWrite = toWrite + aDouble + ",";
+        }
+        toWrite = toWrite + "\n";
+        System.out.println(toWrite);
+        Rs.write(toWrite);
     }
     public void logLogLikelihoodAccepted(Double likelihood) throws IOException {
         String toWrite = likelihood + "\n";
@@ -152,6 +167,7 @@ public class Loggers {
         params.close();
         acceptance.close();
         betas.close();
+        Rs.close();
     }
 
 }
