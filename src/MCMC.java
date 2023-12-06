@@ -27,6 +27,7 @@ public class MCMC {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
 
         for (int i = 0; i < numIterations; i++) {
+
             // Generate a proposal for the next set of parameters
             double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
 

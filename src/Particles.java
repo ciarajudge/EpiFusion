@@ -94,13 +94,13 @@ public class Particles {
     }
 
     //Likelihood things
-    public void getEpiLikelihoods(int incidence, double phi) {
+    public void getEpiLikelihoods(int incidence) {
         try {
             ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
 
             for (Particle particle : particles) {
                 executor.submit(() -> {
-                    double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle, phi);
+                    double newLikelihood = EpiLikelihood.poissonLikelihood(incidence, particle);
                     particle.setEpiLikelihood(newLikelihood);
                 });
             }

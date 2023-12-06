@@ -57,8 +57,10 @@ public class ProcessModel {
             return;
         }
 
+        //add positive tests to Epi
         int state = particle.getState();
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
+        particle.positiveTests = particle.positiveTests +  (int)  Math.round(state*rates[3]);
 
         if (Storage.analysisType == 1) { //If beta is RW, get new propensity[0]
             particle.nextBeta(dayRates[0]);
@@ -120,7 +122,6 @@ public class ProcessModel {
         } else {
             particle.setState(particle.getState()+tree.births);
         }
-        particle.likelihoodMatrix[t][5] = particle.getState();
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
@@ -140,6 +141,8 @@ public class ProcessModel {
         }
 
         int prevState = particle.getState();
+        particle.positiveTests = particle.positiveTests +  (int)  Math.round(prevState*rates[3]);
+
         double prevLikelihood = particle.getPhyloLikelihood();
         double deltaT, nextT;
         double currentT = t;
@@ -193,7 +196,6 @@ public class ProcessModel {
                 return;
             }
             particle.setPhyloLikelihood(particle.getPhyloLikelihood()+todayPhyloLikelihood);
-
             //Adjust treeLineages and nextT
             currentT = nextT;
             if (eventType == 0) {
@@ -202,7 +204,6 @@ public class ProcessModel {
                 treeLineages -= 1;
             }
         }
-        particle.likelihoodMatrix[t][5] = particle.getState();
 
         Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
@@ -218,6 +219,7 @@ public class ProcessModel {
             return;
         }
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
+        particle.positiveTests = particle.positiveTests +  (int)  Math.round(state*rates[3]);
 
         //System.out.println("EpiOnlyDay "+t+" Particle "+particle.particleID+" state: "+state);
         if (Storage.analysisType == 1) {

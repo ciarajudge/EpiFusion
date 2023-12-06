@@ -6,9 +6,6 @@ public class PhyloLikelihood {
 
         // Case 1: Likelihood given no events on the tree
         conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
-        particle.likelihoodMatrix[t][0] += propensities[4];
-        particle.likelihoodMatrix[t][1] += propensities[0];
-        particle.likelihoodMatrix[t][2] += propensities[3];
 
 
         if (treeBirths != 0 || treeSamples != 0) {
@@ -37,6 +34,7 @@ public class PhyloLikelihood {
         // Case 1: Likelihood given no events on the tree
         conditionalLogP = 0 - (propensities[4] + propensities[0] + propensities[3]);
 
+
         if (eventType != 2) {
             double prop = eventType == 0 ? propensities[0] + propensities[1] : propensities[4];
             conditionalLogP += observedEventProbability(eventType, particle, prop, t);
@@ -57,13 +55,11 @@ public class PhyloLikelihood {
         if (type == 0) { //Coalescence
             particle.setState(state+1);
             conditionalLogP += Math.log(2.0 / state / (state-1) * prop);
-            particle.likelihoodMatrix[t][3] += Math.log(2.0 / state / (state-1) * prop);
             particle.setState(state + 1);
             particle.todaysInfs = particle.todaysInfs + 1;
         }
         else { //sampling
             conditionalLogP += Math.log(prop);
-            particle.likelihoodMatrix[t][4] += Math.log(prop);
             particle.setState(state-Storage.removalProbability);
         }
 

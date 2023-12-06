@@ -10,13 +10,13 @@ public class EpiLikelihood {
     }
 
 
-    public static double poissonLikelihood(int incidence, Particle particle, double phi) {
-        if (particle.getState() == 0 && incidence == 0) { //if state and incidence are 0, prob is 1
+    public static double poissonLikelihood(int incidence, Particle particle) {
+        if (particle.positiveTests == 0 && incidence == 0) { //if state and incidence are 0, prob is 1
             return 1.0;
-        } else if (particle.getState() <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
+        } else if (particle.positiveTests <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
             return 0.0;
         }
-        double p = particle.getState() * phi;
+        double p = particle.positiveTests;
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         return Math.exp(logLikelihood);
     }

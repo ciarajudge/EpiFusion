@@ -19,6 +19,7 @@ public class Particle {
     public boolean haveReachedTree;
     ArrayList<Integer> cumInfections;
     public int todaysInfs;
+    public int positiveTests;
 
     public Particle(int pID) {
         particleID = pID;
@@ -37,6 +38,7 @@ public class Particle {
         this.cumInfections = new ArrayList<>();
         this.cumInfections.add(0);
         this.todaysInfs = 0;
+        this.positiveTests = 0;
     }
 
     public Particle(Particle other, int pID) {
@@ -55,6 +57,7 @@ public class Particle {
         this.haveReachedTree = other.haveReachedTree;
         this.cumInfections = new ArrayList<>(other.cumInfections);
         this.todaysInfs = 0;
+        this.positiveTests = 0;
     }
 
     public void printStatus() {
