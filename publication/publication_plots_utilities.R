@@ -19,33 +19,33 @@ library(magrittr)
 library(vioplot)
 
 
-fig2_plottruth <- function(datacode) {
+fig2_plottruth <- function(datacode, xlimits) {
   truth <- read.csv(paste0("simulateddata_data/", datacode, "/", datacode, "_table.csv"), header = T)
-  plot(truth$t, truth$I, type = "l", ylab = "True Number Infected", xaxt = "n", xlab = "", lwd = 1.5, lty = 5)
+  plot(truth$t, truth$I, type = "l", ylab = "True Number Infected", xaxt = "n", xlab = "", lwd = 1.5, lty = 5, xlim = xlimits)
 }
 
-fig2_plottree <- function(datacode)  {
+fig2_plottree <- function(datacode, xlimits)  {
   tree <- read.tree(paste0("simulateddata_data/", datacode, "/", datacode, "_downsampledtree.tree"))
   tree$tip.label[] = ""
-  plot(tree, root.edge = TRUE, edge.color = c("darkslateblue"))
+  plot(tree, root.edge = TRUE, edge.color = c("darkslateblue"), x.lim = xlimits)
   axis(1)
   title(xlab = "Time")
 }
 
-fig2_plotweeklyincidence <- function(datacode)  {
+fig2_plotweeklyincidence <- function(datacode, xlimits)  {
   incidence <- read.table(paste0("simulateddata_data/", datacode, "/", datacode, "_weeklyincidence.txt"))[,1]
-  plot(seq(7, 7*length(incidence), 7), incidence, pch = 10, col = "orangered3", ylab = "Weekly Case Incidence", xlab = "Time", cex = 1.5)
+  plot(seq(7, 7*length(incidence), 7), incidence, pch = 10, col = "orangered3", ylab = "Weekly Case Incidence", xlab = "Time", cex = 1.5, xlim = xlimits)
 }
 
-fig3_plottrajectories <- function(datacode, foldername, linecolour, shapecolour, xlabel, xlimits, ylimits) {
+fig3_plottrajectories <- function(datacode, foldername, linecolour, shapecolour, xlabel, xlimits, ylimits, title) {
   truth <- read.csv(paste0("simulateddata_data/", datacode, "/", datacode, "_table.csv"), header = T)
   analysisstart <- getanalysisstart(foldername)
   analysisend <- getanalysisend(foldername)
   trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
   if (xlabel) {
-    plot(truth$t, truth$I, type = "l", xlim = xlimits, ylim = ylimits, lty = 1, lwd = 1.5, xlab = "Time", ylab = "Incidence")
+    plot(truth$t, truth$I, type = "l", xlim = xlimits, ylim = ylimits, lty = 1, lwd = 1.5, xlab = "Time", ylab = "Incidence", main = title)
   } else {
-    plot(truth$t, truth$I, type = "l", xlim = xlimits, ylim = ylimits, lty = 1, lwd = 1.5, xaxt = "n", xlab = "", ylab = "Incidence")
+    plot(truth$t, truth$I, type = "l", xlim = xlimits, ylim = ylimits, lty = 1, lwd = 1.5, xaxt = "n", xlab = "", ylab = "Incidence", main = title)
   }
   hpds <- HDInterval::hdi(trajectories, 0.95)
   polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
@@ -119,31 +119,7 @@ fig4b_plotrt <- function(datacode, foldername, linecolour, shapecolour, xaxis, x
   lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
 }
 
-fig5_getrowentries <- function(foldername, burnin, truth, scenario, approach, colour) {
-  params <- loadparamsminusburnin(foldername, burnin)
-  paramlabels <- colnames(params)
-  scaled <- (params[,1] - truth[1])/truth[1]
-  df <- data.frame(Scenario = rep(scenario, length(scaled)),
-                   Approach = rep(approach, length(scaled)),
-                   Parameter = rep(paramlabels[1], length(scaled)),
-                   Identifier = rep(paste0(approach, "_", paramlabels[1]), length(scaled)),
-                   Value = scaled,
-                   Colour = rep(colour, length(scaled)))
-  for (i in 2:(length(paramlabels)-1)) {
-    scaled <- (params[,i] - truth[i])/truth[i]
-    df_copy <- data.frame(Scenario = rep(scenario, length(scaled)),
-                     Approach = rep(approach, length(scaled)),
-                     Parameter = rep(paramlabels[i], length(scaled)),
-                     Identifier = rep(paste0(approach, "_", paramlabels[i]), length(scaled)),
-                     Value = scaled,
-                     Colour = rep(colour, length(scaled)))
-    df <- rbind(df, df_copy)
-  }
-  
-  return(df)
-}
-
-fig6_plottrajectories <- function(datacode, foldername, linecolour, shapecolour, xlabel, xlimits, ylimits) {
+fig5_plottrajectories <- function(datacode, foldername, linecolour, shapecolour, xlabel, xlimits, ylimits) {
   truth <- read.csv(paste0("simulateddata_data/", datacode, "/", datacode, "_table.csv"), header = T)
   analysisstart <- getanalysisstart(foldername)
   analysisend <- getanalysisend(foldername)
@@ -163,26 +139,49 @@ fig6_plottrajectories <- function(datacode, foldername, linecolour, shapecolour,
   lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
 }
 
-# fig7_confintervals <- function(foldernames, linecolours, shapecolours, delays, yaxis, xlimits, ylimits, title) {
-#   if (yaxis) {
-#     plot(-100, -100, xlim = xlimits, ylim = ylimits, xlab = "HPD Interval Width", ylab = "Density", main = title)
-#   } else {
-#     plot(-100, -100, xlim = xlimits, ylim = ylimits, xlab = "HPD Interval Width", ylab = "", main = title)
-#   }
-#   for (f in 1:length(foldernames)) {
-#     trajectories <- loadtrajectoriesminusburnin(foldernames[f], 0.1)
-#     #rt <- trajectorytabletort(trajectories, delays[f])
-#     hpds <- hdi(trajectories, 0.95)
-#     widths <- hpds[2,]-hpds[1,]
-#     polygon(density(widths), col = adjustcolor(shapecolours[f], alpha.f = 0.5), border = linecolours[f], lty = 3)
-#     #hpds <- hdi(rt, 0.8)
-#     #widths <- hpds[2,]-hpds[1,]
-#     #polygon(density(widths), col = adjustcolor(shapecolours[f], alpha.f = 0.2), border = linecolours[f], lty = 3)
-#     #hpds <- hdi(rt, 0.66)
-#     #widths <- hpds[2,]-hpds[1,]
-#     #polygon(density(widths), col = adjustcolor(shapecolours[f], alpha.f = 0.2), border = linecolours[f], lty = 3)
-#   }
-# }
+fig5b_plottrajectories <- function(datacode, foldername, linecolour, shapecolour, xlabel, xlimits, ylimits, title) {
+  truth <- read.csv(paste0("simulateddata_data/", datacode, "/", datacode, "_table.csv"), header = T)
+  analysisstart <- getanalysisstart(foldername)
+  analysisend <- getanalysisend(foldername)
+  trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
+  if (xlabel) {
+    plot(truth$t, truth$I, type = "l", xlim = xlimits, ylim = ylimits, lty = 1, lwd = 1.5, xlab = "Time", ylab = "", main = title)
+  } else {
+    plot(truth$t, truth$I, type = "l", xlim = xlimits, ylim = ylimits, lty = 1, lwd = 1.5, xaxt = "n", xlab = "", ylab = "", main = title)
+  }
+  hpds <- HDInterval::hdi(trajectories, 0.95)
+  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
+  hpds <- HDInterval::hdi(trajectories, 0.8)
+  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
+  hpds <- HDInterval::hdi(trajectories, 0.66)
+  polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), col = adjustcolor(shapecolour, alpha.f = 0.2), border = F)
+  means <- colMeans(trajectories, na.rm = T)
+  lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
+}
+
+fig6_getrowentries <- function(foldername, burnin, truth, scenario, approach, colour) {
+  params <- loadparamsminusburnin(foldername, burnin)
+  paramlabels <- colnames(params)
+  scaled <- (params[,1] - truth[1])/truth[1]
+  df <- data.frame(Scenario = rep(scenario, length(scaled)),
+                   Approach = rep(approach, length(scaled)),
+                   Parameter = rep(paramlabels[1], length(scaled)),
+                   Identifier = rep(paste0(approach, "_", paramlabels[1]), length(scaled)),
+                   Value = scaled,
+                   Colour = rep(colour, length(scaled)))
+  for (i in 2:(length(paramlabels)-1)) {
+    scaled <- (params[,i] - truth[i])/truth[i]
+    df_copy <- data.frame(Scenario = rep(scenario, length(scaled)),
+                          Approach = rep(approach, length(scaled)),
+                          Parameter = rep(paramlabels[i], length(scaled)),
+                          Identifier = rep(paste0(approach, "_", paramlabels[i]), length(scaled)),
+                          Value = scaled,
+                          Colour = rep(colour, length(scaled)))
+    df <- rbind(df, df_copy)
+  }
+  
+  return(df)
+}
 
 fig8_plotrt <- function(datacode, foldername, linecolour, shapecolour, xaxis, xlimits, ylimits, title) {
   realrt <- getrealrt_option2(datacode)
@@ -317,7 +316,7 @@ fig8b_plotrt <- function(datacode, foldername, linecolour, shapecolour, xaxis, x
   rt <- rtcop
   rt[rt==0] <- 0.001
   hpds <- HDInterval::hdi(rt, 0.95)
-  means <- colMeans(na.omit(rt))
+  means <- colMeans(rt)
   polygon(c(seq(analysisstart,analysisend), rev(seq(analysisstart,analysisend))), c(hpds[1,], rev(hpds[2,])), 
           col = adjustcolor(shapecolour, alpha.f = 0.3), border = F)
   lines(seq(analysisstart, analysisend), means, lwd = 1.5, col = linecolour)
@@ -455,7 +454,7 @@ table2_trajaccuracy1 <- function(datacode,foldername) {
     }
   }
   prop <- inhpd/length(realtraj)
-  print(paste0("Accuracy: ", prop))
+  print(paste0("Accuracy: ", prop/0.95))
 }
 
 table2_trajaccuracy2 <- function(datacode,foldername) {
@@ -473,7 +472,7 @@ table2_trajaccuracy2 <- function(datacode,foldername) {
     }
   }
   prop <- inhpd/length(realtraj)
-  print(paste0("Accuracy: ", prop))
+  print(paste0("Accuracy: ", prop/0.95))
 }
 
 table2_trajhpd <- function(datacode,foldername) {
@@ -533,9 +532,8 @@ table2_rthpd_coverage <- function(datacode,foldername, start, end) {
     }
   }
   prop <- inhpd/(end-start)
-  print(paste0("Rt coverage: ", prop))
+  print(paste0("Rt coverage: ", prop/0.95))
 }
-
 
 table2_rttransmitaccuracy1 <- function(datacode, foldername, delay) {
   realrt <- getrealrt_option2(datacode)
@@ -617,7 +615,6 @@ table2_rt_CRPS <- function(datacode, foldername) {
   return(mean(score))
 }
 
-
 table2_brierscore <- function(datacode, foldername, start, end) {
   realrt <- getrealrt_option2(datacode)
   analysisstart <- getanalysisstart(foldername)
@@ -649,17 +646,15 @@ table2_brierscore <- function(datacode, foldername, start, end) {
 
 #####Table 3#####
 
-table3_epinow2_rtrmse <- function(datacode, filename, xlimits) {
+table3_epinow2_rtrmse <- function(datacode, filename, start, end) {
   realrt <- getrealrt_option2(datacode)
   out <- readRDS(filename)
   estimates <- out$estimates
   summarised <- estimates$summarised
   EpiRs <- summarised$mean
   EpiRs <- EpiRs[summarised$variable=="R"]
-  #EpiRLow90 <- summarised$lower_90[summarised$variable=="R"] 
-  #EpiRUp90 <- summarised$upper_90[summarised$variable=="R"]
-  realrt <- realrt[seq(7, xlimits[2])]
-  print(paste0("Rt rmse:", rmse(EpiRs[1:(xlimits[2]-6)], realrt) ))
+  realrt <- realrt[7: length(realrt)] #This puts the real rt and EpiNow2 Rt from the same start point
+  print(paste0("EpiNow2 Rt rmse:", rmse(EpiRs[start:end], realrt[start:end]) ))
 
 }
 
@@ -667,13 +662,6 @@ table3_BDSky_rtrmse <- function(datacode, filename, changetimes, lastsequence, s
   realrt <- getrealrt_option2(datacode)
   tab <- read.table(filename, sep = "\t", header = T)
   means <- as.numeric(tab[1,2:(ncol(tab))])
-  hpds <- tab[8,2:(ncol(tab))]
-  gethpd <- function(str, ind) {
-    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
-    return(val)
-  }
-  upperhpds <- sapply(hpds, gethpd, 2)
-  lowerhpds <- sapply(hpds, gethpd, 1)
   changetimes <- lastsequence - round(changetimes*365)
   times <- c()
   rts <- c()
@@ -686,20 +674,13 @@ table3_BDSky_rtrmse <- function(datacode, filename, changetimes, lastsequence, s
   rts <- na.omit(rts)
   times <- times[1:length(rts)]
   realrt <- realrt[times]
-  print(rmse(rts, realrt))
+  print(paste0("BDSky Rt rmse:",rmse(rts, realrt)))
 }
 
 table3_TimTam_rtrmse <- function(datacode, filename, changetimes, lastsequence, start, end) {
   realrt <- getrealrt_option2(datacode)
   tab <- read.table(filename, sep = "\t", header = T)
   means <- as.numeric(tab[1,2:(ncol(tab))])
-  hpds <- tab[8,2:(ncol(tab))]
-  gethpd <- function(str, ind) {
-    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
-    return(val)
-  }
-  upperhpds <- sapply(hpds, gethpd, 2)
-  lowerhpds <- sapply(hpds, gethpd, 1)
   changetimes <- lastsequence - changetimes
   times <- c()
   rts <- c()
@@ -712,87 +693,12 @@ table3_TimTam_rtrmse <- function(datacode, filename, changetimes, lastsequence, 
   rts <- na.omit(rts)
   times <- times[1:length(rts)]
   realrt <- realrt[times]
-  print(rmse(rts, realrt))
-}
-
-table3_epinow2_hpd <- function(datacode, filename, xlimits) {
-  realrt <- getrealrt_option2(datacode)
-  out <- readRDS(filename)
-  estimates <- out$estimates
-  summarised <- estimates$summarised
-  EpiRLow90 <- summarised$lower_90[summarised$variable=="R"] 
-  EpiRUp90 <- summarised$upper_90[summarised$variable=="R"]
-  realrt <- realrt[seq(7, xlimits[2])]
-  widths <- EpiRUp90 -EpiRLow90
-  print(paste0("Rt hpd width:", mean(widths)))
-  
-}
-
-table3_BDSky_rthpd <- function(datacode, filename, changetimes, lastsequence, start, end) {
-  realrt <- getrealrt_option2(datacode)
-  tab <- read.table(filename, sep = "\t", header = T)
-  means <- as.numeric(tab[1,2:(ncol(tab))])
-  hpds <- tab[8,2:(ncol(tab))]
-  gethpd <- function(str, ind) {
-    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
-    return(val)
-  }
-  upperhpds <- sapply(hpds, gethpd, 2)
-  lowerhpds <- sapply(hpds, gethpd, 1)
-  changetimes <- lastsequence - round(changetimes*365)
-  times <- c()
-  uppers <- c()
-  lowers <- c()
-  for (d in seq(1, length(changetimes)-1)) {
-    times <- append(times, seq(changetimes[d], changetimes[d+1]-1))
-    uppers <- append(uppers, rep(upperhpds[d], changetimes[d+1]-changetimes[d]))
-    lowers <- append(lowers, rep(lowerhpds[d], changetimes[d+1]-changetimes[d]))
-  }
-  uppers <- uppers[which(times > 0)][start:end]
-  lowers <- lowers[which(times > 0)][start:end]
-  times <- times[which(times > 0)][start:end]
-  uppers <- na.omit(uppers)
-  lowers <- na.omit(lowers)
-  times <- times[1:length(uppers)]
-  realrt <- realrt[times]
-  widths <- (uppers-lowers)
-  print(mean(widths))
-}
-
-table3_TimTam_rthpd <- function(datacode, filename, changetimes, lastsequence, start, end) {
-  realrt <- getrealrt_option2(datacode)
-  tab <- read.table(filename, sep = "\t", header = T)
-  means <- as.numeric(tab[1,2:(ncol(tab))])
-  hpds <- tab[8,2:(ncol(tab))]
-  gethpd <- function(str, ind) {
-    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
-    return(val)
-  }
-  upperhpds <- sapply(hpds, gethpd, 2)
-  lowerhpds <- sapply(hpds, gethpd, 1)
-  changetimes <- lastsequence - changetimes
-  times <- c()
-  uppers <- c()
-  lowers <- c()
-  for (d in seq(1, length(changetimes)-1)) {
-    times <- append(times, seq(changetimes[d], changetimes[d+1]-1))
-    uppers <- append(uppers, rep(upperhpds[d], changetimes[d+1]-changetimes[d]))
-    lowers <- append(lowers, rep(lowerhpds[d], changetimes[d+1]-changetimes[d]))
-  }
-  uppers <- uppers[which(times > 0)][start:end]
-  lowers <- lowers[which(times > 0)][start:end]
-  times <- times[which(times > 0)][start:end]
-  uppers <- na.omit(uppers)
-  lowers <- na.omit(lowers)
-  times <- times[1:length(uppers)]
-  realrt <- realrt[times]
-  widths <- (uppers-lowers)
-  print(mean(widths))
+  print(paste0("TimTam Rt rmse:",rmse(rts, realrt)))
 }
 
 table3_epinow2_CRPS <- function(datacode, filename, start, end) {
   realrt <- getrealrt_option2(datacode)
-  realrt <- realrt[start+7: end]
+  realrt <- realrt[7: length(realrt)]
   out <- readRDS(filename)
   tab <- out$estimates$samples %>%
     dplyr::filter(variable== "R") %>%
@@ -800,25 +706,37 @@ table3_epinow2_CRPS <- function(datacode, filename, start, end) {
     tidyr::pivot_wider(names_from = sample, values_from = value) %>%
     dplyr::select(!time)
   tab <- as.matrix(tab)
-  tab <- tab[1:length(realrt),]
+  tab <- tab[1:min(length(realrt), nrow(tab)),]
   tab <- as.matrix(tab)
-  score <- crps_sample(realrt, tab)
-  print(score)
-  return(mean(score))
+  score <- crps_sample(realrt[start:end], tab[start:end,])
+  return(paste0("EpiNow2 CRPS:",mean(score)))
   
 }
 
-table3_EpiFusion_CRPS <- function(datacode, foldername, delay) {
-  realrt <- getrealrt_option2(datacode)
+table3_EpiFusion_CRPS <- function(datacode, foldername, start, end) {
   analysisstart <- getanalysisstart(foldername)
-  analysisend <- getanalysisend(foldername) - delay
-  trajectories <- loadtrajectoriesminusburnin(foldername, 0.1)
-  rts <- trajectorytabletort(trajectories, delay)
-  rts[is.na(rts)] <- 0
-  rts <- t(rts)
-  realrt <- realrt[analysisstart:length(realrt)]
-  score <- crps_sample(realrt[1:min(length(realrt), nrow(rts))], as.matrix(rts[1:min(length(realrt), nrow(rts)),]))
-  return(mean(score))
+  analysisend <- getanalysisend(foldername)
+  rt <- loadrtsminusburnin(foldername, 0.1)
+  rt[rt==0] <- 0.001
+  for (i in 1:ncol(rt)) {
+    rt[is.nan(rt[,i]), i] <- 0.001
+  }
+  rt[is.na(rt)] <- 0.001
+  #rtcop <- rt
+  #for (i in 1:nrow(rt)) {
+  #  rtcop[i,] <- slidingwindow(rt[i,])
+  #}
+  
+  trajectories<- rt
+  realtraj <- getrealrt_option2(datacode)
+  realtraj[is.nan(realtraj)] <- 0.0001
+  analysisstart <- getanalysisstart(foldername)
+  analysisend <- getanalysisend(foldername)
+  trajectories <- t(trajectories)
+  realtraj <- realtraj[analysisstart:length(realtraj)]
+  realtraj[is.nan(realtraj)] <- 0.001
+  score <- crps_sample(realtraj[start:end], trajectories[start:end,])
+  return(paste0("EpiFusion CRPS:",mean(score)))
 }
 
 table3_BDSky_CRPS <- function(datacode, filename, changetimes, lastsequence, start, end) {
@@ -834,12 +752,9 @@ table3_BDSky_CRPS <- function(datacode, filename, changetimes, lastsequence, sta
     rtsamples[times,] <- tab[,d]
   }
   rts <- rtsamples[start:end,]
-  print(rts[,1])
   realrt <- realrt[start:end]
-  print(realrt)
   score <- crps_sample(realrt, rts)
-  print(score)
-  return(mean(score))
+  return(paste0("BDSky CRPS:",mean(score)))
 }
 
 table3_TimTam_CRPS <- function(datacode, filename, changetimes, lastsequence, start, end) {
@@ -855,12 +770,9 @@ table3_TimTam_CRPS <- function(datacode, filename, changetimes, lastsequence, st
     rtsamples[times,] <- tab[,d]
   }
   rts <- rtsamples[start:end,]
-  print(rts[,1])
   realrt <- realrt[start:end]
-  print(realrt)
   score <- crps_sample(realrt, rts)
-  print(score)
-  return(mean(score))
+  return(paste0("TimTam CRPS:",mean(score)))
 }
 
 table3_epinow2_brier <- function(datacode, filename, start, end) {
@@ -873,7 +785,9 @@ table3_epinow2_brier <- function(datacode, filename, start, end) {
     tidyr::pivot_wider(names_from = sample, values_from = value) %>%
     dplyr::select(!time)
   tab <- as.matrix(tab)
-  tab <- tab[1:length(realrt),]
+  print(nrow(tab))
+  print(length(realrt))
+  tab <- tab[1:end,]
   tab <- as.matrix(tab)
   
   probabilities <- c()
@@ -886,8 +800,7 @@ table3_epinow2_brier <- function(datacode, filename, start, end) {
   realrtphase[realrtphase>1] <- 1
   
   score <- brier_score(realrtphase[start:end], probabilities[start:end])
-  print(score)
-  return(mean(score))
+  return(paste0("EpiNow2 Brier:",mean(score)))
   
 }
 
@@ -911,10 +824,8 @@ table3_BDSky_brier <- function(datacode, filename, changetimes, lastsequence, st
   probabilities <- 1-probabilities
   probabilities <- probabilities[start:end]
   realrtphase <- realrtphase[start:end]
-  print(probabilities)
-  print(realrtphase)
   brier <- brier_score(realrtphase, probabilities)
-  print(paste0("Brier score: ", mean(brier)))
+  print(paste0("BDSky Brier score: ", mean(brier)))
 }
 
 table3_TimTam_brier <- function(datacode, filename, changetimes, lastsequence, start, end) {
@@ -932,16 +843,108 @@ table3_TimTam_brier <- function(datacode, filename, changetimes, lastsequence, s
   probabilities <- c()
   for (d in seq(1, length(changetimes)-1)) {
     times <- seq(changetimes[d], changetimes[d+1]-1)
-    print(times)
     probabilities[times] <- sum(tab[,d]<=1)/length(tab[,d])
   }
   probabilities <- 1-probabilities
   probabilities <- probabilities[start:end]
   realrtphase <- realrtphase[start:end]
-  print(probabilities)
-  print(realrtphase)
   brier <- brier_score(realrtphase, probabilities)
-  print(paste0("Brier score: ", mean(brier)))
+  print(paste0("TimTam Brier score: ", mean(brier)))
+}
+
+table3_epinow2_coverage <- function(datacode, filename, start, end) {
+  realrt <- getrealrt_option2(datacode)
+  realrt <- realrt[7:length(realrt)]
+  out <- readRDS(filename)
+  estimates <- out$estimates
+  summarised <- estimates$summarised
+  EpiRLow90 <- summarised$lower_90[summarised$variable=="R"] 
+  EpiRUp90 <- summarised$upper_90[summarised$variable=="R"]
+  inhpd <- 0
+  for (i in start:end) {
+    if (realrt[i] > EpiRLow90[i]) {
+      if (realrt[i] < EpiRUp90[i]) {
+        inhpd <- inhpd + 1
+      }
+    }
+  }
+  coverage <- inhpd / length(start:end)
+  print(paste0("EpiNow2 Rt coverage:", coverage/0.9))
+  
+}
+
+table3_BDSky_coverage <- function(datacode, filename, changetimes, lastsequence, start, end) {
+  realrt <- getrealrt_option2(datacode)
+  tab <- read.table(filename, sep = "\t", header = T)
+  means <- as.numeric(tab[1,2:(ncol(tab))])
+  hpds <- tab[8,2:(ncol(tab))]
+  gethpd <- function(str, ind) {
+    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
+    return(val)
+  }
+  upperhpds <- sapply(hpds, gethpd, 2)
+  lowerhpds <- sapply(hpds, gethpd, 1)
+  changetimes <- lastsequence - round(changetimes*365)
+  print(changetimes)
+  times <- c()
+  uppers <- c()
+  lowers <- c()
+  for (d in seq(1, length(changetimes)-1)) {
+    times <- append(times, seq(changetimes[d], changetimes[d+1]-1))
+    uppers <- append(uppers, rep(upperhpds[d], changetimes[d+1]-changetimes[d]))
+    lowers <- append(lowers, rep(lowerhpds[d], changetimes[d+1]-changetimes[d]))
+  }
+  uppers <- uppers[which(times > 0)]
+  lowers <- lowers[which(times > 0)]
+  #times <- times[which(times > 0)][start:end]
+  #uppers <- na.omit(uppers)
+  #lowers <- na.omit(lowers)
+  #times <- times[1:length(uppers)]
+  #realrt <- realrt[times]
+  inhpd <- 0
+  for (i in start:end) {
+    if (realrt[i] > lowers[i]) {
+      if (realrt[i] < uppers[i]) {
+        inhpd <- inhpd + 1
+      }
+    }
+  }
+    coverage <- inhpd / length(start:end)
+    print(paste0("BDsky Rt coverage:", coverage/0.95))
+}
+
+table3_TimTam_coverage <- function(datacode, filename, changetimes, lastsequence, start, end) {
+  realrt <- getrealrt_option2(datacode)
+  tab <- read.table(filename, sep = "\t", header = T)
+  means <- as.numeric(tab[1,2:(ncol(tab))])
+  hpds <- tab[8,2:(ncol(tab))]
+  gethpd <- function(str, ind) {
+    val <- as.numeric(str_remove(str_remove(unlist(str_split(str, ","))[ind], "\\["), "\\]"))
+    return(val)
+  }
+  upperhpds <- sapply(hpds, gethpd, 2)
+  lowerhpds <- sapply(hpds, gethpd, 1)
+  changetimes <- lastsequence - changetimes
+  times <- c()
+  uppers <- c()
+  lowers <- c()
+  for (d in seq(1, length(changetimes)-1)) {
+    times <- append(times, seq(changetimes[d], changetimes[d+1]-1))
+    uppers <- append(uppers, rep(upperhpds[d], changetimes[d+1]-changetimes[d]))
+    lowers <- append(lowers, rep(lowerhpds[d], changetimes[d+1]-changetimes[d]))
+  }
+  uppers <- uppers[which(times > 0)]
+  lowers <- lowers[which(times > 0)]
+  inhpd <- 0
+  for (i in start:end) {
+    if (realrt[i] > lowers[i]) {
+      if (realrt[i] < uppers[i]) {
+        inhpd <- inhpd + 1
+      }
+    }
+  }
+  coverage <- inhpd / length(start:end)
+  print(paste0("TIMTam Rt coverage:", coverage/0.95))
 }
 
 
