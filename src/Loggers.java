@@ -80,7 +80,7 @@ public class Loggers {
             toWrite = toWrite + d.I + ",";
         }
         toWrite = toWrite + "\n";
-        System.out.println(toWrite);
+        //System.out.println(toWrite);
         trajectories.write(toWrite);
     }
     public void logBeta(ArrayList<Double> betaArray) throws IOException {
@@ -98,7 +98,7 @@ public class Loggers {
             toWrite = toWrite + aDouble + ",";
         }
         toWrite = toWrite + "\n";
-        System.out.println(toWrite);
+        //System.out.println(toWrite);
         Rs.write(toWrite);
     }
     public void logLogLikelihoodAccepted(Double likelihood) throws IOException {

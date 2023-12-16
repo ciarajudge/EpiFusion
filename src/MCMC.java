@@ -54,7 +54,7 @@ public class MCMC {
                 System.out.println("MCMC STEP "+i);
                 System.out.println("Current params: "+ Arrays.toString(currentParameters));
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
-                System.out.println("CurrentBeta: "+particleFilter.currentSampledParticle.beta);
+                //System.out.println("CurrentBeta: "+particleFilter.currentSampledParticle.beta);
                 particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
                 if (Storage.analysisType != 0 && Storage.analysisType != 3) {
