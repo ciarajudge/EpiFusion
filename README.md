@@ -4,7 +4,7 @@ This is EpiFusion, a program for jointly inferring epidemic trajectories using p
 
 ## Getting Started
 
-To get started with EpiFusion you can get started by downloading [this executable jar file](https://github.com/ciarajudge/EpiFusion/releases/tag/beta). To run the program, simply ensure that you have Java 8 installed, and run the following command: 
+To get started with EpiFusion you can get started by downloading [this executable jar file](https://github.com/ciarajudge/EpiFusion/releases/tag/v0.0.3). To run the program, simply ensure that you have Java 8 installed, and run the following command: 
 
   ```sh
   java -jar EpiFusion.jar parameterfile.xml
