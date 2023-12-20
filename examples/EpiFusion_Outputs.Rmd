@@ -1,0 +1,109 @@
+---
+title: "EpiFusion Tutorial"
+#author: "Your name here"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+## Introduction
+
+This R Markdown document will guide you through the process of parsing and interpreting the output of the EpiFusion tutorial. We will use a selection of functions that can also be found in the **EpiFusion_utilities.R** script on the GitHub repository.
+
+The first step of the tutorial is to point the document to the filepath of the output folder made by EpiFusion. We will also source the `EpiFusion_utilities.R` script to load the necessary functions to look through this output. The current filepath assumes the folder is in your working directory; you may need to change this depending on where your output folder was generated.
+
+```{r intro}
+outputfolder <- "intro-example/"
+source("EpiFusion_utilities.R")
+```
+
+NOTE: the first time you run this, the output might also show the installation of any required R packages you don't already have installed.
+
+## Checking convergence
+
+The first thing we'll do is take a look at the trace plots of the chain likelihood, to check that the model has run nicely. For this we can use the `plotlikelihoodtrace` function, which takes the output folder filepath as its input.
+
+```{r plottraces, echo=FALSE}
+plotlikelihoodtrace(outputfolder)
+```
+
+Have a look at the likelihood trace for each chain run. They should start in different places but eventually converge to roughly the same value. Keep an eye out for chains getting stuck (staying at the same value for a long time). This does happen occassionally, and we are working on introducing adaptive Metropolis Hastings MCMC sampling to EpiFusion to fix this. Once you have had a look at the trace plot you can choose what proportion of each chain to discard as burn-in. EpiFusion models tend to converge relatively quickly, so the default in this document will be 10%. However, you can edit this as needed.
+
+```{r set_burnin}
+burn_in <- 0.1
+```
+
+
+## Examining infection trajectory posteriors
+### Trajectories table
+Next we'll examine the infection trajectories inferred by your EpiFusion model. First let's take a look at the raw values by loading the trajectories to our environment with `loadtrajectoriesminusburnin`, which takes the `outputfolder` and `burn_in` as arguments. This will return a table, with a column for every day of the analysis and a row for every sampled trajectory. Below we load the table and look at the first sample.
+
+```{r load_trajectories_table}
+trajectories <- loadtrajectoriesminusburnin(outputfolder, burn_in)
+unlist(trajectories[1,])
+```
+
+You can also load the trajectories inferred by each chain separately. This can be useful if you think you might have convergence issues.
+
+```{r load_trajectories_separately}
+trajectories_separate <- loadtrajectoriesminusburninseparate(outputfolder, burn_in)
+```
+
+This function returns a list of length (N) of trajectory tables, where N = the number of chains.
+
+### Trajectories plot
+It can be difficult to get a sense for what the trajectories are really saying in table form, so let's plot them using `plottrajectoriesfromtable`. We can supply our desired colour as the second argument to the function. There is also a function, `plottrajectoryposteriors`, which can plot the trajectories directly from the file, but we won't use that here. If you do want to us it, it takes `outputfolder`, `burn_in` and `colour` as arguments.
+
+```{r plot_trajectories}
+plottrajectoriesfromtable(trajectories, 'slateblue')
+```
+
+This function plots the mean sampled trajectory as a coloured line, with 95%, 80% and 66% HPDs as shaded regions of increasing darkness.
+
+## Examining R(t) trajectory posteriors
+Now lets take a look at the R(t) estimates from the model. With EpiFusion it is actually possible to get R(t) through two methods. We'll examine both here.
+
+### Renewal equation or Beta/Gamma?
+The EpiFusion program stores daily infection events in the trajectories that it models, and uses this along with a user specified probability mass function of the generation time in a renewal equation to calculate an R(t) trajectory for each MCMC sample. These are stored in the `rt_chainN.csv` files of the EpiFusion output. However, EpiFusion also samples trajectories of the force of infection beta over time (`betas_chainN.csv`). Together with the posterior samples for the recovery/removal parameter gamma, you can also get R(t) estimates from dividing beta(t)/gamma(t) for each MCMC sample. Lets plot both options together to compare:
+
+```{r plot_rt_renewal}
+plotrtposteriors_renewal(outputfolder, burn_in, 'pink')
+addrtposteriors_betagamma(outputfolder, burn_in, 'green')
+```
+
+Here we've plotted the renewal R(t) posteriors with `plotrtposteriors_renewal` and added a layer of the beta/gamma R(t) posteriors with `addrtposteriors_betagamma`. There is also the inverse of each of these functions if you wanted to reverse the order; i.e. `addrtposteriors_renewal` and `plotrtposteriors_betagamma`. These R(t) trajectories should be in agreement, however the renewal equation version can be a little unstable when prevalence is low (at the start and end of this example). You can choose whichever option meets your needs.
+
+### Loading R(t) tables
+You can load the R(t) in table form also, as shown below. The first value of the renewal equation trajectories will always be NaN due to the edge limitations of this method.
+
+```{r load_rt_trajectories}
+#Load renewal equation trajectories
+renewal_rts <- loadrtsminusburnin(outputfolder, burn_in)
+#Load beta/gamma trajectories
+betagamma_rts <- loadbetagammartminusburnin(outputfolder, burn_in)
+```
+
+Similarly to the infection trajectories, there are also functions for plotting R(t) posteriors (or adding layers) directly from the tables. A list of all available functions is on the GitHub wiki, we recommend going through it to see what's available.
+
+## MCMC Parameter Posteriors
+Another set of files you'll find in the EpiFusion are the `params_chainN.txt` files. These contain a row for each MCMC sample, and a column for each MCMC parameter. You can load them using the `loadparamsminusburnin` function. The last column of the table will always contain NAs, this is just an artefact of how EpiFusion saves the samples.
+
+```{r load_params}
+paramposteriors <- loadparamsminusburnin(outputfolder, burn_in)
+head(paramposteriors)
+```
+
+If you are interested in a specific parameter, for example 'psi', you can load the posterior samples for that specific parameter as a vector with `loadparambyname`.
+
+```{r load_param_by_name}
+psiposterior <- loadparambyname(outputfolder, burn_in, 'psi')
+plot(density(psiposterior), main = 'Psi posterior sample density')
+polygon(density(psiposterior), col = 'orange')
+```
+
+# Conclusion
+The above covers the basics of parsing EpiFusion output, and introduces some of the functions of EpiFusion_utilities.R. We stress that EpiFusion is still in its infancy, with more improvements happening every day, but we hope this tutorial will have peaked your interest! For more information we recommend checking out the EpiFusion wiki.
