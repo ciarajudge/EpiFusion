@@ -1,4 +1,5 @@
-# EpiFusion
+<img src="logoandname_transparentbackground.png">
+
 This is EpiFusion, a program for jointly inferring epidemic trajectories using phylogenetic and case incidence data via particle filtering. This repository contains the model source code, and other useful examples and templates. The science behind EpiFusion can be found in this preprint: https://www.biorxiv.org/content/10.1101/2023.12.18.572106v1.
 
 
