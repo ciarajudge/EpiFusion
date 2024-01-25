@@ -41,31 +41,16 @@ public class XMLParser {
         parseLoggers(loggersElement);
         parseParameters(parametersElement);
         parseAnalysis(analysisElement);
-        //parseData(dataElement);
-        //Storage.setPriors(priorElement);
+        parseData(dataElement);
+        Storage.setPriors(priorElement);
 
-        Storage.printLoggersInfo();
-        Storage.printParametersInfo();
-        Storage.printAnalysisInfo();
-        //Somewhere here I need to sort out the dates/days thing
-
-/*
-        //Find out if a start and end time has been specified
-        String startTime =analysisElement.getElementsByTagName("startTime").item(0).getTextContent();
-        if (!(startTime.equals("null"))) {
-            int firstDay = Integer.parseInt(startTime);
-            int firstStep = Math.round(firstDay/resampleEvery);
+        if (!(Storage.start.equals(null))) {
+            int firstStep = (int) Math.floor(Storage.start/Storage.resampleEvery);
             Storage.firstStep = firstStep;
         } else {
             Storage.firstStep = 0;
         }
-
-                String endTime = analysisElement.getElementsByTagName("endTime").item(0).getTextContent();
-        if (!(endTime.equals("null"))) {
-            int lastDay = Integer.parseInt(endTime);
-            Storage.T = lastDay;
-        }*/
-
+        //Do a dates days check here, check data generally
 
     }
 
@@ -160,11 +145,13 @@ public class XMLParser {
             }
         }
 
+        int masterStart = Storage.start == null ? Math.max(incidence.start, tree.start) : Math.max(incidence.start, Math.max(tree.start, Storage.start));
+        int masterEnd = Storage.end == null ? Math.max(incidence.end, tree.end) : Math.max(incidence.end, Math.max(tree.end, Storage.end));
 
+        Storage.start = masterStart;
+        Storage.end = masterEnd;
 
-        int epiLength = incidence.length;
-        double phyloLength = tree.age;
-        int T = Math.max(epiLength, (int) Math.round(phyloLength));
+        int T = masterEnd - masterStart;
         Storage.setT(T);
 
         double[] epiContrib = readDoubleArray(dataElement.getElementsByTagName("epicontrib").item(0).getTextContent());

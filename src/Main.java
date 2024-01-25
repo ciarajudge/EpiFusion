@@ -10,14 +10,13 @@ import java.nio.file.Files;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         System.out.println("EpiFusion");
 
         XMLParser.parseXMLInput(args[0]);
-/*
+
         MasterLoggers loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
         Storage.loggers = loggers;
         logXML(args[0]);
@@ -38,7 +37,6 @@ public class Main {
         }
         executor.shutdown();
 
-*/
 
     }
 
