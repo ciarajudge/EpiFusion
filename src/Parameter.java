@@ -40,6 +40,20 @@ public class Parameter {
         }
     }
 
+    public Parameter(String label) {
+        this.stepChange = false;
+        this.numChanges = 0;
+        this.numValues = 1;
+        this.numDistribs = 1;
+        this.subLabels = new ArrayList<>();
+        subLabels.add(label);
+        this.label = label;
+        this.values = new Prior[1];
+        values[0] = new Prior();
+        this.priors = new Prior[1];
+        priors[0] = values[0];
+    }
+
     private void getChangeTimes(Element changeTimeElement) {
         NodeList changeTimeNodes = changeTimeElement.getChildNodes();
         List<Element> changeNodes = new ArrayList<>();

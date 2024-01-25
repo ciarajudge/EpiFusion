@@ -44,6 +44,12 @@ public class Prior {
         }
     }
 
+    public Prior() {
+        double value = 1.0;
+        distrib = new FixedParameter(value);
+        isFixed = true;
+    }
+
     public double sample() {
         return distrib.sample();
     }

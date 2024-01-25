@@ -45,13 +45,80 @@ public class Priors {
             parameters[i] = new Parameter((Element) priorNodes.get(i));
             parameterDict.put(parameters[i].label, parameters[i]);
             int[] range = new int[parameters[i].numDistribs];
-            for(int j = 0; j < parameters[i].numDistribs; j++) {
+            for (int j = 0; j < parameters[i].numDistribs; j++) {
                 range[j] = numPriors;
                 labels.add(parameters[i].subLabels.get(j));
                 numPriors += 1;
             }
             parameterIndexes.put(parameters[i].label, range);
         }
+
+        //Priors checks
+        //Make sure there's gamma
+
+        if (!labels.contains("gamma")) {
+            System.out.println("ERROR: No gamma prior provided, this is necessary for the analysis!");
+            System.exit(0);
+        }
+
+        //Make sure there's psi if !epiOnly
+        if (!Storage.isEpiOnly()) {
+            if (!labels.contains("psi")) {
+                System.out.println("ERROR: No psi prior provided, but phylo is included in the analysis");
+                System.exit(0);
+            }
+        } else { //epi only so either create a psi that's fixed, or make psi fixed
+            if (!labels.contains("psi")) { //Make a psi
+                numParameters += 1;
+                numPriors += 1;
+                labels.add("psi");
+                Parameter[] temp = parameters;
+                parameters = new Parameter[numParameters];
+                for (int i=0; i<numParameters-1; i++) {
+                    parameters[i] = temp[i];
+                }
+                Parameter tempParam = new Parameter("psi");
+                parameters[parameters.length] = tempParam;
+                parameterDict.put("psi", tempParam);
+                parameterIndexes.put("psi", new int[] {numPriors});
+                //something to do with parameterindexes
+            } else { //Make sure psi is fixed
+                if (!parameterDict.get("psi").priors[0].isFixed()) {
+                    System.out.println("ERROR: An unfixed psi prior has been provided for an epi only analysis");
+                    System.exit(0);
+                }
+            }
+        }
+
+        //Make sure there's phi if !phyloOnly
+        if (!Storage.isPhyloOnly()) {
+            if (!labels.contains("phi")) {
+                System.out.println("ERROR: No phi prior provided, but epi is included in the analysis");
+                System.exit(0);
+            }
+        } else { //epi only so either create a psi that's fixed, or make psi fixed
+            if (!labels.contains("phi")) { //Make a psi
+                numParameters += 1;
+                numPriors += 1;
+                labels.add("phi");
+                Parameter[] temp = parameters;
+                parameters = new Parameter[numParameters];
+                for (int i=0; i<numParameters-1; i++) {
+                    parameters[i] = temp[i];
+                }
+                Parameter tempParam = new Parameter("phi");
+                parameters[parameters.length] = tempParam;
+                parameterDict.put("phi", tempParam);
+                parameterIndexes.put("phi", new int[] {numPriors});
+                //something to do with parameterindexes
+            } else { //Make sure psi is fixed
+                if (!parameterDict.get("phi").priors[0].isFixed()) {
+                    System.out.println("ERROR: An unfixed phi prior has been provided for an phylo only analysis");
+                    System.exit(0);
+                }
+            }
+        }
+
 
         getFixed();
         getDiscrete();
