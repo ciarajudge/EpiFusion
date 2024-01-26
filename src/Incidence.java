@@ -4,6 +4,8 @@ import java.util.Scanner;
 import java.io.FileNotFoundException;
 import org.w3c.dom.Element;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Arrays;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import java.time.LocalDate;
@@ -12,6 +14,9 @@ public class Incidence {
     int [] incidence;
     int [] times;
     int length;
+    int start = 0;
+    int end;
+    public HashMap<Integer, Integer> pairedData;
 
     public Incidence(Element incidenceElement) throws FileNotFoundException {
         boolean incidenceFileExists = incidenceElement.getElementsByTagName("incidenceFile").getLength() > 0;
@@ -38,8 +43,8 @@ public class Incidence {
                     String line = scanner.nextLine();
                     String[] columns = line.split(",");
                     if(columns.length >= 2) {
-                        timeList.add(columns[1]);
-                        valList.add(Integer.parseInt(columns[0]));
+                        timeList.add(columns[0]);
+                        valList.add(Integer.parseInt(columns[1]));
                     }
                 }
                 incidence = valList.stream().mapToInt(i->i).toArray();
@@ -50,7 +55,7 @@ public class Incidence {
                 }
             }
             length = incidence.length;
-
+            end = times[length-1];
         } else {
             //Read in the incidence values
             String incidenceString = incidenceElement.getElementsByTagName("incidenceVals").item(0).getTextContent();
@@ -69,14 +74,16 @@ public class Incidence {
                     case "default":
                         times = new int[length];
                         for (int i = 0; i < length; i++) {
-                            times[i] = (i + 1) * 7;
+                            times[i] = ((i + 1) * 7) - 1;
                         }
+                        break;
                     case "every":
                         int every = Integer.parseInt(incidenceTimes);
                         times = new int[length];
                         for (int i = 0; i < length; i++) {
-                            times[i] = (i + 1) * every;
+                            times[i] = ((i + 1) * every) - 1;
                         }
+                        break;
                     case "exact":
                         if (Objects.equals(Storage.dateAnchor,null)) {
                             String[] stringTimes = incidenceTimes.split(" ");
@@ -97,6 +104,7 @@ public class Incidence {
                                 times[i] = XMLParser.anchorDate(XMLParser.parseDate(stringTimes[i]));
                             }
                         }
+                        break;
 
                 }
             } else {
@@ -105,9 +113,12 @@ public class Incidence {
                 for (int i = 0; i < length; i++) {
                     times[i] = (i + 1) * 7;
                 }
-
             }
-
+            end = times[length-1];
+        }
+        pairedData = new HashMap<>();
+        for (int i = 0 ; i<times.length; i++) {
+            pairedData.put(times[i], incidence[i]);
         }
     }
 

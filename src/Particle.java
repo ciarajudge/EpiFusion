@@ -57,7 +57,7 @@ public class Particle {
         this.haveReachedTree = other.haveReachedTree;
         this.cumInfections = new ArrayList<>(other.cumInfections);
         this.todaysInfs = 0;
-        this.positiveTests = 0;
+        this.positiveTests = other.positiveTests;
     }
 
     public void printStatus() {

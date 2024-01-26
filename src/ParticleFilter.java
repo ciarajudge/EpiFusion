@@ -31,7 +31,7 @@ public class ParticleFilter {
         this.caseIncidence = Storage.incidence;
         this.T = Storage.T;
         this.resampleEvery = Storage.resampleEvery;
-        this.filterSteps = (int) Math.ceil(this.T / (double) Storage.resampleEvery);
+        this.filterSteps = (int) Math.ceil(Storage.end / (double) Storage.resampleEvery);
         this.candidateRates = new double[this.T][5];
         this.loggers = new Loggers(chainID);
         particles = new Particles(numParticles);
@@ -59,6 +59,7 @@ public class ParticleFilter {
         clearCache();
         //Convert parameters into rates
         candidateParameters = parameters;
+
         parametersToRates();
 
         if (Storage.firstStep > 0 ){
@@ -68,7 +69,6 @@ public class ParticleFilter {
 
         logLikelihoodCandidate = 0.0;
         for (int step=Storage.firstStep; step<filterSteps; step++) {
-
             if (!(Storage.isPhyloOnly() && tree.treeFinished(step))){
                 if (filterStep(step)) {
                     //All the particles are neg infinity so break the steps
@@ -94,26 +94,28 @@ public class ParticleFilter {
 
 
     public boolean filterStep(int step)  throws IOException {
-        increments = Math.min(resampleEvery, (T-(step*resampleEvery)));
-        //System.out.println("STEP "+step);
+        increments = Math.min(resampleEvery, (Storage.end-(step*resampleEvery)));
         int phiIndex = step*increments;
 
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
-            particles.getEpiLikelihoods(caseIncidence.incidence[step]);
+            //particles.getEpiLikelihoods(caseIncidence.incidence[step]);
             if (particles.checkEpiLikelihoods()) {return true;}
         }
 
         //If Phylo is involved at all
         else {
+
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
             if (particles.checkPhyloLikelihoods()) {return true;}
             //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
-                particles.getEpiLikelihoods(caseIncidence.incidence[step]);
-                if (particles.checkEpiLikelihoods()) {return true;}
-
+                //particles.printParticles();
+                //particles.getEpiLikelihoods(caseIncidence.incidence[step]);
+                if (particles.checkEpiLikelihoods()) {
+                    //System.out.println("Epi Likelihood Issue in step "+step);
+                    return true;}
             }
         }
 
@@ -224,7 +226,6 @@ public class ParticleFilter {
     private void parametersToRates() { //note for myself: rates are {beta, gamma, psi, phi}
         if (Storage.analysisType == 0) { // inverse logistic beta
             candidateRates = invLogisticRateParsing();
-
         } else if (Storage.analysisType == 1) {
             candidateRates = randomWalkRateParsing();
         } else if (Storage.analysisType == 2) {
@@ -369,4 +370,9 @@ public class ParticleFilter {
         return cRates;
     }
 
+    private void printRatesOverTime() {
+        for (int i = 0; i<candidateRates.length; i++) {
+            System.out.println("["+i+"]"+ Arrays.toString(candidateRates[i]));
+        }
+    }
 }

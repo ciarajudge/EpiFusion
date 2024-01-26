@@ -139,6 +139,7 @@ public class Particles {
             return allNegInf;
         }
     }
+
     public boolean checkPhyloLikelihoods() {
         boolean allNaN = true;
         for (Particle particle : particles) {
@@ -323,6 +324,7 @@ public class Particles {
                 //treeSegments[ind].printTreeSegment();
                 ind++;
             }
+
 
 
             for (Particle particle : particles) {

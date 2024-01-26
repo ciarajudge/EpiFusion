@@ -44,6 +44,7 @@ public class XMLParser {
         parseData(dataElement);
         Storage.setPriors(priorElement);
 
+
         if (!(Storage.start.equals(null))) {
             int firstStep = (int) Math.floor(Storage.start/Storage.resampleEvery);
             Storage.firstStep = firstStep;
@@ -145,13 +146,13 @@ public class XMLParser {
             }
         }
 
-        int masterStart = Storage.start == null ? Math.max(incidence.start, tree.start) : Math.max(incidence.start, Math.max(tree.start, Storage.start));
+        int masterStart = Storage.start == null ? Math.min(incidence.start, tree.start) : Math.min(incidence.start, Math.max(tree.start, Storage.start));
         int masterEnd = Storage.end == null ? Math.max(incidence.end, tree.end) : Math.max(incidence.end, Math.max(tree.end, Storage.end));
 
         Storage.start = masterStart;
-        Storage.end = masterEnd;
+        Storage.end = masterEnd + 1;
 
-        int T = masterEnd - masterStart;
+        int T = masterEnd - masterStart + 1;
         Storage.setT(T);
 
         double[] epiContrib = readDoubleArray(dataElement.getElementsByTagName("epicontrib").item(0).getTextContent());

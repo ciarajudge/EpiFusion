@@ -118,8 +118,6 @@ public class Priors {
                 }
             }
         }
-
-
         getFixed();
         getDiscrete();
     }

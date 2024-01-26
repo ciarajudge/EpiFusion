@@ -1,4 +1,5 @@
 import org.apache.commons.math3.distribution.PoissonDistribution;
+import java.util.Arrays;
 
 public class ProcessModel {
     //Steps functions
@@ -46,6 +47,7 @@ public class ProcessModel {
             int actualDay = t+i;
             //System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
             epiOnlyDay(particle, actualDay, rates[i]);
+            //here
         }
 
     }
@@ -61,6 +63,7 @@ public class ProcessModel {
         int state = particle.getState();
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
         particle.positiveTests = particle.positiveTests +  (int)  Math.round(state*rates[3]);
+
 
         if (Storage.analysisType == 1) { //If beta is RW, get new propensity[0]
             particle.nextBeta(dayRates[0]);
@@ -125,6 +128,12 @@ public class ProcessModel {
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
+
+        //If there's incidence for this day, calc epi likelihood
+        if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
+            particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+
+        }
     }
 
     public static void segmentedDay(Particle particle, TreeSegment tree, int t, double[] dayRates) {
@@ -142,6 +151,8 @@ public class ProcessModel {
 
         int prevState = particle.getState();
         particle.positiveTests = particle.positiveTests +  (int)  Math.round(prevState*rates[3]);
+
+        //System.out.println("Day "+t+" ["+particle.particleID+"] positivetests inc: "+particle.positiveTests);
 
         double prevLikelihood = particle.getPhyloLikelihood();
         double deltaT, nextT;
@@ -208,6 +219,11 @@ public class ProcessModel {
         Day tmpDay = new Day(t, particle.getState(), 0, 0);
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
+
+        if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
+            particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+
+        }
     }
 
     public static void epiOnlyDay(Particle particle, int t, double[] dayRates) {
@@ -250,6 +266,11 @@ public class ProcessModel {
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
+
+        if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
+            particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+
+        }
     }
 
     //Housekeeping functions
