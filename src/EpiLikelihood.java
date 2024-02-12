@@ -10,28 +10,31 @@ public class EpiLikelihood {
         return result;
     }
 
-
+/*
     public static double poissonLikelihood(int incidence, Particle particle) {
         //System.out.println("["+particle.particleID+"] Likelihood called");
         double p;
-        if (particle.positiveTests == 0 && incidence == 0) { //if state and incidence are 0, prob is 1
-            return 1.0;
-        } else if (particle.positiveTests <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
-            p = 0.1;
+        if (particle.positiveTests <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
+            p = 0.001;
         } else {
             p = particle.positiveTests;
         }
+
+
+
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         particle.positiveTests = 0;
         return Math.exp(logLikelihood);
     }
+    */
+    public static double poissonLikelihood(int incidence, Particle particle) {
 
-    /*public static double poissonLikelihood(int incidence, Particle particle) {
-        double p = particle.positiveTests == 0 ? 0.1 : particle.positiveTests;
+        double p = particle.positiveTests == 0 ? 0.001 : particle.positiveTests;
         PoissonDistribution poisson = new PoissonDistribution(p);
         double likelihood = poisson.probability(incidence);
+        particle.positiveTests = 0;
         return likelihood;
-    }*/
+    }
 
     public static double binomialLikelihood(int incidence, Particle particle) {
         double p = 0.1; // probability of success

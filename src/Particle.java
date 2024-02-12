@@ -88,8 +88,8 @@ public class Particle {
     public void setPhyloWeight(double newWeight) {
         this.phyloWeight = newWeight;
     }
-    public void setEpiWeight(double epiWeight){
-        this.epiWeight = epiWeight;
+    public void setEpiWeight(double weight){
+        this.epiWeight = weight;
     }
     public void setEpiLikelihood(double epiLikelihood){
         this.epiLikelihood = epiLikelihood;

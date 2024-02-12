@@ -51,6 +51,7 @@ public class ParticleFilter {
             System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
                     +"\nLog Likelihood: "+logLikelihoodCandidate+"\nParameters: "
                     +Arrays.toString(candidateParameters)+"\nBeta: "+currentSampledParticle.beta+"\nTrajectory"+Arrays.toString(particles.particles[0].traj.getTrajArray()));
+            //System.exit(0);
         }
         System.out.println("CHAIN "+chainID+"\nFinal parameter set: "+Arrays.toString(currentParameters)+"\nInitial LL: "+logLikelihoodCurrent);
     }
@@ -97,6 +98,7 @@ public class ParticleFilter {
         increments = Math.min(resampleEvery, (Storage.end-(step*resampleEvery)));
         int phiIndex = step*increments;
 
+
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
             particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
@@ -124,10 +126,12 @@ public class ParticleFilter {
             //System.out.println("epidemic size too large, quitting now");
             return true;
         }
+        //particles.printParticles();
 
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP(Storage.confidenceSplit[phiIndex]);
         logLikelihoodCandidate += logP;
+
         //resample
         particles.resampleParticles();
         checkParticles();

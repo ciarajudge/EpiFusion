@@ -145,10 +145,18 @@ public class XMLParser {
                 }
             }
         }
+        int masterStart, masterEnd;
 
-        int masterStart = Storage.start == null ? Math.min(incidence.start, tree.start) : Math.min(incidence.start, Math.max(tree.start, Storage.start));
-        int masterEnd = Storage.end == null ? Math.max(incidence.end, tree.end) : Math.max(incidence.end, Math.max(tree.end, Storage.end));
-
+        if (!(Storage.isPhyloOnly() | Storage.isEpiOnly())) {
+            masterStart = Storage.start == null ? Math.min(incidence.start, tree.start) :  Storage.start;
+            masterEnd = Storage.end == null ? Math.max(incidence.end, tree.end) : Storage.end;
+        } else if (Storage.isPhyloOnly()){
+            masterStart = Storage.start == null ? tree.start :   Storage.start;
+            masterEnd = Storage.end == null ?  tree.end :  Storage.end;
+        } else {
+            masterStart = Storage.start == null ? incidence.start :  Storage.start;
+            masterEnd = Storage.end == null ? incidence.end : Storage.end;
+        }
         Storage.start = masterStart;
         Storage.end = masterEnd + 1;
 

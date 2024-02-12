@@ -32,7 +32,6 @@ public class ProcessModel {
                     break;
                 } else {
                     //System.out.println("Day "+actualDay+" tree not active yet");
-                    //System.out.println("Sending particle "+particle.particleID+" for an epi only day");
                     epiOnlyDay(particle, actualDay, rates[i]);
                 }
             }
@@ -130,9 +129,11 @@ public class ProcessModel {
         particle.incrementCumInfections();
 
         //If there's incidence for this day, calc epi likelihood
-        if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-            particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+        if (!Storage.isPhyloOnly()) {
+            if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
+                particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
 
+            }
         }
     }
 
@@ -141,7 +142,6 @@ public class ProcessModel {
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
             return;
         }
-
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
 
         if (Storage.analysisType == 1) { //If beta is RW, get new propensity[0]
@@ -220,13 +220,15 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
 
-        if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-            particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
-
+        if (!Storage.isPhyloOnly()) {
+            if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
+                particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+            }
         }
     }
 
     public static void epiOnlyDay(Particle particle, int t, double[] dayRates) {
+
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         int state = particle.getState();
         if (state <= 0) {
@@ -267,9 +269,10 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
 
-        if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-            particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
-
+        if (!Storage.isPhyloOnly()) {
+            if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
+                particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+            }
         }
     }
 
