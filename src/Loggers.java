@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,8 +13,10 @@ public class Loggers {
     public FileWriter likelihoods;
     public FileWriter params;
     public FileWriter acceptance;
+    public FileWriter completed;
     public FileWriter betas;
     public FileWriter Rs;
+    public FileWriter positiveTests;
     private String filePath;
     private int chainID;
 
@@ -24,8 +27,10 @@ public class Loggers {
         startLikelihoods();
         startParams();
         startAcceptance();
+        startCompleted();
         startBetas();
         startRs();
+        startPositiveTests();
     }
 
 
@@ -47,6 +52,10 @@ public class Loggers {
         FileWriter acceptance = new FileWriter(filePath+"/acceptance_chain"+chainID+".txt");
         this.acceptance = acceptance;
     }
+    public void startCompleted() throws IOException {
+        FileWriter completed = new FileWriter(filePath+"/completed_chain"+chainID+".txt");
+        this.completed = completed;
+    }
     public void startBetas() throws IOException {
         FileWriter betas = new FileWriter(filePath+"/betas_chain"+chainID+".txt");
         this.betas = betas;
@@ -54,6 +63,10 @@ public class Loggers {
     public void startRs() throws IOException {
         FileWriter Rs = new FileWriter(filePath+"/rt_chain"+chainID+".txt");
         this.Rs = Rs;
+    }
+    public void startPositiveTests() throws IOException {
+        FileWriter positiveTests = new FileWriter(filePath+"/positivetests_chain"+chainID+".csv");
+        this.positiveTests = positiveTests;
     }
 
     public void trajectoryHeader() throws IOException {
@@ -117,6 +130,20 @@ public class Loggers {
         String toWrite = accept + "\n";
         this.acceptance.write(toWrite);
     }
+    public void logCompleted(Double complete) throws IOException {
+        String toWrite = complete + "\n";
+        this.completed.write(toWrite);
+    }
+
+    public void logPositiveTests(ArrayList<Integer> positives) throws IOException {
+        String toWrite = "";
+        for (Integer p : positives) {
+            toWrite = toWrite + p + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        positiveTests.write(toWrite);
+    }
 
     /*
     public void logAllTrajectories(Particles particles) throws IOException {
@@ -168,6 +195,8 @@ public class Loggers {
         acceptance.close();
         betas.close();
         Rs.close();
+        completed.close();
+        positiveTests.close();
     }
 
 }

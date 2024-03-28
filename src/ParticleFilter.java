@@ -86,7 +86,7 @@ public class ParticleFilter {
         }
 
         if (!Double.isInfinite(logLikelihoodCandidate)) {
-            Storage.completedRuns += 1;
+            Storage.completedRuns[chainID] += 1;
         }
 
         logPriorCandidate = calculatePFLogPrior();

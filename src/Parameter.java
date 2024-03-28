@@ -122,4 +122,15 @@ public class Parameter {
         return sampled;
     }
 
+    public void printParameter() {
+        System.out.println(label);
+        System.out.println(stepChange);
+        System.out.println(numChanges);
+        System.out.println(numValues);
+        System.out.println(numDistribs);
+        for (Prior p : priors) {
+            p.printPrior();
+        }
+    }
+
 }

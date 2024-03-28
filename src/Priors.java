@@ -10,6 +10,7 @@ public class Priors {
     public int numPriors;
     public List<Element> priorNodes;
     public ArrayList<String> labels;
+    public ArrayList<String> paramLabels;
     public HashMap<String, Parameter> parameterDict;
     public HashMap<String, int[]> parameterIndexes;
     public Boolean[] fixed;
@@ -41,9 +42,11 @@ public class Priors {
         parameterDict = new HashMap<>();
         parameterIndexes = new HashMap<String, int[]>();
         numPriors = 0;
+        paramLabels = new ArrayList<>();
         for (int i=0; i<numParameters; i++) {
             parameters[i] = new Parameter((Element) priorNodes.get(i));
             parameterDict.put(parameters[i].label, parameters[i]);
+            paramLabels.add(parameters[i].label);
             int[] range = new int[parameters[i].numDistribs];
             for (int j = 0; j < parameters[i].numDistribs; j++) {
                 range[j] = numPriors;
@@ -56,19 +59,19 @@ public class Priors {
         //Priors checks
         //Make sure there's gamma
 
-        if (!labels.contains("gamma")) {
+        if (!paramLabels.contains("gamma")) {
             System.out.println("ERROR: No gamma prior provided, this is necessary for the analysis!");
             System.exit(0);
         }
 
         //Make sure there's psi if !epiOnly
         if (!Storage.isEpiOnly()) {
-            if (!labels.contains("psi")) {
+            if (!paramLabels.contains("psi")) {
                 System.out.println("ERROR: No psi prior provided, but phylo is included in the analysis");
                 System.exit(0);
             }
         } else { //epi only so either create a psi that's fixed, or make psi fixed
-            if (!labels.contains("psi")) { //Make a psi
+            if (!paramLabels.contains("psi")) { //Make a psi
                 numParameters += 1;
                 numPriors += 1;
                 labels.add("psi");
@@ -92,12 +95,12 @@ public class Priors {
 
         //Make sure there's phi if !phyloOnly
         if (!Storage.isPhyloOnly()) {
-            if (!labels.contains("phi")) {
+            if (!paramLabels.contains("phi")) {
                 System.out.println("ERROR: No phi prior provided, but epi is included in the analysis");
                 System.exit(0);
             }
         } else { //epi only so either create a psi that's fixed, or make psi fixed
-            if (!labels.contains("phi")) { //Make a psi
+            if (!paramLabels.contains("phi")) { //Make a psi
                 numParameters += 1;
                 numPriors += 1;
                 labels.add("phi");
@@ -158,7 +161,11 @@ public class Priors {
         }
     }
 
-
+    public void printPriorInfo() {
+        for (Parameter p : parameters) {
+            p.printParameter();
+        }
+    }
 
 }
 

@@ -1,5 +1,7 @@
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
+
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,16 +17,20 @@ public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         System.out.println("EpiFusion");
 
+        long startTime = System.nanoTime();
+
         XMLParser.parseXMLInput(args[0]);
+        //Storage.tree.printTree();
+        //Storage.printPriors();
 
         MasterLoggers loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
         Storage.loggers = loggers;
         logXML(args[0]);
 
-        ExecutorService executor = Executors.newFixedThreadPool(Storage.numChains);
+        //ExecutorService executor = Executors.newFixedThreadPool(Storage.numChains);
         for (int i=0; i<Storage.numChains; i++) {
             int finalI = i;
-            executor.submit(() -> {
+            //executor.submit(() -> {
                 try {
                     ParticleFilter particleFilter = new ParticleFilter(finalI);
                     MCMC particleMCMC = new MCMC(particleFilter);
@@ -33,9 +39,15 @@ public class Main {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            });
+            //});
         }
-        executor.shutdown();
+        //executor.shutdown();
+
+        long endTime = System.nanoTime();
+        System.out.println("Time elapsed: "+(endTime-startTime));
+        FileWriter timings = new FileWriter(Storage.folder+"/timings.txt");
+        timings.write(Long.toString((endTime - startTime)));
+        timings.close();
 
 
     }

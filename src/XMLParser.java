@@ -29,6 +29,7 @@ public class XMLParser {
         Element loggersElement = (Element) root.getElementsByTagName("loggers").item(0);
         Element dataElement = (Element) root.getElementsByTagName("data").item(0);
         Element analysisElement = (Element) root.getElementsByTagName("analysis").item(0);
+        Element modelElement = (Element) root.getElementsByTagName("model").item(0);
         Element parametersElement = (Element) root.getElementsByTagName("parameters").item(0);
         Element priorElement = (Element) root.getElementsByTagName("priors").item(0);
 
@@ -41,6 +42,7 @@ public class XMLParser {
         parseLoggers(loggersElement);
         parseParameters(parametersElement);
         parseAnalysis(analysisElement);
+        parseModel(modelElement);
         parseData(dataElement);
         Storage.setPriors(priorElement);
 
@@ -82,7 +84,9 @@ public class XMLParser {
         Storage.setNumParticles(Integer.parseInt(parametersElement.getElementsByTagName("numParticles").item(0).getTextContent()));
         Storage.setNumMCMCsteps(Integer.parseInt(parametersElement.getElementsByTagName("numSteps").item(0).getTextContent()));
         Storage.numChains = Integer.parseInt(parametersElement.getElementsByTagName("numChains").item(0).getTextContent());
-        Storage.numThreads = Integer.parseInt(parametersElement.getElementsByTagName("numThreads").item(0).getTextContent()) / Storage.numChains;
+        Storage.completedRuns = new int[Storage.numChains];
+        Storage.numThreads = Integer.parseInt(parametersElement.getElementsByTagName("numThreads").item(0).getTextContent());
+        //Storage.numThreads = (Integer.parseInt(parametersElement.getElementsByTagName("numThreads").item(0).getTextContent()) - Storage.numChains )/ Storage.numChains;
         Storage.setStepCoefficient(Double.parseDouble(parametersElement.getElementsByTagName("stepCoefficient").item(0).getTextContent()));
         Storage.setResampling(Integer.parseInt(parametersElement.getElementsByTagName("resampleEvery").item(0).getTextContent()));
         Storage.segmentedDays = Boolean.parseBoolean(parametersElement.getElementsByTagName("segmentedDays").item(0).getTextContent());
@@ -112,6 +116,12 @@ public class XMLParser {
                 Storage.end = anchorDate(parseDate(analysisElement.getElementsByTagName("endTime").item(0).getTextContent()));
             }
         }
+    }
+
+    public static void parseModel(Element modelElement) {
+        String epiObservationModel = modelElement.getElementsByTagName("epiObservationModel").item(0).getTextContent();
+        Storage.epiObservationModel = epiObservationModel;
+
     }
 
     public static void parseData(Element dataElement) throws IOException{

@@ -20,6 +20,8 @@ public class Particle {
     ArrayList<Integer> cumInfections;
     public int todaysInfs;
     public int positiveTests;
+    public ArrayList<Integer> positiveTestsFit;
+    public int epiCumInfections; //Used for the epi likelihood, probably theres a more elegant way to do this someday
 
     public Particle(int pID) {
         particleID = pID;
@@ -39,6 +41,8 @@ public class Particle {
         this.cumInfections.add(0);
         this.todaysInfs = 0;
         this.positiveTests = 0;
+        this.positiveTestsFit = new ArrayList<>();
+        this.epiCumInfections = 0;
     }
 
     public Particle(Particle other, int pID) {
@@ -58,6 +62,8 @@ public class Particle {
         this.cumInfections = new ArrayList<>(other.cumInfections);
         this.todaysInfs = 0;
         this.positiveTests = other.positiveTests;
+        this.positiveTestsFit = new ArrayList<>(other.positiveTestsFit);
+        this.epiCumInfections = other.epiCumInfections;
     }
 
     public void printStatus() {
@@ -117,8 +123,12 @@ public class Particle {
     }
     public void incrementCumInfections() {
         cumInfections.add(todaysInfs);
+        epiCumInfections += todaysInfs;
         this.todaysInfs = 0;
     }
+
+
+
 
     //Getters
     public int getState() {

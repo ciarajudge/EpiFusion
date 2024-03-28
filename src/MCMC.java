@@ -54,6 +54,8 @@ public class MCMC {
                 System.out.println("MCMC STEP "+i);
                 System.out.println("Current params: "+ Arrays.toString(currentParameters));
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
+                System.out.println("Candidate likelihood: "+particleFilter.getLogLikelihoodCandidate());
+                //particleFilter.particles.particles[0].traj.printTrajectory();
                 //System.out.println("CurrentBeta: "+particleFilter.currentSampledParticle.beta);
                 particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
                 particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
@@ -62,9 +64,11 @@ public class MCMC {
                 }
                 particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
                 particleFilter.loggers.logParams(currentParameters);
+                particleFilter.loggers.logPositiveTests(particleFilter.particles.particles[0].positiveTestsFit);
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
-                //System.out.println("Completed runs: "+ Storage.completedRuns);
-                Storage.completedRuns = 0;
+                System.out.println("Completed runs: "+ Storage.completedRuns[particleFilter.chainID]);
+                particleFilter.loggers.logCompleted((double) Storage.completedRuns[particleFilter.chainID]/Storage.logEvery);
+                Storage.completedRuns[particleFilter.chainID] = 0;
                 acceptanceRate = 0;
             }
             // Clear the pf cache

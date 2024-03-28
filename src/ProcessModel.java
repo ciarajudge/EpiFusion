@@ -131,7 +131,7 @@ public class ProcessModel {
         //If there's incidence for this day, calc epi likelihood
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-                particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+                particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle, rates[3]));
 
             }
         }
@@ -222,7 +222,7 @@ public class ProcessModel {
 
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-                particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+                particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle, rates[3]));
             }
         }
     }
@@ -271,7 +271,7 @@ public class ProcessModel {
 
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-                particle.setEpiLikelihood(EpiLikelihood.poissonLikelihood(Storage.incidence.pairedData.get(t), particle));
+                particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle, rates[3]));
             }
         }
     }

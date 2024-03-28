@@ -39,6 +39,9 @@ public class Storage {
     public static Integer end = null;
     public static int analysisType = 0;
 
+    //Model things
+    public static String epiObservationModel;
+
     //Data things
     public static Tree tree = null;
     public static Incidence incidence = null;
@@ -52,7 +55,7 @@ public class Storage {
     //Extras
     public static boolean tooBig = false;
     public static boolean initialised = false;
-    public static int completedRuns = 0;
+    public static int[] completedRuns;
     public static int firstStep = 0;
 
     //Functions
@@ -140,6 +143,11 @@ public class Storage {
     public static void printDataInfo() {
         System.out.println("incidence values: "+Arrays.toString(incidence.incidence));
         System.out.println("incidence times: "+Arrays.toString(incidence.times));
+    }
+
+    public static void printPriors() {
+        priors.printPriorInfo();
+        System.out.println("\n");
     }
 
     public static void printStorage() {
