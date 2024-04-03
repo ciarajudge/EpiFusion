@@ -59,14 +59,17 @@ public class Loggers {
     public void startBetas() throws IOException {
         FileWriter betas = new FileWriter(filePath+"/betas_chain"+chainID+".txt");
         this.betas = betas;
+        betaHeader();
     }
     public void startRs() throws IOException {
         FileWriter Rs = new FileWriter(filePath+"/rt_chain"+chainID+".txt");
         this.Rs = Rs;
+        rtHeader();
     }
     public void startPositiveTests() throws IOException {
         FileWriter positiveTests = new FileWriter(filePath+"/positivetests_chain"+chainID+".csv");
         this.positiveTests = positiveTests;
+        positiveTestHeader();
     }
 
     public void trajectoryHeader() throws IOException {
@@ -77,6 +80,33 @@ public class Loggers {
         toWrite = toWrite + "\n";
         //System.out.println(toWrite);
         trajectories.write(toWrite);
+    }
+    public void rtHeader() throws IOException {
+        String toWrite = "";
+        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
+            toWrite = toWrite + "T_"+ i + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        Rs.write(toWrite);
+    }
+    public void betaHeader() throws IOException {
+        String toWrite = "";
+        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
+            toWrite = toWrite + "T_"+ i + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        betas.write(toWrite);
+    }
+    public void positiveTestHeader() throws IOException {
+        String toWrite = "";
+        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
+            toWrite = toWrite + "T_"+ i + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        positiveTests.write(toWrite);
     }
     public void paramsHeader() throws IOException {
         String toWrite = "";
