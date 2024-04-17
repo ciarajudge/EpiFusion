@@ -30,7 +30,9 @@ public class Loggers {
         startCompleted();
         startBetas();
         startRs();
-        startPositiveTests();
+        if (!Storage.isPhyloOnly()) {
+            startPositiveTests();
+        }
     }
 
 
@@ -101,7 +103,7 @@ public class Loggers {
     }
     public void positiveTestHeader() throws IOException {
         String toWrite = "";
-        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
+        for (int i = 0; i < Storage.incidence.times.length; i++) {
             toWrite = toWrite + "T_"+ i + ",";
         }
         toWrite = toWrite + "\n";
@@ -156,7 +158,7 @@ public class Loggers {
         toWrite = toWrite + "\n";
         this.params.write(toWrite);
     }
-    public void logAcceptance(int accept) throws IOException {
+    public void logAcceptance(double accept) throws IOException {
         String toWrite = accept + "\n";
         this.acceptance.write(toWrite);
     }
@@ -218,15 +220,33 @@ public class Loggers {
         file.close();
     }
 
+    public void log(ParticleFilter particleFilter, int accepted) throws IOException {
+        logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCandidate());
+        logTrajectory(particleFilter.currentSampledParticle.traj);
+        if (Storage.analysisType != 0 && Storage.analysisType != 3) {
+            logBeta(particleFilter.currentSampledParticle.beta);
+        }
+        logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
+        logParams(particleFilter.getCurrentParameters());
+        logCompleted((double) Storage.completedRuns[particleFilter.chainID]/Storage.logEvery);
+        logAcceptance((double) accepted/Storage.logEvery);
+        if (!Storage.isPhyloOnly()) {
+            logPositiveTests(particleFilter.currentSampledParticle.positiveTestsFit);
+        }
+    }
+
     public void terminateLoggers() throws IOException {
-        trajectories.close();
+        //trajectories.close();
         likelihoods.close();
         params.close();
         acceptance.close();
         betas.close();
         Rs.close();
         completed.close();
-        positiveTests.close();
+        if (!Storage.isPhyloOnly()) {
+            positiveTests.close();
+        }
+
     }
 
 }

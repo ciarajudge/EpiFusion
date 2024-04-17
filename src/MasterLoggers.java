@@ -40,7 +40,7 @@ public class MasterLoggers {
             folderName = dataCode+"_Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         }
 
-        String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusion_PublicationRepo/Results/"+folderName;
+        String filePath = "/Users/ciarajudge/Desktop/PhD/EpiFusion_PublicationRepo/Scenario_Testing/Results2/"+folderName;
         this.filePath = filePath;
         Storage.folder = filePath;
         folder = new File(filePath);

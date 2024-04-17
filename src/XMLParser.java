@@ -162,7 +162,7 @@ public class XMLParser {
             masterEnd = Storage.end == null ? Math.max(incidence.end, tree.end) : Storage.end;
         } else if (Storage.isPhyloOnly()){
             masterStart = Storage.start == null ? tree.start :   Storage.start;
-            masterEnd = Storage.end == null ?  tree.end :  Storage.end;
+            masterEnd = Storage.end == null ?  tree.end - 1 :  Storage.end;
         } else {
             masterStart = Storage.start == null ? incidence.start :  Storage.start;
             masterEnd = Storage.end == null ? incidence.end : Storage.end;
