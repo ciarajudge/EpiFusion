@@ -9,6 +9,8 @@ public class Tree {
     // Tree class representing a Newick format tree
     public final Node root; // root node of the tree
     public double age;
+    public int start = 0;
+    public int end;
 
     public Tree(String fileName) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -17,6 +19,7 @@ public class Tree {
         this.age = 0.0;
         // Create a Tree object from the Newick format string
         this.root = parseNewickString(newickString);
+        this.end = (int) Math.ceil(age);
     }
 
 
@@ -24,6 +27,7 @@ public class Tree {
         this.age = 0.0;
         // Create a Tree object from the Newick format string
         this.root = parseNewickString(treeString);
+        this.end = (int) Math.ceil(age);
     }
 
 

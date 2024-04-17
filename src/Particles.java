@@ -1,6 +1,7 @@
 import java.util.concurrent.*;
 import java.util.Random;
 import java.io.IOException;
+import java.util.Arrays;
 
 
 public class Particles {
@@ -139,6 +140,7 @@ public class Particles {
             return allNegInf;
         }
     }
+
     public boolean checkPhyloLikelihoods() {
         boolean allNaN = true;
         for (Particle particle : particles) {
@@ -245,6 +247,9 @@ public class Particles {
 
         int iter = 0;
         for (Particle particle : particles) {
+            if (Double.isInfinite(Math.log(particle.epiLikelihood))) {
+                particle.epiWeight = Double.NEGATIVE_INFINITY;
+            }
             maxLogWeight = Math.max(particle.epiWeight, maxLogWeight);
             logParticleWeights[iter] = particle.epiWeight; //log form
             iter++;
@@ -320,9 +325,9 @@ public class Particles {
             for (int i=t; i<t+increments; i++) {
                 double end = (double) i + 1;
                 treeSegments[ind] = new TreeSegment(tree, i, end);
-                //treeSegments[ind].printTreeSegment();
                 ind++;
             }
+
 
 
             for (Particle particle : particles) {

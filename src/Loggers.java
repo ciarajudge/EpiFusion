@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,8 +13,10 @@ public class Loggers {
     public FileWriter likelihoods;
     public FileWriter params;
     public FileWriter acceptance;
+    public FileWriter completed;
     public FileWriter betas;
     public FileWriter Rs;
+    public FileWriter positiveTests;
     private String filePath;
     private int chainID;
 
@@ -24,8 +27,12 @@ public class Loggers {
         startLikelihoods();
         startParams();
         startAcceptance();
+        startCompleted();
         startBetas();
         startRs();
+        if (!Storage.isPhyloOnly()) {
+            startPositiveTests();
+        }
     }
 
 
@@ -47,13 +54,24 @@ public class Loggers {
         FileWriter acceptance = new FileWriter(filePath+"/acceptance_chain"+chainID+".txt");
         this.acceptance = acceptance;
     }
+    public void startCompleted() throws IOException {
+        FileWriter completed = new FileWriter(filePath+"/completed_chain"+chainID+".txt");
+        this.completed = completed;
+    }
     public void startBetas() throws IOException {
         FileWriter betas = new FileWriter(filePath+"/betas_chain"+chainID+".txt");
         this.betas = betas;
+        betaHeader();
     }
     public void startRs() throws IOException {
         FileWriter Rs = new FileWriter(filePath+"/rt_chain"+chainID+".txt");
         this.Rs = Rs;
+        rtHeader();
+    }
+    public void startPositiveTests() throws IOException {
+        FileWriter positiveTests = new FileWriter(filePath+"/positivetests_chain"+chainID+".csv");
+        this.positiveTests = positiveTests;
+        positiveTestHeader();
     }
 
     public void trajectoryHeader() throws IOException {
@@ -64,6 +82,33 @@ public class Loggers {
         toWrite = toWrite + "\n";
         //System.out.println(toWrite);
         trajectories.write(toWrite);
+    }
+    public void rtHeader() throws IOException {
+        String toWrite = "";
+        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
+            toWrite = toWrite + "T_"+ i + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        Rs.write(toWrite);
+    }
+    public void betaHeader() throws IOException {
+        String toWrite = "";
+        for (int i = (Storage.resampleEvery*Storage.firstStep); i < Storage.T+1; i++) {
+            toWrite = toWrite + "T_"+ i + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        betas.write(toWrite);
+    }
+    public void positiveTestHeader() throws IOException {
+        String toWrite = "";
+        for (int i = 0; i < Storage.incidence.times.length; i++) {
+            toWrite = toWrite + "T_"+ i + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        positiveTests.write(toWrite);
     }
     public void paramsHeader() throws IOException {
         String toWrite = "";
@@ -80,7 +125,7 @@ public class Loggers {
             toWrite = toWrite + d.I + ",";
         }
         toWrite = toWrite + "\n";
-        System.out.println(toWrite);
+        //System.out.println(toWrite);
         trajectories.write(toWrite);
     }
     public void logBeta(ArrayList<Double> betaArray) throws IOException {
@@ -98,7 +143,7 @@ public class Loggers {
             toWrite = toWrite + aDouble + ",";
         }
         toWrite = toWrite + "\n";
-        System.out.println(toWrite);
+        //System.out.println(toWrite);
         Rs.write(toWrite);
     }
     public void logLogLikelihoodAccepted(Double likelihood) throws IOException {
@@ -113,9 +158,23 @@ public class Loggers {
         toWrite = toWrite + "\n";
         this.params.write(toWrite);
     }
-    public void logAcceptance(int accept) throws IOException {
+    public void logAcceptance(double accept) throws IOException {
         String toWrite = accept + "\n";
         this.acceptance.write(toWrite);
+    }
+    public void logCompleted(Double complete) throws IOException {
+        String toWrite = complete + "\n";
+        this.completed.write(toWrite);
+    }
+
+    public void logPositiveTests(ArrayList<Integer> positives) throws IOException {
+        String toWrite = "";
+        for (Integer p : positives) {
+            toWrite = toWrite + p + ",";
+        }
+        toWrite = toWrite + "\n";
+        //System.out.println(toWrite);
+        positiveTests.write(toWrite);
     }
 
     /*
@@ -161,13 +220,33 @@ public class Loggers {
         file.close();
     }
 
+    public void log(ParticleFilter particleFilter, int accepted) throws IOException {
+        logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCandidate());
+        logTrajectory(particleFilter.currentSampledParticle.traj);
+        if (Storage.analysisType != 0 && Storage.analysisType != 3) {
+            logBeta(particleFilter.currentSampledParticle.beta);
+        }
+        logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
+        logParams(particleFilter.getCurrentParameters());
+        logCompleted((double) Storage.completedRuns[particleFilter.chainID]/Storage.logEvery);
+        logAcceptance((double) accepted/Storage.logEvery);
+        if (!Storage.isPhyloOnly()) {
+            logPositiveTests(particleFilter.currentSampledParticle.positiveTestsFit);
+        }
+    }
+
     public void terminateLoggers() throws IOException {
-        trajectories.close();
+        //trajectories.close();
         likelihoods.close();
         params.close();
         acceptance.close();
         betas.close();
         Rs.close();
+        completed.close();
+        if (!Storage.isPhyloOnly()) {
+            positiveTests.close();
+        }
+
     }
 
 }

@@ -12,14 +12,14 @@ public class MCMC {
     public MCMC(ParticleFilter particleFilter) throws IOException {
         this.particleFilter = particleFilter;
         this.random = new Random();
-        particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
-        particleFilter.loggers.logParams(particleFilter.getCurrentParameters());
+        //particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
+        //particleFilter.loggers.logParams(particleFilter.getCurrentParameters());
         particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
         //loggers.saveParticleLikelihoodBreakdown(particleFilter.currentSampledParticle.likelihoodMatrix, -1, particleFilter.getLogLikelihoodCurrent());
         if (Storage.analysisType == 1) {
-            particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
+            //particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
         }
-        particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
+        //particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
         Storage.initialised = true;
     }
 
@@ -41,10 +41,7 @@ public class MCMC {
             if (this.random.nextDouble() < acceptanceProbability) {
                 currentParameters = candidateParameters;
                 this.particleFilter.resetCurrentParameters();
-                particleFilter.loggers.logAcceptance(0);
                 acceptanceRate += 1;
-            } else {
-                particleFilter.loggers.logAcceptance(1);
             }
 
             //If it's a log, print to terminal
@@ -54,16 +51,11 @@ public class MCMC {
                 System.out.println("MCMC STEP "+i);
                 System.out.println("Current params: "+ Arrays.toString(currentParameters));
                 System.out.println("Current likelihood: "+ particleFilter.getLogLikelihoodCurrent());
-                System.out.println("CurrentBeta: "+particleFilter.currentSampledParticle.beta);
-                particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
-                particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
-                if (Storage.analysisType != 0 && Storage.analysisType != 3) {
-                    particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
-                }
-                particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
-                particleFilter.loggers.logParams(currentParameters);
+                System.out.println("Candidate likelihood: "+particleFilter.getLogLikelihoodCandidate());
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
-                Storage.completedRuns = 0;
+                System.out.println("Completed runs: "+ Storage.completedRuns[particleFilter.chainID]);
+                particleFilter.loggers.log(particleFilter, acceptanceRate);
+                Storage.completedRuns[particleFilter.chainID] = 0;
                 acceptanceRate = 0;
             }
             // Clear the pf cache

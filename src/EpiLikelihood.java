@@ -1,5 +1,21 @@
+import org.apache.commons.math3.distribution.PoissonDistribution;
+import org.apache.commons.math3.distribution.PascalDistribution;
 
 public class EpiLikelihood {
+
+    public static double epiLikelihood(int incidence, Particle particle, double phi) {
+        double likelihood;
+        if (Storage.epiObservationModel.equals("poisson")) {
+            likelihood = poissonLikelihood(incidence, particle);
+        } else if (Storage.epiObservationModel.equals("negbinom")) {
+            likelihood = negbinomLikelihood(incidence, particle, phi);
+        } else {
+            likelihood = 0;
+            System.out.println("ERROR: Unrecognised Epi observation model! Check the 'model' block of your XML file for any mispellings or errors!");
+            System.exit(0);
+        }
+        return likelihood;
+    }
 
     private static double logFactorial(int n) {
         double result = 0;
@@ -11,47 +27,43 @@ public class EpiLikelihood {
 
 
     public static double poissonLikelihood(int incidence, Particle particle) {
-        if (particle.positiveTests == 0 && incidence == 0) { //if state and incidence are 0, prob is 1
-            return 1.0;
-        } else if (particle.positiveTests <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
-            return 0.0;
+        //System.out.println("["+particle.particleID+"] Likelihood called");
+        double p;
+        if (particle.positiveTests <= 0) { //if state is <=0 (and incidence is a positive number), prob is 0
+            p = 0.001;
+        } else {
+            p = particle.positiveTests;
         }
-        double p = particle.positiveTests;
+
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
+        particle.positiveTestsFit.add(particle.positiveTests);
+        particle.positiveTests = 0;
         return Math.exp(logLikelihood);
     }
+    /*
+     public static double poissonLikelihood(int incidence, Particle particle) {
 
-    public static double binomialLikelihood(int incidence, Particle particle) {
-        double p = 0.1; // probability of success
-        double n = particle.getState()*p; // number of trials
+         double p = particle.positiveTests == 0 ? 0.001 : particle.positiveTests;
+         PoissonDistribution poisson = new PoissonDistribution(p);
+         double likelihood = poisson.probability(incidence);
+         particle.positiveTests = 0;
+         return likelihood;
+     }
+  */
+    public static double negbinomLikelihood(int incidence, Particle particle, double phi) {
+        int successes = incidence;
+        double probSuccess = phi;
+        int failures = particle.epiCumInfections-successes;
+        particle.epiCumInfections = 0;
 
-        // calculate the probability of the measurement given the state
-        double probability = binomialProbability(incidence, n, p, particle.getState());
+        // make distribution
+        PascalDistribution pascalDistribution = new PascalDistribution(successes, probSuccess);
+        double probability = pascalDistribution.probability(failures);
 
         // return the likelihood
         return probability;
     }
 
-    public static double binomialProbability(int k, double n, double p, int state) {
-        double q = 1 - p; // probability of failure
-        double binomialCoefficient = binomialCoefficient(n, k);
-        double probability = binomialCoefficient * Math.pow(p, k) * Math.pow(q, n - k);
 
-        if (state == 0) {
-            probability = 1 - probability;
-        }
-
-        return probability;
-    }
-
-    public static double binomialCoefficient(double n, int k) {
-        double result = 1;
-
-        for (int i = 1; i <= k; i++) {
-            result *= (double) (n - k + i) / i;
-        }
-
-        return result;
-    }
 
 }

@@ -44,6 +44,12 @@ public class Prior {
         }
     }
 
+    public Prior() {
+        double value = 1.0;
+        distrib = new FixedParameter(value);
+        isFixed = true;
+    }
+
     public double sample() {
         return distrib.sample();
     }
@@ -55,4 +61,10 @@ public class Prior {
     public boolean isFixed() {return isFixed;}
 
     public boolean isDiscrete() {return isDiscrete;}
+
+    public void printPrior() {
+        System.out.println(label);
+        System.out.println(isFixed);
+        System.out.println(distrib.getClass());
+    }
 }
