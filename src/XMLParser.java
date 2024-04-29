@@ -121,6 +121,10 @@ public class XMLParser {
     public static void parseModel(Element modelElement) {
         String epiObservationModel = modelElement.getElementsByTagName("epiObservationModel").item(0).getTextContent();
         Storage.epiObservationModel = epiObservationModel;
+        if (Storage.epiObservationModel.equals("negbinom")) {
+            Storage.overdispersion = Double.parseDouble(modelElement.getElementsByTagName("overdispersion").item(0).getTextContent());
+        }
+
 
     }
 

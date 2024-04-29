@@ -23,6 +23,7 @@ public class Main {
         //Storage.tree.printTree();
         //Storage.printPriors();
 
+
         MasterLoggers loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
         Storage.loggers = loggers;
         logXML(args[0]);

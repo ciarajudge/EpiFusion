@@ -41,6 +41,7 @@ public class Storage {
 
     //Model things
     public static String epiObservationModel;
+    public static Double overdispersion = 10.0;
 
     //Data things
     public static Tree tree = null;

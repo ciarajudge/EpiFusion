@@ -110,20 +110,22 @@ public class ParticleFilter {
         else {
 
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
-            if (particles.checkPhyloLikelihoods()) {return true;}
+            if (particles.checkPhyloLikelihoods()) {
+                System.out.println("Quitting due to neginf particles; step "+step);
+                return true;}
             //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
                 //particles.printParticles();
                 //particles.getEpiLikelihoods(caseIncidence.incidence[step]);
                 if (particles.checkEpiLikelihoods()) {
-                    //System.out.println("Epi Likelihood Issue in step "+step);
+                    System.out.println("Epi Likelihood Issue in step "+step);
                     return true;}
             }
         }
 
         particles.checkStates(Storage.maxEpidemicSize);
         if (Storage.tooBig) {
-            //System.out.println("epidemic size too large, quitting now");
+            System.out.println("epidemic size too large, quitting now");
             return true;
         }
         //particles.printParticles();
