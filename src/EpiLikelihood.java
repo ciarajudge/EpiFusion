@@ -52,6 +52,9 @@ public class EpiLikelihood {
   */
     public static double negbinomLikelihood(int incidence, Particle particle, double overdispersion) {
         double x = particle.positiveTests;
+        if (x == 0) {
+            x = 0.0001;
+        }
         double dat = incidence;
 
         double probability = (dat*Math.log(x)) - ((dat + overdispersion)*Math.log(overdispersion+x));

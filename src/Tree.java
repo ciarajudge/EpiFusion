@@ -11,6 +11,7 @@ public class Tree {
     public double age;
     public int start = 0;
     public int end;
+    public TreeSegment[] segmentedTree;
 
     public Tree(String fileName) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -28,6 +29,7 @@ public class Tree {
         // Create a Tree object from the Newick format string
         this.root = parseNewickString(treeString);
         this.end = (int) Math.ceil(age);
+
     }
 
 

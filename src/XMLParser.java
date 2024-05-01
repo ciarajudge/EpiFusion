@@ -182,6 +182,16 @@ public class XMLParser {
         double[] weightsOverTime = getArrayAcrossTime(epiContrib, weightChangeTimes);
         Storage.confidenceSplit = weightsOverTime;
 
+
+        if (!Storage.isEpiOnly()) {
+            Storage.tree.segmentedTree = new TreeSegment[Storage.end];
+            for (int i=0; i<Storage.end; i++) {
+                double t = (double) i + 1;
+                Storage.tree.segmentedTree[i] = new TreeSegment(Storage.tree, i, t);
+                //segmentedTree[i].printTreeSegment();
+            }
+        }
+
     }
 
     public static void logXML(String xml) throws IOException {

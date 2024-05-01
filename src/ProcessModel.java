@@ -1,5 +1,8 @@
 import org.apache.commons.math3.distribution.PoissonDistribution;
 import java.util.Arrays;
+import cern.jet.random.Poisson;
+
+import static cern.jet.random.Poisson.staticNextInt;
 
 public class ProcessModel {
     //Steps functions
@@ -17,7 +20,6 @@ public class ProcessModel {
             } else if (particle.haveReachedTree && (treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) {
                 particle.treeOn = false;
             }
-
             if (particle.treeOn) { //If the tree is on we can just do the day no questions asked
                 if (!Storage.segmentedDays) {
                     day(particle, treeSegments[i], actualDay, rates[i]);
@@ -35,7 +37,6 @@ public class ProcessModel {
                     epiOnlyDay(particle, actualDay, rates[i]);
                 }
             }
-
         }
     }
 
@@ -58,11 +59,11 @@ public class ProcessModel {
             return;
         }
 
+
         //add positive tests to Epi
         int state = particle.getState();
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
         particle.positiveTests = particle.positiveTests +  (int)  Math.round(state*rates[3]);
-
 
         if (Storage.analysisType == 1) { //If beta is RW, get new propensity[0]
             particle.nextBeta(dayRates[0]);
@@ -112,6 +113,7 @@ public class ProcessModel {
         particle.setState(state);
         particle.todaysInfs = particle.todaysInfs + births;
 
+
         if (tree.lineages > 0) {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities, t);
@@ -132,7 +134,6 @@ public class ProcessModel {
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
                 particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle));
-
             }
         }
     }
@@ -284,13 +285,22 @@ public class ProcessModel {
         }
         return newPropensities;
     }
-
+/*
     public static int poissonSampler(double rate) {
         if (rate == 0.0) {
             return 0;
         }
         PoissonDistribution poissonDistribution = new PoissonDistribution(rate);
         return poissonDistribution.sample();
+    }
+*/
+    public static int poissonSampler(double rate) {
+        if (rate <= 0.0) {
+            return 0;
+        }
+        int res = staticNextInt(rate);
+        //System.out.println(rate+", "+res);
+        return res;
     }
 
 }

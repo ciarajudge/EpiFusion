@@ -16,12 +16,20 @@ public class MasterLoggers {
     private String filePath;
 
     public MasterLoggers(String filePath) throws IOException {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
         folder = new File(filePath);
         if (!folder.exists()){
             folder.mkdir();
+            Storage.folder = filePath;
+            this.filePath = filePath;
+        } else {
+            String filePathSpare = filePath+"_"+currentDateTime.format(formatter);
+            folder = new File(filePathSpare);
+            folder.mkdir();
+            Storage.folder = filePathSpare;
+            this.filePath = filePathSpare;
         }
-        Storage.folder = filePath;
-        this.filePath = filePath;
     }
 
     public MasterLoggers() throws IOException {
@@ -40,7 +48,7 @@ public class MasterLoggers {
             folderName = dataCode+"_Combined_"+Storage.numParticles+"Particles_"+Storage.numMCMCsteps+"Steps_AnalysisType"+Storage.analysisType+"_"+currentDateTime.format(formatter);
         }
 
-        String filePath = "/Users/lsh2101233/Desktop/PhD/EpiFusion_PublicationRepo/Scenario_Testing/Results2/"+folderName;
+        String filePath = "/Users/lsh2101233/Desktop/PhD/EpiFusionResults/"+folderName;
         this.filePath = filePath;
         Storage.folder = filePath;
         folder = new File(filePath);

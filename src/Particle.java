@@ -74,7 +74,7 @@ public class Particle {
         System.out.println("Particle "+ particleID);
         System.out.println("State: "+ state);
         traj.printTrajectory();
-        System.out.println("Phylo Likelihood:"+ phyloLikelihood);
+        System.out.println("Phylo Likelihood:" + phyloLikelihood);
         System.out.println("Epi Likelihood:"+ Math.log(epiLikelihood));
         //System.out.println();
     }

@@ -20,7 +20,6 @@ public class Main {
         long startTime = System.nanoTime();
 
         XMLParser.parseXMLInput(args[0]);
-        //Storage.tree.printTree();
         //Storage.printPriors();
 
 
