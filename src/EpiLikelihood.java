@@ -3,12 +3,12 @@ import org.apache.commons.math3.distribution.PascalDistribution;
 
 public class EpiLikelihood {
 
-    public static double epiLikelihood(int incidence, Particle particle, double phi) {
+    public static double epiLikelihood(int incidence, Particle particle) {
         double likelihood;
         if (Storage.epiObservationModel.equals("poisson")) {
             likelihood = poissonLikelihood(incidence, particle);
         } else if (Storage.epiObservationModel.equals("negbinom")) {
-            likelihood = negbinomLikelihood(incidence, particle, phi);
+            likelihood = negbinomLikelihood(incidence, particle, Storage.overdispersion);
         } else {
             likelihood = 0;
             System.out.println("ERROR: Unrecognised Epi observation model! Check the 'model' block of your XML file for any mispellings or errors!");
@@ -50,18 +50,17 @@ public class EpiLikelihood {
          return likelihood;
      }
   */
-    public static double negbinomLikelihood(int incidence, Particle particle, double phi) {
-        int successes = incidence;
-        double probSuccess = phi;
-        int failures = particle.epiCumInfections-successes;
-        particle.epiCumInfections = 0;
+    public static double negbinomLikelihood(int incidence, Particle particle, double overdispersion) {
+        double x = particle.positiveTests;
+        if (x == 0) {
+            x = 0.0001;
+        }
+        double dat = incidence;
 
-        // make distribution
-        PascalDistribution pascalDistribution = new PascalDistribution(successes, probSuccess);
-        double probability = pascalDistribution.probability(failures);
+        double probability = (dat*Math.log(x)) - ((dat + overdispersion)*Math.log(overdispersion+x));
 
         // return the likelihood
-        return probability;
+        return Math.exp(probability);
     }
 
 

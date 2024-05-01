@@ -55,6 +55,7 @@ public class MCMC {
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
                 System.out.println("Completed runs: "+ Storage.completedRuns[particleFilter.chainID]);
                 particleFilter.loggers.log(particleFilter, acceptanceRate);
+                particleFilter.particles.particles[0].traj.printTrajectory();
                 Storage.completedRuns[particleFilter.chainID] = 0;
                 acceptanceRate = 0;
             }

@@ -323,8 +323,7 @@ public class Particles {
 
             int ind = 0;
             for (int i=t; i<t+increments; i++) {
-                double end = (double) i + 1;
-                treeSegments[ind] = new TreeSegment(tree, i, end);
+                treeSegments[ind] = Storage.tree.segmentedTree[i];
                 ind++;
             }
 
@@ -375,26 +374,30 @@ public class Particles {
         for (Particle particle : particles) {
             totalWeight += particle.weight;
         }
+        //System.out.println(totalWeight);
+
 
         // Generate a random number between 0 and total weight
         Random random = new Random();
         for (int i = 0; i < N; i++) {
-            double randomWeight = random.nextDouble() * totalWeight;
-            double runningSum = 0.0;
+            while (resampledParticles[i] == null) {
+                double randomWeight = random.nextDouble() * totalWeight;
+                double runningSum = 0.0;
 
-            // Iterate through particles and select based on weights
-            for (Particle particle : particles) {
-                runningSum += particle.weight;
-                if (particle.weight == 0.0) {
-                    //System.out.println("skipping particle with 0 weight");
-                    continue;
-                }
-                if (runningSum >= randomWeight) {
-                    resampledParticleIDs[i] = particle.particleID;
-                    resampledParticleStates[i] = particle.getState();
-                    resampledParticleLikelihoods[i] = particle.getPhyloLikelihood();
-                    resampledParticles[i] = new Particle(particle, i);
-                    break;
+                // Iterate through particles and select based on weights
+                for (Particle particle : particles) {
+                    runningSum += particle.weight;
+                    if (particle.weight == 0.0) {
+                        //System.out.println("skipping particle with 0 weight");
+                        continue;
+                    }
+                    if (runningSum >= randomWeight) {
+                        resampledParticleIDs[i] = particle.particleID;
+                        resampledParticleStates[i] = particle.getState();
+                        resampledParticleLikelihoods[i] = particle.getPhyloLikelihood();
+                        resampledParticles[i] = new Particle(particle, i);
+                        break;
+                    }
                 }
             }
         }

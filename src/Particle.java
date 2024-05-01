@@ -29,8 +29,10 @@ public class Particle {
         state = 1;
         setState(state);
         this.traj = new Trajectory(new Day(0, 1, 0,0));
-        this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
+        //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
+        this.epiLikelihood = 1.0;
+        //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
+        this.epiWeight = 1.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
@@ -48,10 +50,12 @@ public class Particle {
     public Particle(Particle other, int pID) {
         this.particleID = pID;
         this.state = other.state;
-        this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
+        //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
+        this.epiLikelihood = 1.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.weight = 0.0;
-        this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
+        //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
+        this.epiWeight = 1.0;
         this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.traj = new Trajectory(other.traj);
         this.beta = new ArrayList<>(other.beta);
@@ -70,7 +74,7 @@ public class Particle {
         System.out.println("Particle "+ particleID);
         System.out.println("State: "+ state);
         traj.printTrajectory();
-        System.out.println("Phylo Likelihood:"+ phyloLikelihood);
+        System.out.println("Phylo Likelihood:" + phyloLikelihood);
         System.out.println("Epi Likelihood:"+ Math.log(epiLikelihood));
         //System.out.println();
     }
@@ -98,8 +102,9 @@ public class Particle {
         this.epiWeight = weight;
     }
     public void setEpiLikelihood(double epiLikelihood){
-        this.epiLikelihood = epiLikelihood;
-        this.epiWeight = Math.log(epiLikelihood);
+        this.epiLikelihood = this.epiLikelihood * epiLikelihood;
+        //this.epiLikelihood = epiLikelihood;
+        this.epiWeight = Math.log(this.epiLikelihood);
     }
     public void setPhyloLikelihood(double newLikelihood) {
         this.phyloLikelihood = newLikelihood;

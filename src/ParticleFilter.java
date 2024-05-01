@@ -110,31 +110,34 @@ public class ParticleFilter {
         else {
 
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
-            if (particles.checkPhyloLikelihoods()) {return true;}
+            if (particles.checkPhyloLikelihoods()) {
+                //System.out.println("Quitting due to neginf particles; step "+step);
+                return true;}
             //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
-                //particles.printParticles();
-                //particles.getEpiLikelihoods(caseIncidence.incidence[step]);
                 if (particles.checkEpiLikelihoods()) {
                     //System.out.println("Epi Likelihood Issue in step "+step);
                     return true;}
             }
         }
 
-        particles.checkStates(Storage.maxEpidemicSize);
+        //particles.checkStates(Storage.maxEpidemicSize);
         if (Storage.tooBig) {
             //System.out.println("epidemic size too large, quitting now");
             return true;
         }
-        //particles.printParticles();
 
+        //particles.printParticles();
+        checkParticles(step);
         //Scale weights and add to logP
         double logP = particles.scaleWeightsAndGetLogP(Storage.confidenceSplit[phiIndex]);
         logLikelihoodCandidate += logP;
 
+        checkParticles(step);
         //resample
         particles.resampleParticles();
-        checkParticles();
+
+        checkParticles(step);
 
         return false;
     }
@@ -205,10 +208,10 @@ public class ParticleFilter {
         Storage.tooBig = false;
     }
 
-    private void checkParticles() {
-        for (Particle particle : particles.particles) {
-            if (particle == null) {
-                System.out.println("Null particle");
+    private void checkParticles(int step) {
+        for (int i = 0 ; i < particles.particles.length ;  i++) {
+            if (particles.particles[i] == null) {
+                System.out.println("Null particle step " + step + " , particle "+i);
             }
         }
     }

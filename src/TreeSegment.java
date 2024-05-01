@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,6 +105,8 @@ public class TreeSegment {
         System.out.println("Lineages: "+lineages);
         System.out.println("Births: "+births);
         System.out.println("Samplings: "+samplings);
+        System.out.println("Observation Order: "+ Arrays.toString(observationOrder));
+        System.out.println("Observation Times: "+ observationTimes);
     }
 
     private int[] getObservationOrder() {
