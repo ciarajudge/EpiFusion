@@ -1,4 +1,6 @@
 import javax.xml.parsers.ParserConfigurationException;
+
+import cern.jet.random.Normal;
 import org.xml.sax.SAXException;
 
 import java.io.FileWriter;

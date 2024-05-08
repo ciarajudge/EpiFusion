@@ -51,6 +51,8 @@ public class ParticleFilter {
             System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
                     +"\nLog Likelihood: "+logLikelihoodCandidate+"\nParameters: "
                     +Arrays.toString(candidateParameters)+"\nBeta: "+currentSampledParticle.beta+"\nTrajectory"+Arrays.toString(particles.particles[0].traj.getTrajArray()));
+            //loggers.saveParticleTrajectoryBreakdown(particles.trajectories);
+            //loggers.saveParticleBetaBreakdown(particles.betas);
             //System.exit(0);
         }
         System.out.println("CHAIN "+chainID+"\nFinal parameter set: "+Arrays.toString(currentParameters)+"\nInitial LL: "+logLikelihoodCurrent);
@@ -89,6 +91,7 @@ public class ParticleFilter {
             Storage.completedRuns[chainID] += 1;
         }
 
+        //loggers.saveParticleTrajectoryBreakdown(particles.trajectories);
         logPriorCandidate = calculatePFLogPrior();
 
     }
@@ -161,6 +164,7 @@ public class ParticleFilter {
     public double[][] getCurrentRates() {return currentRates;}
     public double[][] getCandidateRates() {return candidateRates;}
     public double[] getCurrentParameters() {return currentParameters;}
+    public double[] getCandidateParameters() {return candidateParameters;}
     public double getLogLikelihoodCurrent() {return logLikelihoodCurrent; }
     public double getLogLikelihoodCandidate() {return logLikelihoodCandidate; }
     public double getLogPriorCurrent() {return logPriorCurrent; }
@@ -250,6 +254,8 @@ public class ParticleFilter {
             particles.setInitialBeta(candidateRates[0][0], candidateParameters[6]);
         } else if (Storage.analysisType == 3) {
             candidateRates = fixedBetaRateParsing();
+        } else if (Storage.analysisType == 4) {
+            candidateRates = randomWalkRateParsing();
         }
     }
 

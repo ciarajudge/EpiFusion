@@ -17,6 +17,8 @@ public class Loggers {
     public FileWriter betas;
     public FileWriter Rs;
     public FileWriter positiveTests;
+    public FileWriter particleLikelihoods;
+    public FileWriter allLikelihoods;
     private String filePath;
     private int chainID;
 
@@ -30,6 +32,7 @@ public class Loggers {
         startCompleted();
         startBetas();
         startRs();
+        //this.allLikelihoods = new FileWriter(filePath + "/alllikelihoods.txt");
         if (!Storage.isPhyloOnly()) {
             startPositiveTests();
         }
@@ -150,6 +153,10 @@ public class Loggers {
         String toWrite = likelihood + "\n";
         this.likelihoods.write(toWrite);
     }
+    public void logallLikelihoodAccepted(Double likelihood) throws IOException {
+        String toWrite = likelihood + "\n";
+        this.allLikelihoods.write(toWrite);
+    }
     public void logParams(double[] paramSet) throws IOException {
         String toWrite = "";
         for (Double param : paramSet) {
@@ -177,23 +184,48 @@ public class Loggers {
         positiveTests.write(toWrite);
     }
 
-    /*
-    public void logAllTrajectories(Particles particles) throws IOException {
-        for (Particle p : particles.particles) {
-            Trajectory trajectory = p.traj;
+/*
+    public void logParticleLikelihoods(Particle p) throws IOException {
+
             String toWrite = "";
-            for (Day d : trajectory.trajectory) {
-                toWrite = toWrite + d.I + ",";
+            for (Double d : p.likelihoodVector) {
+                toWrite = toWrite + d + ",";
             }
-            toWrite = toWrite + acceptance+ "\n";
+            toWrite = toWrite + "\n";
             //System.out.println(toWrite);
-            trajectories.write(toWrite);
-        }
+            particleLikelihoods.write(toWrite);
+
     }*/
 
     public void saveParticleLikelihoodBreakdown(double[][] likelihoodBreakdown, int step, double likelihood) throws IOException {
         FileWriter likelihoodBreakdownFile = new FileWriter(Storage.folder+"/likelihoodbreakdown_"+step+"_"+likelihood+".csv");
         for (double[] r : likelihoodBreakdown) {
+            String toWrite = "";
+            for (double c : r) {
+                toWrite = toWrite + c + ",";
+            }
+            toWrite = toWrite + "\n";
+            likelihoodBreakdownFile.write(toWrite);
+        }
+        likelihoodBreakdownFile.close();
+    }
+
+    public void saveParticleTrajectoryBreakdown(int[][] trajectories) throws IOException {
+        FileWriter likelihoodBreakdownFile = new FileWriter(Storage.folder+"/trajectorybreakdown.csv");
+        for (int[] r : trajectories) {
+            String toWrite = "";
+            for (int c : r) {
+                toWrite = toWrite + c + ",";
+            }
+            toWrite = toWrite + "\n";
+            likelihoodBreakdownFile.write(toWrite);
+        }
+        likelihoodBreakdownFile.close();
+    }
+
+    public void saveParticleBetaBreakdown(double[][] trajectories) throws IOException {
+        FileWriter likelihoodBreakdownFile = new FileWriter(Storage.folder+"/betabreakdown.csv");
+        for (double[] r : trajectories) {
             String toWrite = "";
             for (double c : r) {
                 toWrite = toWrite + c + ",";
@@ -221,7 +253,8 @@ public class Loggers {
     }
 
     public void log(ParticleFilter particleFilter, int accepted) throws IOException {
-        logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCandidate());
+        logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
+        //logallLikelihoodAccepted(particleFilter.getLogLikelihoodCandidate());
         logTrajectory(particleFilter.currentSampledParticle.traj);
         if (Storage.analysisType != 0 && Storage.analysisType != 3) {
             logBeta(particleFilter.currentSampledParticle.beta);
@@ -233,16 +266,19 @@ public class Loggers {
         if (!Storage.isPhyloOnly()) {
             logPositiveTests(particleFilter.currentSampledParticle.positiveTestsFit);
         }
+        //logParticleLikelihoods(particleFilter.particles.particles[0]);
     }
 
     public void terminateLoggers() throws IOException {
-        //trajectories.close();
+        trajectories.close();
         likelihoods.close();
         params.close();
         acceptance.close();
         betas.close();
         Rs.close();
         completed.close();
+        //particleLikelihoods.close();
+        //allLikelihoods.close();
         if (!Storage.isPhyloOnly()) {
             positiveTests.close();
         }

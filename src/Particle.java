@@ -1,7 +1,9 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import org.apache.commons.math3.distribution.NormalDistribution;
-//import org.apache.commons.math3.distribution.PoissonDistribution;
+import cern.jet.random.Normal;
+
+import static cern.jet.random.Uniform.staticNextDouble;
 
 public class Particle {
     int particleID;
@@ -13,7 +15,7 @@ public class Particle {
     double weight;
     Trajectory traj;
     ArrayList<Double> beta;
-    double[][] likelihoodMatrix;
+    //double[][] likelihoodMatrix;
     private double stdDev;
     public boolean treeOn;
     public boolean haveReachedTree;
@@ -22,6 +24,7 @@ public class Particle {
     public int positiveTests;
     public ArrayList<Integer> positiveTestsFit;
     public int epiCumInfections; //Used for the epi likelihood, probably theres a more elegant way to do this someday
+    //public ArrayList<Double> likelihoodVector;
 
     public Particle(int pID) {
         particleID = pID;
@@ -36,7 +39,7 @@ public class Particle {
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
-        this.likelihoodMatrix = new double[Storage.T][6];
+        //this.likelihoodMatrix = new double[Storage.T][6];
         this.treeOn = false;
         this.haveReachedTree = false;
         this.cumInfections = new ArrayList<>();
@@ -45,6 +48,7 @@ public class Particle {
         this.positiveTests = 0;
         this.positiveTestsFit = new ArrayList<>();
         this.epiCumInfections = 0;
+        //this.likelihoodVector = new ArrayList<>();
     }
 
     public Particle(Particle other, int pID) {
@@ -59,7 +63,7 @@ public class Particle {
         this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.traj = new Trajectory(other.traj);
         this.beta = new ArrayList<>(other.beta);
-        this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
+        //this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
         this.stdDev = other.stdDev;
         this.treeOn = other.treeOn;
         this.haveReachedTree = other.haveReachedTree;
@@ -68,6 +72,7 @@ public class Particle {
         this.positiveTests = other.positiveTests;
         this.positiveTestsFit = new ArrayList<>(other.positiveTestsFit);
         this.epiCumInfections = other.epiCumInfections;
+        //this.likelihoodVector = new ArrayList<>(other.likelihoodVector);
     }
 
     public void printStatus() {
@@ -115,11 +120,19 @@ public class Particle {
         this.stdDev = stdDev;
     }
     public void nextBeta(double reFactor) {
-        Double current = beta.get(beta.size()-1)*reFactor;
-        TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
-        Double newBeta = (truncatedNormalDistribution.sample());
+        //TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
+        Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor) + Normal.staticNextDouble(0.0, stdDev));
         beta.add(newBeta);
     }
+
+    public void betaLinearSpline(int numToAdd) {
+        Double slope = Normal.staticNextDouble(0.0, stdDev);
+        Double intercept = beta.get(beta.size()-1);
+        for (int i=0; i<numToAdd; i++) {
+            beta.add(Math.max((intercept+(i*slope)), 0.0));
+        }
+    }
+
     public void nextBeta(double skeleton, double reFactor) {
         Double current = beta.get(beta.size()-1);
         TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);

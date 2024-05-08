@@ -59,6 +59,8 @@ public class EpiLikelihood {
 
         double probability = (dat*Math.log(x)) - ((dat + overdispersion)*Math.log(overdispersion+x));
 
+        particle.positiveTestsFit.add(particle.positiveTests);
+        particle.positiveTests = 0;
         // return the likelihood
         return Math.exp(probability);
     }
