@@ -1,55 +1,75 @@
 import javax.xml.parsers.ParserConfigurationException;
 
-import cern.jet.random.Normal;
+
 import org.xml.sax.SAXException;
 
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.Objects;
 import java.nio.file.Files;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+
 
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-        System.out.println("EpiFusion");
+        if (args.length == 0) {
+            System.out.println("This is EpiFusion, a program to model infection and Rt trajectories conditioned on both \n" +
+                    "case incidence and phylogenetic tree data. This is a new model that is undergoing peer review \n" +
+                    "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
+                    "improvements. Further information and example input XML files are available at the project github: \n" +
+                    "https://github.com/ciarajudge/EpiFusion. To get started, rerun this command and include the path to \n" +
+                    "an EpiFusion input file, as shown below:\n" +
+                    "----\n" +
+                    "Usage: java -jar EpiFusion.jar <path to xml file>\n"+
+                    "----\n");
+        } else if (args.length == 1) {
+            System.out.println("This is EpiFusion, a program to model infection and Rt trajectories conditioned on both\n" +
+                    "case incidence and phylogenetic tree data. This is a new model that is undergoing peer review \n" +
+                    "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
+                    "improvements. Further information and example input XML files are available at the project github: \n" +
+                    "https://github.com/ciarajudge/EpiFusion.\n");
+            long startTime = System.nanoTime();
 
-        long startTime = System.nanoTime();
+            try {
+                XMLParser.parseXMLInput(args[0]);
+            } catch(FileNotFoundException e) {
+                System.out.println("Error parsing the XML file " +args[0]+"; File Not Found!\n" +
+                        "Make sure your file path is correct!\n");
+            }
 
-        XMLParser.parseXMLInput(args[0]);
-        //Storage.printPriors();
+            Storage.loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
+            logXML(args[0]);
 
 
-        MasterLoggers loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
-        Storage.loggers = loggers;
-        logXML(args[0]);
-
-        //ExecutorService executor = Executors.newFixedThreadPool(Storage.numChains);
-        for (int i=0; i<Storage.numChains; i++) {
-            int finalI = i;
-            //executor.submit(() -> {
+            for (int i = 0; i < Storage.numChains; i++) {
                 try {
-                    ParticleFilter particleFilter = new ParticleFilter(finalI);
+                    ParticleFilter particleFilter = new ParticleFilter(i);
                     MCMC particleMCMC = new MCMC(particleFilter);
                     particleMCMC.runMCMC(Storage.numMCMCsteps);
                     particleMCMC.terminateLoggers();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            //});
-        }
-        //executor.shutdown();
+            }
 
-        long endTime = System.nanoTime();
-        System.out.println("Time elapsed: "+(endTime-startTime));
-        FileWriter timings = new FileWriter(Storage.folder+"/timings.txt");
-        timings.write(Long.toString((endTime - startTime)));
-        timings.close();
+            long endTime = System.nanoTime();
+            System.out.println("Time elapsed: " + (endTime - startTime));
+            FileWriter timings = new FileWriter(Storage.folder + "/timings.txt");
+            timings.write(Long.toString((endTime - startTime)));
+            timings.close();
+        } else {
+            System.out.println("Oops! It seems you have provided multiple command line arguments to the program. Reminder\n" +
+                    "that the program takes a single path to an XML file as it's input:\n" +
+                    "----" +
+                    "Usage: java -jar EpiFusion.jar <path to xml file>\n"+
+                    "----" +
+                    "This is EpiFusion, a program to model infection and Rt trajectories conditioned on both \n" +
+                    "case incidence and phylogenetic tree data. Further information and example input XML files are \n" +
+                    "available at the project github: https://github.com/ciarajudge/EpiFusion.\n");
+        }
 
 
     }

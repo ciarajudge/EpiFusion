@@ -3,7 +3,7 @@ import java.util.Collections;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import cern.jet.random.Normal;
 
-import static cern.jet.random.Uniform.staticNextDouble;
+//import static cern.jet.random.Uniform.staticNextDouble;
 
 public class Particle {
     int particleID;
