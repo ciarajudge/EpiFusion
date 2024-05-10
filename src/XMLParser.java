@@ -93,6 +93,10 @@ public class XMLParser {
         Storage.maxEpidemicSize = Integer.parseInt(parametersElement.getElementsByTagName("maxEpidemicSize").item(0).getTextContent());
         Storage.removalProbability = Integer.parseInt(parametersElement.getElementsByTagName("samplingsAsRemovals").item(0).getTextContent());
         Storage.genTime = readDoubleArray(parametersElement.getElementsByTagName("generationPMF").item(0).getTextContent());
+
+        if (parametersElement.getElementsByTagName("likelihoodScaler").getLength() > 0) {
+            Storage.likelihoodScaler = Integer.parseInt(parametersElement.getElementsByTagName("likelihoodScaler").item(0).getTextContent());
+        }
     }
 
     public static void parseAnalysis(Element analysisElement) {
@@ -105,6 +109,8 @@ public class XMLParser {
             Storage.analysisType = 2;
         } else if (type.equals("fixedbeta")) {
             Storage.analysisType = 3;
+        } else if (type.equals("linearsplinebeta")) {
+            Storage.analysisType = 4;
         }
 
         if (!Objects.equals(analysisElement.getElementsByTagName("startTime").item(0).getTextContent(),"null")) { //if it's null it just stays null

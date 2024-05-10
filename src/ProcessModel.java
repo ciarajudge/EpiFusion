@@ -9,6 +9,11 @@ public class ProcessModel {
     public static void step(Particle particle, TreeSegment[] treeSegments, int step, double[][] rates) {
         int t = step*Storage.resampleEvery;
         int increments = treeSegments.length;
+
+        if (Storage.analysisType == 4) {
+            particle.betaLinearSpline(increments);
+        }
+
         for (int i=0; i<increments; i++) {
             //Turn on tree if we've reached it
             int actualDay = t+i;
@@ -42,7 +47,9 @@ public class ProcessModel {
 
     public static void epiOnlyStep(Particle particle, int step, double[][] rates, int increments) {
         int t = step*Storage.resampleEvery;
-
+        if (Storage.analysisType == 4) {
+            particle.betaLinearSpline(increments);
+        }
         for (int i=0; i<increments; i++) {
             int actualDay = t+i;
             //System.out.println("Sending particle "+particle.particleID+" for day "+actualDay+", State currently: "+particle.getState());
@@ -55,11 +62,6 @@ public class ProcessModel {
     //Days functions
     public static void day(Particle particle, TreeSegment tree, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
-        if (Double.isInfinite(particle.getPhyloLikelihood())) {
-            return;
-        }
-
-
         //add positive tests to Epi
         int state = particle.getState();
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
@@ -71,7 +73,16 @@ public class ProcessModel {
         } else if (Storage.analysisType == 2) { //old analysis type I'm not pursuing
             particle.nextBeta(rates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
+        } else if (Storage.analysisType == 4) {
+            rates[0] = particle.beta.get(t);
         }
+
+        if (Double.isInfinite(particle.getPhyloLikelihood())) {
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        }
+
         double[] propensities = particle.getVanillaPropensities(rates);
 
         if (tree.lineages == 0) { //this means the tree must start in this interval, so we do a new propensity calc
@@ -130,6 +141,7 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
 
+
         //If there's incidence for this day, calc epi likelihood
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
@@ -140,20 +152,26 @@ public class ProcessModel {
 
     public static void segmentedDay(Particle particle, TreeSegment tree, int t, double[] dayRates) {
         //Check if the particle phylo likelihood is negative infinity, if so just quit
-        if (Double.isInfinite(particle.getPhyloLikelihood())) {
-            return;
-        }
         double[] rates = new double[] {dayRates[0], dayRates[1], dayRates[2], dayRates[3]};
-
         if (Storage.analysisType == 1) { //If beta is RW, get new propensity[0]
             particle.nextBeta(dayRates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
+            //System.out.println("Beta: "+rates[0]);
+        } else if (Storage.analysisType == 4) {
+            rates[0] = particle.beta.get(t);
         }
+
+        if (Double.isInfinite(particle.getPhyloLikelihood())) {
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        }
+
+
 
         int prevState = particle.getState();
         particle.positiveTests = particle.positiveTests +  (int)  Math.round(prevState*rates[3]);
 
-        //System.out.println("Day "+t+" ["+particle.particleID+"] positivetests inc: "+particle.positiveTests);
 
         double prevLikelihood = particle.getPhyloLikelihood();
         double deltaT, nextT;
@@ -221,6 +239,8 @@ public class ProcessModel {
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
 
+        //particle.likelihoodVector.add(particle.phyloLikelihood);
+
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
                 particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle));
@@ -247,13 +267,12 @@ public class ProcessModel {
         } else if (Storage.analysisType == 2) {
             particle.nextBeta(rates[0]);
             rates[0] = particle.beta.get(particle.beta.size()-1);
+        } else if (Storage.analysisType == 4) {
+            rates[0] = particle.beta.get(t);
         }
-        //System.out.println("beta is "+rates[0]);
 
         double[] propensities = particle.getVanillaPropensities(rates);
 
-        //System.out.print("[Day "+t+" Particle "+particle.particleID+"]"+"propensities: ");
-        //System.out.println(Arrays.toString(propensities));
         //Calculate the events
         int births = poissonSampler(propensities[0]);
         particle.todaysInfs = particle.todaysInfs + births;
@@ -265,7 +284,7 @@ public class ProcessModel {
         }
         state = state + births - deaths;
         particle.setState(state);
-        particle.likelihoodMatrix[t][5] = particle.getState();
+
         Day tmpDay = new Day(t, particle.getState(), births, deaths);
         particle.updateTrajectory(tmpDay);
         particle.incrementCumInfections();
@@ -285,21 +304,12 @@ public class ProcessModel {
         }
         return newPropensities;
     }
-/*
-    public static int poissonSampler(double rate) {
-        if (rate == 0.0) {
-            return 0;
-        }
-        PoissonDistribution poissonDistribution = new PoissonDistribution(rate);
-        return poissonDistribution.sample();
-    }
-*/
+
     public static int poissonSampler(double rate) {
         if (rate <= 0.0) {
             return 0;
         }
         int res = staticNextInt(rate);
-        //System.out.println(rate+", "+res);
         return res;
     }
 

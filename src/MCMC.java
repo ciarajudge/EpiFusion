@@ -14,11 +14,8 @@ public class MCMC {
         this.random = new Random();
         //particleFilter.loggers.logTrajectory(particleFilter.currentSampledParticle.traj);
         //particleFilter.loggers.logParams(particleFilter.getCurrentParameters());
-        particleFilter.loggers.logLogLikelihoodAccepted(particleFilter.getLogLikelihoodCurrent());
+        this.particleFilter.loggers.log(particleFilter, 1);
         //loggers.saveParticleLikelihoodBreakdown(particleFilter.currentSampledParticle.likelihoodMatrix, -1, particleFilter.getLogLikelihoodCurrent());
-        if (Storage.analysisType == 1) {
-            //particleFilter.loggers.logBeta(particleFilter.currentSampledParticle.beta);
-        }
         //particleFilter.loggers.logRs(rtCalculator.calculateRt(particleFilter.currentSampledParticle));
         Storage.initialised = true;
     }
@@ -55,7 +52,7 @@ public class MCMC {
                 System.out.println("Acceptance rate: "+ ((double) acceptanceRate/Storage.logEvery)*100+"%");
                 System.out.println("Completed runs: "+ Storage.completedRuns[particleFilter.chainID]);
                 particleFilter.loggers.log(particleFilter, acceptanceRate);
-                particleFilter.particles.particles[0].traj.printTrajectory();
+                //particleFilter.particles.particles[0].traj.printTrajectory();
                 Storage.completedRuns[particleFilter.chainID] = 0;
                 acceptanceRate = 0;
             }
@@ -97,7 +94,7 @@ public class MCMC {
         double logPriorCurrent = this.particleFilter.getLogPriorCurrent();
         double logPriorCandidate = this.particleFilter.getLogPriorCandidate();
 
-        double logAcceptanceRatio = logLikelihoodCandidate + logPriorCandidate - (logLikelihoodCurrent + logPriorCurrent);
+        double logAcceptanceRatio = (logLikelihoodCandidate + logPriorCandidate - (logLikelihoodCurrent + logPriorCurrent)) / Storage.likelihoodScaler;
         double acceptanceRatio = Math.exp(logAcceptanceRatio);
         return Math.min(1.0, acceptanceRatio);
     }

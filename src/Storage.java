@@ -33,6 +33,7 @@ public class Storage {
     public static int maxEpidemicSize = 50000;
     public static int removalProbability = 0;
     public static double[] genTime = null;
+    public static int likelihoodScaler = 1;
 
     //Analysis things
     public static Integer start = null;

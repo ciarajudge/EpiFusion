@@ -380,7 +380,7 @@ public class Particles {
         // Generate a random number between 0 and total weight
         Random random = new Random();
         for (int i = 0; i < N; i++) {
-            while (resampledParticles[i] == null) {
+            //while (resampledParticles[i] == null) {
                 double randomWeight = random.nextDouble() * totalWeight;
                 double runningSum = 0.0;
 
@@ -399,7 +399,7 @@ public class Particles {
                         break;
                     }
                 }
-            }
+            //}
         }
         /*
         if (!Storage.initialised) {
