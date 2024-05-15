@@ -17,18 +17,47 @@ This R Markdown document will guide you through the process of parsing and inter
 The first step of the tutorial is to point the document to the filepath of the output folder made by EpiFusion. We will also source the `EpiFusion_utilities.R` script to load the necessary functions to look through this output. The current filepath assumes the folder is in your working directory; you may need to change this depending on where your output folder was generated.
 
 ```{r intro}
-outputfolder <- "intro-example/"
-source("EpiFusion_utilities.R")
+outputfolder <- "baseline_combined_example_results/"
 ```
 
-NOTE: the first time you run this, the output might also show the installation of any required R packages you don't already have installed.
+
+## Loading EpiFusionUtilities
+The next step will be to install or load our companion R package, EpiFusionUtilities, which has functions that parse EpiFusion output into a useful R compatible format.
+
+```{r loadpackage}
+devtools::install_github("https://github.com/ciarajudge/EpiFusionUtilities")
+library(EpiFusionUtilities)
+```
+
+We will also use ggplot in some of our plotting later in the tutorial:
+```{r loadggplot}
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+## Loading Raw EpiFusion Results
+Here we load the raw results of our EpiFusion analysis into our R session. This function loads the raw posterior samples for each chain and some other information such as the number of chains etc into our session. We use the `load_raw_epifusion()` function for this, which takes a path to an output folder as it's input:
+
+```{r loadrawoutput}
+raw_epifusion_output <- load_raw_epifusion(outputfolder)
+```
+
+The resulting output is a large list with:
+1. The number of chains
+2. The number of samples per chain
+3. The likelihoods of each chain at each sampled step
+4. The acceptance rate of each chain between samples
+5. Posterior samples of infection trajectories per chain
+6. Posterior samples of rt trajectories per chain
+7. Posterior samples of parameter values per chain
+8. Simulated case incidence (if it's a combined or epi only analysis)
 
 ## Checking convergence
 
-The first thing we'll do is take a look at the trace plots of the chain likelihood, to check that the model has run nicely. For this we can use the `plotlikelihoodtrace` function, which takes the output folder filepath as its input.
+Next we will take a look at the trace plots of the chain likelihood, to check that the model has run nicely. For this we can use the `plot_likelihood_trace` function, which takes the raw epifusion object as its input.
 
 ```{r plottraces, echo=FALSE}
-plotlikelihoodtrace(outputfolder)
+plot_likelihood_trace(raw_epifusion_output)
 ```
 
 Have a look at the likelihood trace for each chain run. They should start in different places but eventually converge to roughly the same value. Keep an eye out for chains getting stuck (staying at the same value for a long time). This does happen occassionally, and we are working on introducing adaptive Metropolis Hastings MCMC sampling to EpiFusion to fix this. Once you have had a look at the trace plot you can choose what proportion of each chain to discard as burn-in. EpiFusion models tend to converge relatively quickly, so the default in this document will be 10%. However, you can edit this as needed.
@@ -37,73 +66,88 @@ Have a look at the likelihood trace for each chain run. They should start in dif
 burn_in <- 0.1
 ```
 
+## Extracting your posterior minus burn-in
+Now that we have decided on the proportion of samples to discard as burn-in, we can parse the raw output into a more useful format. We do this with the `extract_posterior_epifusion()` function which takes the raw input and a proportion to discard as burn in as its arguments:
+
+```{r extract_posterior}
+final_outputs <- extract_posterior_epifusion(raw_epifusion_output, burn_in)
+```
+
+This function produces infection and Rt trajectory and parameter posteriors. For the trajectories, the samples (minus the burn-in and with aggregated across chains) are provided, along with mean trajectories and 95%, 88% and 66% HPD intervals. For the parameters, the samples are provided and Rhat and Effective Sample Sizes for each parameter to help assess convergence and mixing. If you have any fixed parameters you will get a warning that says 'no variability observed in a parameter; setting batch size to 0' when you run this function. Don't worry about this - this just means it's not possible to compute an Rhat value for chains with constant equal values. However, if this comes up for an analysis with no fixed parameters, you may have convergence issues - check the likelihood trace to further examine this.
 
 ## Examining infection trajectory posteriors
 ### Trajectories table
-Next we'll examine the infection trajectories inferred by your EpiFusion model. First let's take a look at the raw values by loading the trajectories to our environment with `loadtrajectoriesminusburnin`, which takes the `outputfolder` and `burn_in` as arguments. This will return a table, with a column for every day of the analysis and a row for every sampled trajectory. Below we load the table and look at the first sample.
+Next we'll examine the infection trajectories sampled by your EpiFusion model. First let's take a look at the first sample by selecting it from the final_outputs object.
 
 ```{r load_trajectories_table}
-trajectories <- loadtrajectoriesminusburnin(outputfolder, burn_in)
-unlist(trajectories[1,])
+unlist(final_outputs$infection_trajectories$infection_trajectory_samples[1,])
 ```
-
-You can also load the trajectories inferred by each chain separately. This can be useful if you think you might have convergence issues.
-
-```{r load_trajectories_separately}
-trajectories_separate <- loadtrajectoriesminusburninseparate(outputfolder, burn_in)
-```
-
-This function returns a list of length (N) of trajectory tables, where N = the number of chains.
 
 ### Trajectories plot
-It can be difficult to get a sense for what the trajectories are really saying in table form, so let's plot them using `plottrajectoriesfromtable`. We can supply our desired colour as the second argument to the function. There is also a function, `plottrajectoryposteriors`, which can plot the trajectories directly from the file, but we won't use that here. If you do want to us it, it takes `outputfolder`, `burn_in` and `colour` as arguments.
+It can be difficult to get a sense for what the trajectories are really saying in table form, so let's plot them ggplot. We already have the mean and HPD intervals, which makes it easy to put them into a table and plot them. We'll add the Rt trajectories too while we're at it.
 
 ```{r plot_trajectories}
-plottrajectoriesfromtable(trajectories, 'slateblue')
+trajectorytable <- data.frame(Time = 1:length(final_outputs$infection_trajectories$mean_infection_trajectory),
+                        Mean_Infected = final_outputs$infection_trajectories$mean_infection_trajectory,
+                        Lower95_Infected = final_outputs$infection_trajectories$infection_trajectory_hpdintervals$HPD0.95$Lower,
+                        Upper95_Infected = final_outputs$infection_trajectories$infection_trajectory_hpdintervals$HPD0.95$Upper,
+                        Lower88_Infected = final_outputs$infection_trajectories$infection_trajectory_hpdintervals$HPD0.88$Lower,
+                        Upper88_Infected = final_outputs$infection_trajectories$infection_trajectory_hpdintervals$HPD0.88$Upper,
+                        Lower66_Infected = final_outputs$infection_trajectories$infection_trajectory_hpdintervals$HPD0.66$Lower,
+                        Upper66_Infected = final_outputs$infection_trajectories$infection_trajectory_hpdintervals$HPD0.66$Upper,
+                        Mean_Rt = final_outputs$rt_trajectories$mean_rt_trajectory,
+                        Lower95_Rt = final_outputs$rt_trajectories$rt_trajectory_hpdintervals$HPD0.95$Lower,
+                        Upper95_Rt = final_outputs$rt_trajectories$rt_trajectory_hpdintervals$HPD0.95$Upper,
+                        Lower88_Rt = final_outputs$rt_trajectories$rt_trajectory_hpdintervals$HPD0.88$Lower,
+                        Upper88_Rt = final_outputs$rt_trajectories$rt_trajectory_hpdintervals$HPD0.88$Upper,
+                        Lower66_Rt = final_outputs$rt_trajectories$rt_trajectory_hpdintervals$HPD0.66$Lower,
+                        Upper66_Rt = final_outputs$rt_trajectories$rt_trajectory_hpdintervals$HPD0.66$Upper)
+
+ggplot(trajectorytable, aes(x = Time)) +
+  geom_line(aes(y = Mean_Infected), col = "#2aac6d")+
+  geom_ribbon(aes(ymin = Lower95_Infected, ymax = Upper95_Infected), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower88_Infected, ymax = Upper88_Infected), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower66_Infected, ymax = Upper66_Infected), fill = "#2aac6d", alpha = 0.3)
+
 ```
 
-This function plots the mean sampled trajectory as a coloured line, with 95%, 80% and 66% HPDs as shaded regions of increasing darkness.
+The process of making this table is quite arduous - we'll shortly add a function to EpiFusionUtilities that can do it for you!
 
 ## Examining R(t) trajectory posteriors
-Now lets take a look at the R(t) estimates from the model. With EpiFusion it is actually possible to get R(t) through two methods. We'll examine both here.
+Now let's look at the same plot, but for Rt. We can use the same `trajectorytable` as before, and just slightly adjust the same plotting code:
 
-### Renewal equation or Beta/Gamma?
-The EpiFusion program stores daily infection events in the trajectories that it models, and uses this along with a user specified probability mass function of the generation time in a renewal equation to calculate an R(t) trajectory for each MCMC sample. These are stored in the `rt_chainN.csv` files of the EpiFusion output. However, EpiFusion also samples trajectories of the force of infection beta over time (`betas_chainN.csv`). Together with the posterior samples for the recovery/removal parameter gamma, you can also get R(t) estimates from dividing beta(t)/gamma(t) for each MCMC sample. Lets plot both options together to compare:
+```{r plot_rttrajectories}
+ggplot(trajectorytable, aes(x = Time)) +
+  geom_line(aes(y = Mean_Rt), col = "#2aac6d")+
+  geom_ribbon(aes(ymin = Lower95_Rt, ymax = Upper95_Rt), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower88_Rt, ymax = Upper88_Rt), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower66_Rt, ymax = Upper66_Rt), fill = "#2aac6d", alpha = 0.3)
 
-```{r plot_rt_renewal}
-plotrtposteriors_renewal(outputfolder, burn_in, 'pink')
-addrtposteriors_betagamma(outputfolder, burn_in, 'green')
 ```
 
-Here we've plotted the renewal R(t) posteriors with `plotrtposteriors_renewal` and added a layer of the beta/gamma R(t) posteriors with `addrtposteriors_betagamma`. There is also the inverse of each of these functions if you wanted to reverse the order; i.e. `addrtposteriors_renewal` and `plotrtposteriors_betagamma`. These R(t) trajectories should be in agreement, however the renewal equation version can be a little unstable when prevalence is low (at the start and end of this example). You can choose whichever option meets your needs.
 
-### Loading R(t) tables
-You can load the R(t) in table form also, as shown below. The first value of the renewal equation trajectories will always be NaN due to the edge limitations of this method.
+## Parameter Posteriors
+Another interesting thing to look at are the posteriors of the parameters of the MCMC analysis. For example, let's look at the density of the `psi` genomic sampling parameter:
 
-```{r load_rt_trajectories}
-#Load renewal equation trajectories
-renewal_rts <- loadrtsminusburnin(outputfolder, burn_in)
-#Load beta/gamma trajectories
-betagamma_rts <- loadbetagammartminusburnin(outputfolder, burn_in)
+```{r plotpsi}
+ggplot(data.frame(psi = final_outputs$parameters$psi$samples), aes(x = psi)) +
+  geom_density()
 ```
 
-Similarly to the infection trajectories, there are also functions for plotting R(t) posteriors (or adding layers) directly from the tables. A list of all available functions is on the GitHub wiki, we recommend going through it to see what's available.
+Here we coerce the psi samples into a data frame a plot the density with ggplot. We can also get some other statistics for psi:
 
-## MCMC Parameter Posteriors
-Another set of files you'll find in the EpiFusion are the `params_chainN.txt` files. These contain a row for each MCMC sample, and a column for each MCMC parameter. You can load them using the `loadparamsminusburnin` function. The last column of the table will always contain NAs, this is just an artefact of how EpiFusion saves the samples.
+The Rhat is the gelman-rubin convergence metric, where closer to 1 indicates convergence. The threshold may vary depending on your analysis but it's traditionally recommended to try get this metric below 1.015:
 
-```{r load_params}
-paramposteriors <- loadparamsminusburnin(outputfolder, burn_in)
-head(paramposteriors)
+```{r psigr}
+final_outputs$parameters$psi$rhat
 ```
 
-If you are interested in a specific parameter, for example 'psi', you can load the posterior samples for that specific parameter as a vector with `loadparambyname`.
+The effective sample size refers to the equivalent number of independent observations that would yield the same statistical precision as the observed data, taking into account the autocorrelation structure introduced by the markov chain. Again the goal for this can differ from analysis to analysis, but you should probably at least aim to get higher than ~100.
 
-```{r load_param_by_name}
-psiposterior <- loadparambyname(outputfolder, burn_in, 'psi')
-plot(density(psiposterior), main = 'Psi posterior sample density')
-polygon(density(psiposterior), col = 'orange')
+```{r ess}
+final_outputs$parameters$psi$ess
 ```
 
 # Conclusion
-The above covers the basics of parsing EpiFusion output, and introduces some of the functions of EpiFusion_utilities.R. We stress that EpiFusion is still in its infancy, with more improvements happening every day, but we hope this tutorial will have peaked your interest! For more information we recommend checking out the EpiFusion wiki.
+The above covers the basics of parsing EpiFusion output, and introduces some of the functions of EpiFusionUtilities. We stress that EpiFusion is still in its infancy, with more improvements happening every day, but we hope this tutorial will have peaked your interest! For more information we recommend checking out the EpiFusion wiki.
+
