@@ -1,2 +1,6 @@
 # Examples
-In this folder you'll find everything you should need for the baseline tutorial, and very shortly a real data tutorial. The Rmd script can be used to plot the outputs of running the baseline_combined.xml file. For more information [see the wiki](https://github.com/ciarajudge/EpiFusion/wiki).
+In this folder you'll find everything you need for the three tutorials on the wiki.
+
+* [Tutorial 1 - Running an Existing XML ](https://github.com/ciarajudge/EpiFusion/wiki/Baseline-Tutorial) will guide you through the process of running the EpiFusion program with an existing EpiFusion XML parameter file (provided for you). We then go through how to use the [EpiFusionUtilities R package](https://github.com/ciarajudge/EpiFusionUtilities) to parse through the results, and plot them.
+* [Tutorial 2 - Setting up an XML with more advanced priors ](https://github.com/ciarajudge/EpiFusion/wiki/Advanced-Simulated-Tutorial) will show you how to take a tree and case incidence data, and create an EpiFusion XML parameter file from 'scratch' (we'll fill out a template). We'll also go through how to set out a slightly more complex parameterisation, where the data has a step-change in sampling rate.
+* [Tutorial 3 - Running EpiFusion on Real Data ](https://github.com/ciarajudge/EpiFusion/wiki/Real-Data-Tutorial): lays out the code for using EpiFusion to model Rt of Ebola Virus in Sierra Leone, as shown in our latest preprint.
