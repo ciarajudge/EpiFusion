@@ -11,7 +11,7 @@ To get started with EpiFusion you can get started by downloading [this executabl
   java -jar EpiFusion.jar parameterfile.xml
   ```
 
-We recommend using a parameter file from the examples folder for your first attempt at running EpiFusion. These examples should take about 30 minutes to run, and their outputs will be found in your working directory. The output can be plotted and interpreted using the markdown script plot_epifusion_outputs.Rmd in the examples folder. For information on creating your own parameter XML files for EpiFusion, see the 'Parameter XML' section of the wiki which is currently under construction.
+We recommend using a parameter file from the examples folder for your first attempt at running EpiFusion. These examples should take about 30 minutes to run, and their outputs will be found in your working directory. The output can be plotted and interpreted using the markdown script plot_epifusion_outputs.Rmd in the examples folder. For information on creating your own parameter XML files for EpiFusion, see the ['EpiFusion XML Explained'](https://github.com/ciarajudge/EpiFusion/wiki/EpiFusion-XML-Explained) section of the wiki.
 
 
 ## Contributing, Collaborating and Feedback
