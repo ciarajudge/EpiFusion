@@ -1,0 +1,212 @@
+---
+title: "Tutorial 2 - Advanced Parameterisation"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tutorial 2 - Advanced Parameterisation
+
+In this tutorial we will go through the process of starting with a time-scaled phylogenetic tree (with dated tips) and case incidence data, and creating an XML file to run an EpiFusion analysis. We'll start with a basic parameterisation, before doing up a more advanced parameterisation to better reflect what we know about how the data was collected.
+
+### Install EpiFusionUtilities
+The first step is to install EpiFusionUtilities from Github (if you haven't done so already).
+
+```{r install_package}
+devtools::install_github("https://github.com/ciarajudge/EpiFusionUtilities")
+library(EpiFusionUtilities)
+```
+
+## The Data
+In the folder for this tutorial you'll find data from a simulated outbreak, beginning on January 1st 2020. In this simulated outbreak, sampling of both genomic sequences and cases was very low for the first 5 weeks, followed by a dramatic scale up in sampling. Let's load it in to our R session and plot it.
+
+```{r load_raw_data}
+library(ape)
+
+tree <- read.tree("raw_tree.tree")
+plot(tree)
+
+incidence <- read.csv("raw_incidence.csv")
+plot(as.Date(incidence$Date), incidence$Cases)
+
+```
+
+There is a time rooted phylogenetic tree provided that looks like a typical ML or MCC tree. The internal nodes are unlabelled, and the tips are labelled with format 'SeqX|YYYY-MM-DD' where X is the sequence ID (not particularly important) and sampling dates in format YYYY-MM-DD. There is case incidence in the form of a CSV file with two columns: 'Date' and 'Cases'.
+
+
+## Step 1: Prep tree and incidence for EpiFusion
+First we'll prep the data to into EpiFusion friendly format using a helpful EpiFusionUtilities function, `prepare_epifusion_data`. This function takes your tree object, case incidence object and the date from which you want to start modelling and creates an XML file with your prepped data inside and default EpiFusion parameters inside your current working directory. This file is called 'input.xml' by default but can be renamed to whatever you like.
+
+``` {r prep_data}
+prepare_epifusion_data(tree, incidence, as.Date("2020-01-01"))
+```
+
+## Step 2: Run our initial parameter file
+Next let's have a look at how this analysis, with our data and default parameterisation, runs. Luckily there is a function in the `EpiFusionUtilities` package which allows you to run the program from within R. This function, `run_epifusion()`, takes the path to an EpiFusion XML file, and the name of your desired output folder, as its arguments. NOTE: this function assumes you have java installed and it is executable from the command line with the command `java`.
+
+You'll find, if this example even runs at all (i.e. successfully initialises past -Infinity), that the parameterisation seems very poorly suited - either the program will 'hang' at -Infinity or it will reject many steps and overall gather a very poor posterior. This is because in our example, on February 4th (Day 35 of the 'outbreak') there was a huge increase (~10 fold) in sampling of both cases and genomic sequences, which we have not parameterised for at all. Also, the sampling values early in the epidemic were too high anyway given our prior knowledge about how the data was generated.
+
+We recommend running this chunk but probably nor wasting your time waiting for the analysis to complete, you can stop it in the R console. Due to the poor parameterisation it will likely run a little slower and we are not too interested in the results.
+
+```{r run_epifusion}
+run_epifusion("input.xml", "output")
+```
+
+## Step 3: Adjust the XML file with better parameterisation
+To fix the parameterisation issue, we should adjust our XML file manually. Open the `input.xml` file that we created in Step 1, which will be in your working directory. Let's scroll down to the prior specification of `phi` and `psi`, the case and genomic sampling rates respectively. We don't indicate to our model to expect any change in these rates over time (`<stepchange>false</stepchange>`). We should probably change this!
+
+Here's what we have initially:
+```
+<psi>
+  <stepchange>false</stepchange>
+  <disttype>TruncatedNormal</disttype>
+  <mean>0.001</mean>
+  <standarddev>0.0005</standarddev>
+  <lowerbound>0.0</lowerbound>
+</psi>
+<phi>
+  <stepchange>false</stepchange>
+  <disttype>TruncatedNormal</disttype>
+  <mean>0.02</mean>
+  <standarddev>0.01</standarddev>
+  <lowerbound>0.0</lowerbound>
+</phi>
+```
+
+Let's introduce a step-change where we expect psi to increase 10x at a specific time (day 35). First we set stepchange to true, then add changetime and distribs tags, inside which we set individual priors for the rates in each interval, and the interval times. These are now wrapped in tags <x[n]>, starting at n=0 and counting up for every extra interval or rate you are adding. You can specify as many changetimes as you like, but you should have one more distribs element than the number of changetime elements. For our example, we just need one changetime, which we fix (`<disttype>FixedParameter</disttype>`) at 35. The psi parameter now looks like this:
+
+```
+<psi>
+  <stepchange>true</stepchange>
+  <changetime>
+    <x0>
+      <disttype>FixedParameter</disttype>
+      <value>35</value>
+    </x0>
+  </changetime>
+  <distribs>
+    <x0>
+      <disttype>TruncatedNormal</disttype>
+      <mean>0.00025</mean>
+      <standarddev>0.00005</standarddev>
+      <lowerbound>0.0</lowerbound>
+    </x0>
+    <x1>
+      <disttype>TruncatedNormal</disttype>
+      <mean>0.0025</mean>
+      <standarddev>0.0005</standarddev>
+      <lowerbound>0.0</lowerbound>
+    </x1>
+  </distribs>
+</psi>
+```
+
+Note I also changed the initial psi value from `0.001` to `0.00025`. This is because the default priors in the XML was incorrect not only in not including the step change, but also in the prior value itself - this is closer to what we know about how the data was generated.
+
+Let's make the same changes for phi, both introducing the step change and also making the prior values more accurate:
+
+```
+<phi>
+  <stepchange>true</stepchange>
+  <changetime>
+    <x0>
+      <disttype>FixedParameter</disttype>
+      <value>35</value>
+    </x0>
+  </changetime>
+  <distribs>
+    <x0>
+      <disttype>TruncatedNormal</disttype>
+      <mean>0.005</mean>
+      <standarddev>0.002</standarddev>
+      <lowerbound>0.0</lowerbound>
+    </x0>
+    <x1>
+      <disttype>TruncatedNormal</disttype>
+      <mean>0.05</mean>
+      <standarddev>0.02</standarddev>
+      <lowerbound>0.0</lowerbound>
+    </x1>
+  </distribs>
+</phi>
+```
+
+## Step 4: Try again with our better parameterisation
+When you've edited the XML input file and saved the new version, we can rerun the analysis and see if there's an improvement. To run fully it should take around 25 minutes. Note that you may prefer to run this line in your console instead of this code chunk to prevent the EpiFusion log from writing inline into this document.
+
+```{r run_epifusion_again, error=, message=FALSE, warning=FALSE, paged.print=FALSE, results="hide"}
+run_epifusion("input.xml", "output")
+```
+
+## Step 5: Loading Raw EpiFusion Results
+Now we can load the raw results of our EpiFusion analysis into our R session. This function loads the raw posterior samples for each chain and some other information such as the number of chains etc into our session. We use the `load_raw_epifusion()` function for this, which takes a path to an output folder as it's input. We have 'example_input' as the file path for now, which points to an example output file we've included in the tutorial folder incase you don't want to wait for EpiFusion to finish. If you want to continue with your own output, and you've used this tutorial, just change it to the path to the most recent folder with the 'output' prefix.
+
+```{r loadrawoutput}
+raw_epifusion_output <- load_raw_epifusion("example_output/")
+```
+
+The resulting output is a large list with:
+1. The number of chains
+2. The number of samples per chain
+3. The likelihoods of each chain at each sampled step
+4. The acceptance rate of each chain between samples
+5. Posterior samples of infection trajectories per chain
+6. Posterior samples of rt trajectories per chain
+7. Posterior samples of parameter values per chain
+8. Simulated case incidence (if it's a combined or epi only analysis)
+
+### Step 5.1 Checking convergence
+
+Next we will take a look at the trace plots of the chain likelihood, to check that the model has run nicely. For this we can use the `plot_likelihood_trace` function, which takes the raw epifusion object as its input.
+
+```{r plottraces, echo=FALSE}
+plot_likelihood_trace(raw_epifusion_output)
+```
+
+Have a look at the likelihood trace for each chain run. They should start in different places but eventually converge to roughly the same value. Keep an eye out for chains getting stuck (staying at the same value for a long time). This does happen occassionally, and we are working on introducing adaptive Metropolis Hastings MCMC sampling to EpiFusion to fix this. Once you have had a look at the trace plot you can choose what proportion of each chain to discard as burn-in. EpiFusion models tend to converge relatively quickly, so the default in this document will be 10%. However, you can edit this as needed.
+
+```{r set_burnin}
+burn_in <- 0.2
+```
+
+### Step 5.2 Extracting your posterior minus burn-in
+Now that we have decided on the proportion of samples to discard as burn-in, we can parse the raw output into a more useful format. We do this with the `extract_posterior_epifusion()` function which takes the raw input and a proportion to discard as burn in as its arguments:
+
+```{r extract_posterior}
+final_outputs <- extract_posterior_epifusion(raw_epifusion_output, burn_in)
+```
+
+This function produces infection and Rt trajectory and parameter posteriors. For the trajectories, the samples (minus the burn-in and with aggregated across chains) are provided, along with mean trajectories and 95%, 88% and 66% HPD intervals. For the parameters, the samples are provided and Rhat and Effective Sample Sizes for each parameter to help assess convergence and mixing. We'll see a warning that says 'no variability observed in a parameter; setting batch size to 0' when you run this function, because we have some fixed parameters in our analysis. Don't worry about this - this just means it's not possible to compute an Rhat value for chains with constant equal values.
+
+### Step 5.3 Examining infection trajectory posteriors
+We can use an EpiFusion function, `trajectory_table` along with the date we started our model from, to create a table that is perfect for plotting:
+
+```{r plot_trajectories}
+trajectorytable <- trajectory_table(final_outputs, "2020-01-01")
+
+ggplot(trajectorytable, aes(x = Time)) +
+  geom_line(aes(y = Mean_Infected), col = "#2aac6d")+
+  geom_ribbon(aes(ymin = Lower95_Infected, ymax = Upper95_Infected), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower88_Infected, ymax = Upper88_Infected), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower66_Infected, ymax = Upper66_Infected), fill = "#2aac6d", alpha = 0.3)
+
+```
+
+
+### Step 5.4 Examining R(t) trajectory posteriors
+Now let's look at the same plot, but for Rt. We can use the same `trajectorytable` as before, and just slightly adjust the same plotting code:
+
+```{r plot_rttrajectories}
+ggplot(trajectorytable, aes(x = Time)) +
+  geom_line(aes(y = Mean_Rt), col = "#2aac6d")+
+  geom_ribbon(aes(ymin = Lower95_Rt, ymax = Upper95_Rt), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower88_Rt, ymax = Upper88_Rt), fill = "#2aac6d", alpha = 0.3) +
+  geom_ribbon(aes(ymin = Lower66_Rt, ymax = Upper66_Rt), fill = "#2aac6d", alpha = 0.3)
+
+```
+
+
+
