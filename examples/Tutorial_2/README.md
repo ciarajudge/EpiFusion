@@ -1,2 +1,2 @@
 # Tutorial 2 - Advanced XML formation and editing
-This tutorial shows you how to make your own EpiFusion XML file, starting with a tree and case incidence data. First we'll make a pretty basic XML and run the program, before making adjustments to the EpiFusion model parameterisation to better suit what we know about how the data was generated.
+[This tutorial](https://github.com/ciarajudge/EpiFusion/wiki/Advanced-Simulated-Tutorial) shows you how to make your own EpiFusion XML file, starting with a tree and case incidence data. First we'll make a pretty basic XML and run the program, before making adjustments to the EpiFusion model parameterisation to better suit what we know about how the data was generated.
