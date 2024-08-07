@@ -8,8 +8,8 @@ import cern.jet.random.Normal;
 public class Particle {
     int particleID;
     private int state;
-    double phyloLikelihood;
-    double epiLikelihood;
+    double phyloLikelihood; //Stored as log
+    double epiLikelihood; // Stored as log
     double phyloWeight;
     double epiWeight;
     double weight;
@@ -33,7 +33,7 @@ public class Particle {
         setState(state);
         this.traj = new Trajectory(new Day(0, 1, 0,0));
         //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.epiLikelihood = 1.0;
+        this.epiLikelihood = 0.0;
         //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.epiWeight = 1.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
@@ -55,7 +55,7 @@ public class Particle {
         this.particleID = pID;
         this.state = other.state;
         //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.epiLikelihood = 1.0;
+        this.epiLikelihood = 0.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.weight = 0.0;
         //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
@@ -80,7 +80,7 @@ public class Particle {
         System.out.println("State: "+ state);
         traj.printTrajectory();
         System.out.println("Phylo Likelihood:" + phyloLikelihood);
-        System.out.println("Epi Likelihood:"+ Math.log(epiLikelihood));
+        System.out.println("Epi Likelihood:"+ epiLikelihood);
         //System.out.println();
     }
     public void printBeta() {
@@ -107,9 +107,9 @@ public class Particle {
         this.epiWeight = weight;
     }
     public void setEpiLikelihood(double epiLikelihood){
-        this.epiLikelihood = this.epiLikelihood * epiLikelihood;
+        this.epiLikelihood = this.epiLikelihood + epiLikelihood;
         //this.epiLikelihood = epiLikelihood;
-        this.epiWeight = Math.log(this.epiLikelihood);
+        this.epiWeight = this.epiLikelihood;
     }
     public void setPhyloLikelihood(double newLikelihood) {
         this.phyloLikelihood = newLikelihood;

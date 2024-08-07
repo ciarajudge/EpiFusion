@@ -249,10 +249,21 @@ public class ProcessModel {
     }
 
     public static void epiOnlyDay(Particle particle, int t, double[] dayRates) {
+        if (particle.getEpiLikelihood() == Double.NEGATIVE_INFINITY) {
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        }
 
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         int state = particle.getState();
-        if (state <= 0) {
+        if (state < 0) {
+            particle.setEpiLikelihood(Double.NEGATIVE_INFINITY);
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        } else if (state == 0) {
+            particle.setEpiLikelihood(Double.NEGATIVE_INFINITY);
             Day tmpDay = new Day(t, state, 0, 0);
             particle.updateTrajectory(tmpDay);
             return;
@@ -291,7 +302,9 @@ public class ProcessModel {
 
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-                particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle));
+                double ll = EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle);
+                //System.out.println("EpiOnlyDay "+t+" Particle "+particle.particleID+" likelihood: "+ll);
+                particle.setEpiLikelihood(ll);
             }
         }
     }

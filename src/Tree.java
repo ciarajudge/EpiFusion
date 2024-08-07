@@ -7,7 +7,7 @@ public class Tree {
     // Leaf class representing a leaf node in the tree
 
     // Tree class representing a Newick format tree
-    public final Node root; // root node of the tree
+    public Node root; // root node of the tree
     public double age;
     public int start = 0;
     public int end;
@@ -25,10 +25,16 @@ public class Tree {
 
 
     public Tree(String treeString, boolean isString) throws IOException {
-        this.age = 0.0;
-        // Create a Tree object from the Newick format string
-        this.root = parseNewickString(treeString);
-        this.end = (int) Math.ceil(age);
+        try {
+            this.age = 0.0;
+            // Create a Tree object from the Newick format string
+            this.root = parseNewickString(treeString);
+            this.end = (int) Math.ceil(age);
+        } catch(IndexOutOfBoundsException e) {
+            System.out.println("Something went wrong reading in the tree! Perhaps check that you don't have any singleton nodes \n" +
+                    "or nodes with more than two children!");
+            System.exit(0);
+        }
 
     }
 

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.nio.file.Files;
 
@@ -31,7 +32,7 @@ public class Main {
                     "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
                     "improvements. Further information and example input XML files are available at the project github: \n" +
                     "https://github.com/ciarajudge/EpiFusion.\n");
-            long startTime = System.nanoTime();
+
 
             try {
                 XMLParser.parseXMLInput(args[0]);
@@ -43,7 +44,7 @@ public class Main {
             Storage.loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
             logXML(args[0]);
 
-
+            long startTime = System.nanoTime();
             for (int i = 0; i < Storage.numChains; i++) {
                 try {
                     ParticleFilter particleFilter = new ParticleFilter(i);

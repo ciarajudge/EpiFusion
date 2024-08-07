@@ -120,7 +120,7 @@ public class Particles {
         //Case 1: all NaN. Can happen if state is negative in which case the pf needs quitting
         boolean allNaN = true;
         for (Particle particle : particles) {
-            if (!(Double.isNaN(Math.log(particle.getEpiLikelihood())))) {
+            if (!(Double.isNaN(particle.getEpiLikelihood()))) {
                 allNaN = false;
                 break;
             }
@@ -132,7 +132,7 @@ public class Particles {
             //Case 2: all -Inf. Could happen if the state is very far from incidence, or is 0.
             boolean allNegInf = true;
             for (Particle particle : particles) {
-                if (!(Double.isInfinite(Math.log(particle.getEpiLikelihood())))) {
+                if (!(Double.isInfinite(particle.getEpiLikelihood()))) {
                     allNegInf = false;
                     break;
                 }

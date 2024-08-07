@@ -38,7 +38,7 @@ public class EpiLikelihood {
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         particle.positiveTestsFit.add(particle.positiveTests);
         particle.positiveTests = 0;
-        return Math.exp(logLikelihood);
+        return logLikelihood;
     }
     /*
      public static double poissonLikelihood(int incidence, Particle particle) {
@@ -62,7 +62,7 @@ public class EpiLikelihood {
         particle.positiveTestsFit.add(particle.positiveTests);
         particle.positiveTests = 0;
         // return the likelihood
-        return Math.exp(probability);
+        return probability;
     }
 
 

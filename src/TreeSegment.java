@@ -50,11 +50,15 @@ public class TreeSegment {
     private int traverseForLineagesInWindow(Node node, double T, int lineages) {
         if (node == null || node instanceof Leaf) {
             return lineages;
+        } if (node.isRoot) {
+            lineages = 1;
         }
         Node leftChild = ((Internal) node).getLeft();
         Node rightChild = ((Internal) node).getRight();
         if (node.getTime() <= T && leftChild.getTime() >= T) { //Might be able to quit when nodetime is more than endtime but my brain don't be working
-            lineages += 1;
+            if (!node.isRoot) {
+                lineages += 1;
+            }
         }
         else {
             lineages = traverseForLineagesInWindow(leftChild, T, lineages);
@@ -71,7 +75,7 @@ public class TreeSegment {
     }
 
     public int getNumLineages(Tree tree, double T) {
-        return traverseForLineagesInWindow(tree.getRoot(), T, 0);
+        return traverseForLineagesInWindow(tree.getRoot(), T, 1);
     }
 
     public int getNumInternalNodes(Tree tree, double startTime, double endTime) {

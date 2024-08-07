@@ -53,6 +53,8 @@ public class Storage {
 
     //Priors things
     public static Priors priors;
+    public static boolean pairedPsi = false;
+    public static double[] psiProp;
 
     //Extras
     public static boolean tooBig = false;

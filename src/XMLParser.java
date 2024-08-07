@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.Arrays;
 
 public class XMLParser {
     public static void parseXMLInput(String xmlFile) throws IOException, ParserConfigurationException, SAXException {
@@ -54,6 +55,10 @@ public class XMLParser {
             Storage.firstStep = 0;
         }
         //Do a dates days check here, check data generally
+
+
+        // The special paried psi case, will require the creation of a fixed psi param and calculation of the proportion vector
+
 
     }
 
@@ -188,6 +193,7 @@ public class XMLParser {
         double[] weightsOverTime = getArrayAcrossTime(epiContrib, weightChangeTimes);
         Storage.confidenceSplit = weightsOverTime;
 
+        //Storage.tree.printTree();
 
         if (!Storage.isEpiOnly()) {
             Storage.tree.segmentedTree = new TreeSegment[Storage.end];

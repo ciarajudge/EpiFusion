@@ -19,26 +19,44 @@ public class Parameter {
 
     public Parameter(Element element) {
         label = element.getTagName();
-        stepChange = Boolean.parseBoolean(element.getElementsByTagName("stepchange").item(0).getTextContent());
-        if (stepChange) {
-            //Get change times
-            getChangeTimes((Element) element.getElementsByTagName("changetime").item(0));
-            getParams((Element) element.getElementsByTagName("distribs").item(0));
-            numDistribs = numChanges + numValues;
-            knitDistribs();
-
-        } else {
-            numChanges = 0;
-            numValues = 1;
-            numDistribs = numChanges + numValues;
-            subLabels = new ArrayList<>();
+        if (label.equals("pairedPsi")) {
+            Storage.pairedPsi = true;
+            this.stepChange = false;
+            this.numChanges = 0;
+            this.numValues = 1;
+            this.numDistribs = 1;
+            this.subLabels = new ArrayList<>();
             subLabels.add(label);
-            values = new Prior[1];
-            values[0] = new Prior((Element) element);
-            priors = new Prior[1];
+            this.label = label;
+            this.values = new Prior[1];
+            values[0] = new Prior();
+            this.priors = new Prior[1];
             priors[0] = values[0];
         }
+        else {
+            stepChange = Boolean.parseBoolean(element.getElementsByTagName("stepchange").item(0).getTextContent());
+            if (stepChange) {
+                //Get change times
+                getChangeTimes((Element) element.getElementsByTagName("changetime").item(0));
+                getParams((Element) element.getElementsByTagName("distribs").item(0));
+                numDistribs = numChanges + numValues;
+                knitDistribs();
+
+            } else {
+                numChanges = 0;
+                numValues = 1;
+                numDistribs = numChanges + numValues;
+                subLabels = new ArrayList<>();
+                subLabels.add(label);
+                values = new Prior[1];
+                values[0] = new Prior((Element) element);
+                priors = new Prior[1];
+                priors[0] = values[0];
+            }
+        }
+
     }
+
 
     public Parameter(String label) {
         this.stepChange = false;
@@ -49,6 +67,20 @@ public class Parameter {
         subLabels.add(label);
         this.label = label;
         this.values = new Prior[1];
+        values[0] = new Prior();
+        this.priors = new Prior[1];
+        priors[0] = values[0];
+    }
+
+    public Parameter(String label, double[] vals, int[] changeTimes) {
+        this.stepChange = false;
+        this.numChanges = 0;
+        this.numValues = vals.length;
+        this.numDistribs = (2 * changeTimes.length) + 1;
+        this.subLabels = new ArrayList<>();
+        subLabels.add(label);
+        this.label = label;
+        this.values = new Prior[vals.length]; //Here's where I'm at, my brain is tired
         values[0] = new Prior();
         this.priors = new Prior[1];
         priors[0] = values[0];
