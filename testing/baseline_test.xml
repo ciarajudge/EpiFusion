@@ -43,6 +43,7 @@
       <mean>0.143</mean>
       <standarddev>0.05</standarddev>
       <lowerbound>0.0</lowerbound>
+      <upperbound>1.0</upperbound>
     </gamma>
     <psi>
       <stepchange>false</stepchange>
@@ -50,13 +51,25 @@
       <value>0.001</value>
       <standarddev>0.0005</standarddev>
       <lowerbound>0.0</lowerbound>
+      <upperbound>1.0</upperbound>
     </psi>
     <phi>
       <stepchange>false</stepchange>
-      <disttype>TruncatedNormal</disttype>
-      <mean>0.02</mean>
-      <standarddev>0.01</standarddev>
-      <lowerbound>0.0</lowerbound>
+      <numdists>2</numdists>
+      <a>
+        <disttype>TruncatedNormal</disttype>
+        <mean>0.2</mean>
+        <standarddev>0.05</standarddev>
+        <lowerbound>0.0</lowerbound>
+        <upperbound>1.0</upperbound>
+      </a>
+      <b>
+        <disttype>TruncatedNormal</disttype>
+        <mean>0.4</mean>
+        <standarddev>0.05</standarddev>
+        <lowerbound>0.0</lowerbound>
+        <upperbound>1.0</upperbound>
+      </b>
     </phi>
     <initialBeta>
       <stepchange>false</stepchange>

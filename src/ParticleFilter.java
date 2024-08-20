@@ -114,12 +114,12 @@ public class ParticleFilter {
 
             particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
             if (particles.checkPhyloLikelihoods()) {
-                //System.out.println("Quitting due to neginf particles; step "+step);
+                System.out.println("Quitting due to neginf Phylo particles; step "+step);
                 return true;}
             //If it's a combined run get the epi likelihoods and check them
             if (!Storage.isPhyloOnly()){
                 if (particles.checkEpiLikelihoods()) {
-                    //System.out.println("Epi Likelihood Issue in step "+step);
+                    System.out.println("Quitting due to neginf Epi particles; step "+step);
                     return true;}
             }
         }
