@@ -29,7 +29,7 @@ public class Parameter {
             subLabels.add(label);
             this.label = label;
             this.values = new Prior[1];
-            values[0] = new Prior();
+            values[0] = new Prior(label);
             this.priors = new Prior[1];
             priors[0] = values[0];
         }
@@ -57,7 +57,6 @@ public class Parameter {
 
     }
 
-
     public Parameter(String label) {
         this.stepChange = false;
         this.numChanges = 0;
@@ -67,7 +66,7 @@ public class Parameter {
         subLabels.add(label);
         this.label = label;
         this.values = new Prior[1];
-        values[0] = new Prior();
+        values[0] = new Prior(label);
         this.priors = new Prior[1];
         priors[0] = values[0];
     }
@@ -81,7 +80,7 @@ public class Parameter {
         subLabels.add(label);
         this.label = label;
         this.values = new Prior[vals.length]; //Here's where I'm at, my brain is tired
-        values[0] = new Prior();
+        values[0] = new Prior(label);
         this.priors = new Prior[1];
         priors[0] = values[0];
     }

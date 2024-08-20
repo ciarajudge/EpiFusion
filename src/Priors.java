@@ -20,17 +20,31 @@ public class Priors {
         NodeList priorElementChildNodes = priorElement.getChildNodes();
         priorNodes = new ArrayList<>();
         labels = new ArrayList<>();
+        int psi_and_phi = 0;
 
         for (int i=0; i<priorElementChildNodes.getLength(); i++) {
             org.w3c.dom.Node node = priorElementChildNodes.item(i);
             if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
                 Element element = (Element) node;
                 priorNodes.add(element);
+                String placeholderLabel = element.getTagName();
+                if (placeholderLabel.equals("phi") || placeholderLabel.equals("psi")) {
+                    psi_and_phi += 1;
+                }
             }
         }
 
         numParameters = priorNodes.size();
-        parameters = new Parameter[numParameters];
+        if (psi_and_phi == 0) {
+            System.out.println("Uh oh! You haven't provided any priors for sampling rates! Try adding psi or phi priors!");
+            System.exit(0);
+        } else if (psi_and_phi == 1) {
+            parameters = new Parameter[numParameters+1];
+        } else {
+            parameters = new Parameter[numParameters];
+        }
+
+
 
 
         for (int i = 0; i < priorNodes.size(); i++) {
@@ -72,6 +86,8 @@ public class Priors {
                 psiProp[t] = (double) seqs/Storage.incidence.incidence[t];
             }
             Storage.psiProp = psiProp;
+
+
             numParameters += 1;
             numPriors += 1;
             labels.add("psi");
@@ -80,12 +96,12 @@ public class Priors {
             for (int i=0; i<numParameters-1; i++) {
                 parameters[i] = temp[i];
             }
-            Parameter tempParam = new Parameter("psi", "");
+            Parameter tempParam = new Parameter("psi");
             parameters[parameters.length] = tempParam;
             parameterDict.put("psi", tempParam);
             parameterIndexes.put("psi", new int[] {numPriors});
 
-        }*/
+        } */
 
 
         //Make sure there's gamma
@@ -112,13 +128,13 @@ public class Priors {
                     parameters[i] = temp[i];
                 }
                 Parameter tempParam = new Parameter("psi");
-                parameters[parameters.length] = tempParam;
+                parameters[parameters.length-1] = tempParam;
                 parameterDict.put("psi", tempParam);
-                parameterIndexes.put("psi", new int[] {numPriors});
+                parameterIndexes.put("psi", new int[] {numPriors - 1});
                 //something to do with parameterindexes
             } else { //Make sure psi is fixed
                 if (!parameterDict.get("psi").priors[0].isFixed()) {
-                    System.out.println("ERROR: An unfixed psi prior has been provided for an epi only analysis");
+                    System.out.println("ERROR: An unfixed phi prior has been provided for an phylo only analysis");
                     System.exit(0);
                 }
             }
@@ -141,9 +157,9 @@ public class Priors {
                     parameters[i] = temp[i];
                 }
                 Parameter tempParam = new Parameter("phi");
-                parameters[parameters.length] = tempParam;
+                parameters[parameters.length-1] = tempParam;
                 parameterDict.put("phi", tempParam);
-                parameterIndexes.put("phi", new int[] {numPriors});
+                parameterIndexes.put("phi", new int[] {numPriors - 1});
                 //something to do with parameterindexes
             } else { //Make sure psi is fixed
                 if (!parameterDict.get("phi").priors[0].isFixed()) {

@@ -96,7 +96,6 @@ public class ParticleFilter {
 
     }
 
-
     public boolean filterStep(int step)  throws IOException {
         increments = Math.min(resampleEvery, (Storage.end-(step*resampleEvery)));
         int phiIndex = step*increments;
@@ -159,7 +158,6 @@ public class ParticleFilter {
         return logPrior;
     }
 
-
     //Getters
     public double[][] getCurrentRates() {return currentRates;}
     public double[][] getCandidateRates() {return candidateRates;}
@@ -186,7 +184,6 @@ public class ParticleFilter {
         }
         return ratesForStep;
     }
-
 
     //Setters
     public void resetCurrentParameters() { //Special case, resets current to candidates (called if MCMC step is accepted)

@@ -32,7 +32,8 @@ public class Prior {
         }
     }
 
-    public Prior() {
+    public Prior(String label) {
+        this.label = label;
         double value = 1.0;
         distribs = new Dist[1];
         distribs[0] = new FixedParameter(value);
