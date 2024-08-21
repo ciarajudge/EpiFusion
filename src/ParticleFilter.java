@@ -254,6 +254,13 @@ public class ParticleFilter {
         } else if (Storage.analysisType == 4) {
             candidateRates = randomWalkRateParsing();
         }
+
+        // if pairedPsi is true, do the multiplication thing
+        for (int i = 0; i < candidateRates.length; i++) {
+            candidateRates[i][2] = candidateRates[i][2] * candidateRates[i][3];
+        }
+
+
     }
 
     private double[] getParamAcrossTime(String paramLabel) {

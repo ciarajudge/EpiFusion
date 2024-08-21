@@ -28,7 +28,7 @@ public class Priors {
                 Element element = (Element) node;
                 priorNodes.add(element);
                 String placeholderLabel = element.getTagName();
-                if (placeholderLabel.equals("phi") || placeholderLabel.equals("psi")) {
+                if (placeholderLabel.equals("phi") || placeholderLabel.equals("pairedPsi") || placeholderLabel.equals("psi")) {
                     psi_and_phi += 1;
                 }
             }
@@ -71,39 +71,6 @@ public class Priors {
         }
 
         //Priors checks
-        //If pairedpsi, do a fixed
-        /*
-        if (Storage.pairedPsi) {
-            int[] incidenceTimes = Storage.incidence.times;
-            double[] psiProp = new double[incidenceTimes.length];
-            int init = 0;
-            for (int t = 0; t < incidenceTimes.length; t++) {
-                int seqs = 0;
-                for (int i = init; i < incidenceTimes[t]; i++) {
-                    seqs += Storage.tree.segmentedTree[i].samplings;
-                    init += 1;
-                }
-                psiProp[t] = (double) seqs/Storage.incidence.incidence[t];
-            }
-            Storage.psiProp = psiProp;
-
-
-            numParameters += 1;
-            numPriors += 1;
-            labels.add("psi");
-            Parameter[] temp = parameters;
-            parameters = new Parameter[numParameters];
-            for (int i=0; i<numParameters-1; i++) {
-                parameters[i] = temp[i];
-            }
-            Parameter tempParam = new Parameter("psi");
-            parameters[parameters.length] = tempParam;
-            parameterDict.put("psi", tempParam);
-            parameterIndexes.put("psi", new int[] {numPriors});
-
-        } */
-
-
         //Make sure there's gamma
 
         if (!paramLabels.contains("gamma")) {

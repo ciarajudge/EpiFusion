@@ -13,11 +13,7 @@ public class Prior {
     public Prior(Element element) {
         label = element.getTagName();
 
-        if (label.equals("pairedPsi")) { //whatever tf is going in with pairedpsi lol
-            isFixed = true;
-            //isDiscrete = true;
-            Storage.pairedPsi = true;
-        } else if (element.getElementsByTagName("a").getLength() > 0) {
+        if (element.getElementsByTagName("a").getLength() > 0) {
             numDists = Integer.parseInt(element.getElementsByTagName("numdists").item(0).getTextContent());
             distribs = new Dist[numDists];
             for (int i = 0; i < numDists; i++) {
@@ -40,7 +36,8 @@ public class Prior {
         isFixed = true;
     }
 
-    public Prior(double value) {
+    public Prior(String label, double value) {
+        this.label = label;
         distribs = new Dist[1];
         distribs[0] = new FixedParameter(value);
         isFixed = true;

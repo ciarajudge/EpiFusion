@@ -40,6 +40,7 @@ public class Main {
             }
 
             Storage.loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
+
             logXML(args[0]);
 
             long startTime = System.nanoTime();
