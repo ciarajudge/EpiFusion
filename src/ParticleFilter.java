@@ -96,7 +96,6 @@ public class ParticleFilter {
 
     }
 
-
     public boolean filterStep(int step)  throws IOException {
         increments = Math.min(resampleEvery, (Storage.end-(step*resampleEvery)));
         int phiIndex = step*increments;
@@ -159,7 +158,6 @@ public class ParticleFilter {
         return logPrior;
     }
 
-
     //Getters
     public double[][] getCurrentRates() {return currentRates;}
     public double[][] getCandidateRates() {return candidateRates;}
@@ -186,7 +184,6 @@ public class ParticleFilter {
         }
         return ratesForStep;
     }
-
 
     //Setters
     public void resetCurrentParameters() { //Special case, resets current to candidates (called if MCMC step is accepted)
@@ -257,6 +254,13 @@ public class ParticleFilter {
         } else if (Storage.analysisType == 4) {
             candidateRates = randomWalkRateParsing();
         }
+
+        // if pairedPsi is true, do the multiplication thing
+        for (int i = 0; i < candidateRates.length; i++) {
+            candidateRates[i][2] = candidateRates[i][2] * candidateRates[i][3];
+        }
+
+
     }
 
     private double[] getParamAcrossTime(String paramLabel) {
