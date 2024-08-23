@@ -22,6 +22,11 @@ public class Parameter {
     public Parameter(Element element) {
         label = element.getTagName();
         if (label.equals("pairedPsi")) {
+            if (Storage.isEpiOnly()) {
+                System.out.println("Uh Oh! You've specified a paired psi parameter for an Epi Only analysis! Remove the 'pairedPsi'" +
+                        "tag from the <priors> block in your XML file!");
+                System.exit(0);
+            }
             Storage.pairedPsi = true;
             this.label = "psi";
             double[] psiProp = getPsiProp();
