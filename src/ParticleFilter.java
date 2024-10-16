@@ -137,7 +137,7 @@ public class ParticleFilter {
 
         checkParticles(step);
         //resample
-        particles.resampleParticles();
+        particles.resampleParticles(step);
 
         checkParticles(step);
 

@@ -81,6 +81,11 @@ public class ProcessModel {
             Day tmpDay = new Day(t, particle.getState(), 0, 0);
             particle.updateTrajectory(tmpDay);
             return;
+        } else if (state == 0 & tree.lineages > 0) {
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
+            return;
         }
 
         double[] propensities = particle.getVanillaPropensities(rates);
@@ -128,6 +133,9 @@ public class ProcessModel {
         if (tree.lineages > 0) {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities, t);
+            /*if (t > 405 & t < 413) {
+                System.out.println("Particle "+particle.particleID+", day "+t+", likelihood: "+todayPhyloLikelihood);
+            }*/
             if (Double.isInfinite(todayPhyloLikelihood)) {
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY); //set phylo Likelihood of that particle to negative infinity which will quit the loop
                 return;

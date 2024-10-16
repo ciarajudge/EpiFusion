@@ -101,7 +101,7 @@ public class Priors {
                 //something to do with parameterindexes
             } else { //Make sure psi is fixed
                 if (!parameterDict.get("psi").priors[0].isFixed()) {
-                    System.out.println("ERROR: An unfixed phi prior has been provided for an phylo only analysis");
+                    System.out.println("ERROR: An unfixed psi prior has been provided for an epi only analysis");
                     System.exit(0);
                 }
             }
@@ -129,7 +129,7 @@ public class Priors {
                 parameterIndexes.put("phi", new int[] {numPriors - 1});
                 //something to do with parameterindexes
             } else { //Make sure psi is fixed
-                if (!parameterDict.get("phi").priors[0].isFixed()) {
+                if (!parameterDict.get("phi").priors[0].isFixed() & !Storage.pairedPsi) {
                     System.out.println("ERROR: An unfixed phi prior has been provided for an phylo only analysis");
                     System.exit(0);
                 }

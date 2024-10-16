@@ -98,6 +98,7 @@ public class XMLParser {
         Storage.maxEpidemicSize = Integer.parseInt(parametersElement.getElementsByTagName("maxEpidemicSize").item(0).getTextContent());
         Storage.removalProbability = Integer.parseInt(parametersElement.getElementsByTagName("samplingsAsRemovals").item(0).getTextContent());
         Storage.genTime = readDoubleArray(parametersElement.getElementsByTagName("generationPMF").item(0).getTextContent());
+        Storage.pairedPsi = Boolean.parseBoolean(parametersElement.getElementsByTagName("pairedPsi").item(0).getTextContent());
 
         if (parametersElement.getElementsByTagName("likelihoodScaler").getLength() > 0) {
             Storage.likelihoodScaler = Integer.parseInt(parametersElement.getElementsByTagName("likelihoodScaler").item(0).getTextContent());
@@ -143,7 +144,7 @@ public class XMLParser {
         Incidence incidence = null;
         Tree tree = null;
 
-        if (!Storage.isPhyloOnly()) {
+        if (!Storage.isPhyloOnly() || Storage.pairedPsi) {
             if (dataElement.getElementsByTagName("incidence").getLength() > 0) { //File will be a table of times and values
                 Element incidenceElement = (Element) dataElement.getElementsByTagName("incidence").item(0);
                 incidence = new Incidence(incidenceElement);

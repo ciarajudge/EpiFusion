@@ -15,6 +15,7 @@ public class Particle {
     double weight;
     Trajectory traj;
     ArrayList<Double> beta;
+    ArrayList<Double> betaAttrib;
     //double[][] likelihoodMatrix;
     private double stdDev;
     public boolean treeOn;
@@ -39,6 +40,8 @@ public class Particle {
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
+        this.betaAttrib = new ArrayList<>();
+
         //this.likelihoodMatrix = new double[Storage.T][6];
         this.treeOn = false;
         this.haveReachedTree = false;
@@ -63,6 +66,7 @@ public class Particle {
         this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.traj = new Trajectory(other.traj);
         this.beta = new ArrayList<>(other.beta);
+        this.betaAttrib = new ArrayList<>(other.betaAttrib);
         //this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
         this.stdDev = other.stdDev;
         this.treeOn = other.treeOn;
@@ -118,16 +122,25 @@ public class Particle {
     public void setBeta(Double betaT, double stdDev) {
         beta.add(betaT);
         this.stdDev = stdDev;
+        betaAttrib.add(Normal.staticNextDouble(0.0, stdDev));
     }
     public void nextBeta(double reFactor) {
         //TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
-        Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor) + Normal.staticNextDouble(0.0, stdDev));
+        //Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor) + Normal.staticNextDouble(0.0, stdDev));
+        Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor+ Normal.staticNextDouble(0.0, stdDev)));
         beta.add(newBeta);
     }
 
     public void betaLinearSpline(int numToAdd) {
-        Double slope = Normal.staticNextDouble(0.0, stdDev);
+        double slope;
         Double intercept = beta.get(beta.size()-1);
+        if (intercept == 0) {
+            betaAttrib.set(0, Math.abs(Normal.staticNextDouble(0, stdDev)));
+            slope = betaAttrib.get(0);
+        } else {
+            betaAttrib.set(0, Normal.staticNextDouble(betaAttrib.get(0), stdDev));
+            slope = betaAttrib.get(0);
+        }
         for (int i=0; i<numToAdd; i++) {
             beta.add(Math.max((intercept+(i*slope)), 0.0));
         }

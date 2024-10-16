@@ -7,6 +7,7 @@ import java.util.Arrays;
 public class Particles {
     Particle[] particles;
     int N;
+    double[][] betas;
 
     public Particles(int numParticles){
         N = numParticles;
@@ -14,6 +15,7 @@ public class Particles {
         for (int i = 0; i< N; i++) {
             particles[i] = new Particle(i);
         }
+        betas = new double[N][Storage.T];
     }
 
     //Printers
@@ -362,7 +364,8 @@ public class Particles {
 
 
     //Resampling
-    public void resampleParticles() throws IOException {
+    public void resampleParticles(int resamplingStep) throws IOException {
+
         int[] resampledParticleIDs = new int[N];
         int[] resampledParticleStates = new int[N];
         double[] resampledParticleLikelihoods = new double[N];
@@ -375,6 +378,17 @@ public class Particles {
             totalWeight += particle.weight;
         }
         //System.out.println(totalWeight);
+
+        /*
+        for (int i = 0; i < N; i++) {
+            betas[i][0+(resamplingStep*7)] = particles[i].beta.get(0+(resamplingStep*7));
+            betas[i][1+(resamplingStep*7)] = particles[i].beta.get(1+(resamplingStep*7));
+            betas[i][2+(resamplingStep*7)] = particles[i].beta.get(2+(resamplingStep*7));
+            betas[i][3+(resamplingStep*7)] = particles[i].beta.get(3+(resamplingStep*7));
+            betas[i][4+(resamplingStep*7)] = particles[i].beta.get(4+(resamplingStep*7));
+            betas[i][5+(resamplingStep*7)] = particles[i].beta.get(5+(resamplingStep*7));
+            betas[i][6+(resamplingStep*7)] = particles[i].beta.get(6+(resamplingStep*7));
+        }*/
 
 
         // Generate a random number between 0 and total weight

@@ -181,7 +181,11 @@ public class Parameter {
         for (int t = 0; t < incidenceTimes.length; t++) {
             int seqs = 0;
             for (int i = init; i < incidenceTimes[t]; i++) {
-                seqs += Storage.tree.segmentedTree[i].samplings;
+                try {
+                    seqs += Storage.tree.segmentedTree[i].samplings;
+                } catch (Exception e) {
+                    System.out.println("Tree ends before cases, technically FYI");
+                }
                 init += 1;
             }
             double proportion = (double)  seqs/Storage.incidence.incidence[t];
@@ -190,8 +194,14 @@ public class Parameter {
                         "observed sequences on the tree and no observed cases during the same interval. We \n" +
                         "advise that you confirm the relationship between psi and phi, to ensure using a paired \n" +
                         "psi is appropriate for this analysis.");
-                proportion = 0.0;
-            } else if (Double.isNaN(proportion)) {
+                proportion = 1.0;
+            } else if (Double.isInfinite(proportion)){
+                System.out.println("WARNING! You are using a paired psi parameter, but there are instances where there are \n" +
+                        "observed sequences on the tree and no observed cases during the same interval. We \n" +
+                        "advise that you confirm the relationship between psi and phi, to ensure using a paired \n" +
+                        "psi is appropriate for this analysis.");
+                proportion = 1.0;
+            }  else if (Double.isNaN(proportion)) {
                 proportion = 0.0;
             }
             psiProp[t] = proportion;
