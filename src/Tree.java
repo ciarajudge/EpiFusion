@@ -2,6 +2,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Stack;
+import org.xml.sax.SAXException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class Tree {
     // Leaf class representing a leaf node in the tree
@@ -13,18 +16,8 @@ public class Tree {
     public int end;
     public TreeSegment[] segmentedTree;
 
-    public Tree(String fileName) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String newickString = reader.readLine();
-        reader.close();
-        this.age = 0.0;
-        // Create a Tree object from the Newick format string
-        this.root = parseNewickString(newickString);
-        this.end = (int) Math.ceil(age);
-    }
 
-
-    public Tree(String treeString, boolean isString) throws IOException {
+    public Tree(String treeString) {
         try {
             this.age = 0.0;
             // Create a Tree object from the Newick format string
@@ -35,7 +28,7 @@ public class Tree {
                     "or nodes with more than two children!");
             System.exit(0);
         }
-
+        //this.segmentedTree = getSegmentedTree(end);
     }
 
 
@@ -202,7 +195,6 @@ public class Tree {
             treeSegment.printTreeSegment();
         }
     }
-
     public void treeEventsInSegments(int maxTime) {
         int eventsInTree = 0;
         int eventsInSegment = 0;
@@ -228,6 +220,16 @@ public class Tree {
             treeFinished = true;
         }
         return treeFinished;
+    }
+
+    public void getSegmentedTree(int maxTime) {
+        TreeSegment[] segmentedTree = new TreeSegment[maxTime];
+        for (int i=0; i<maxTime; i++) {
+            double t = (double) i + 1;
+            segmentedTree[i] = new TreeSegment(this, i, t);
+            //segmentedTree[i].printTreeSegment();
+        }
+        this.segmentedTree = segmentedTree;
     }
 
 }
