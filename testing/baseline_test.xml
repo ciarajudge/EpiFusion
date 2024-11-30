@@ -23,7 +23,7 @@
     <overdispersion>10.0</overdispersion>
   </model>
   <parameters>
-    <epiOnly>true</epiOnly>
+    <epiOnly>false</epiOnly>
     <phyloOnly>false</phyloOnly>
     <numParticles>100</numParticles>
     <numSteps>500</numSteps>

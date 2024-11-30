@@ -57,12 +57,20 @@ public class PhyloLikelihood {
 
         if (type == 0) { //Coalescence
             particle.setState(state+1);
-            conditionalLogP += Math.log(2.0 / state / (state-1) * prop);
+            double plc = Math.log(2.0 / state / (state-1) * prop);
+            /*if (Double.isInfinite(plc)) {
+                System.out.println("Birth event messing it up on day "+t);
+            }*/
+            conditionalLogP += plc;
             particle.setState(state + 1);
             particle.todaysInfs = particle.todaysInfs + 1;
         }
         else { //sampling
-            conditionalLogP += Math.log(prop);
+            double plc = Math.log(prop);
+            /*if (Double.isInfinite(plc)) {
+                System.out.println("Sampling event messing it up on day "+t+", prop is"+prop);
+            }*/
+            conditionalLogP += plc;
             particle.setState(state-Storage.removalProbability);
         }
 

@@ -317,7 +317,7 @@ public class Particles {
 
 
     //Actual propagation
-    public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments){
+    public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments, int origin){
         ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
         try {
             int t = step*Storage.resampleEvery;
@@ -326,14 +326,14 @@ public class Particles {
 
             int ind = 0;
             for (int i=t; i<t+increments; i++) {
-                treeSegments[ind] = Storage.tree.segmentedTree[i];
+                treeSegments[ind] = tree.segmentedTree[i];
                 ind++;
             }
 
 
 
             for (Particle particle : particles) {
-                executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates));
+                executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates, origin));
             }
 
             executor.shutdown();
@@ -346,11 +346,11 @@ public class Particles {
             throw new RuntimeException("Interrupted while waiting", e);
         }
     }
-    public void epiOnlyPredictAndUpdate(int step, double[][] rates, int increments){
+    public void epiOnlyPredictAndUpdate(int step, double[][] rates, int increments, int origin){
         ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
         try {
             for (Particle particle : particles) {
-                executor.submit(() -> ProcessModel.epiOnlyStep(particle, step, rates, increments));
+                executor.submit(() -> ProcessModel.epiOnlyStep(particle, step, rates, increments, origin));
             }
             executor.shutdown();
             boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
