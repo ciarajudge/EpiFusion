@@ -22,7 +22,6 @@ public class MCMC {
 
     public void runMCMC(int numIterations) throws IOException {
         double[] currentParameters = this.particleFilter.getCurrentParameters();
-
         for (int i = 0; i < numIterations; i++) {
 
             // Generate a proposal for the next set of parameters
@@ -63,6 +62,7 @@ public class MCMC {
         System.out.println("CHAIN "+particleFilter.chainID+" COMPLETE");
         System.out.println("Final likelihood: "+ particleFilter.getLogLikelihoodCurrent());
         System.out.println("Beta: "+particleFilter.currentSampledParticle.beta);
+        Storage.epiActive = false;
     }
 
     private double transform(double param) {
