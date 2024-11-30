@@ -249,7 +249,8 @@ public class Particles {
 
         int iter = 0;
         for (Particle particle : particles) {
-            if (Double.isInfinite(Math.log(particle.epiLikelihood))) {
+            //if (Double.isInfinite(Math.log(particle.epiLikelihood))) {
+            if (Double.isInfinite(particle.epiLikelihood)) {
                 particle.epiWeight = Double.NEGATIVE_INFINITY;
             }
             maxLogWeight = Math.max(particle.epiWeight, maxLogWeight);
