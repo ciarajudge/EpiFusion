@@ -1,6 +1,6 @@
 import java.util.Arrays;
 import java.io.IOException;
-
+import java.util.Random;
 
 public class ParticleFilter {
     public int chainID;
@@ -22,12 +22,15 @@ public class ParticleFilter {
     private final int numParticles;
     public Particle currentSampledParticle;
     public Loggers loggers;
+    public Random rand;
+    private int outbreakOrigin = 0;
+    public int sampledTree = 1;
 
 
     public ParticleFilter(int chainID) throws IOException {
         this.chainID = chainID;
         this.numParticles = Storage.numParticles;
-        this.tree = Storage.tree;
+        this.tree = Storage.tree.trees[0]; //come back here
         this.caseIncidence = Storage.incidence;
         this.T = Storage.T;
         this.resampleEvery = Storage.resampleEvery;
@@ -35,6 +38,7 @@ public class ParticleFilter {
         this.candidateRates = new double[this.T][5];
         this.loggers = new Loggers(chainID);
         particles = new Particles(numParticles);
+        this.rand = new Random();
         initialisePF();
     }
 
@@ -60,10 +64,20 @@ public class ParticleFilter {
 
     public void runPF(double[] parameters) throws IOException {
         clearCache();
+
+        //Sample a new tree
+        sampledTree = rand.nextInt(Storage.tree.trees.length);
+        System.out.println(sampledTree);
+        this.tree = Storage.tree.trees[sampledTree];
+        //tree.printTreeInSegments(100);
+
         //Convert parameters into rates
         candidateParameters = parameters;
 
         parametersToRates();
+        if (Storage.inferTOI) {
+            adjustTOI();
+        }
 
         if (Storage.firstStep > 0 ){
             int initialState = (int) parameters[Storage.priors.parameterIndexes.get("initialI")[0]];
@@ -103,23 +117,29 @@ public class ParticleFilter {
 
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
-            particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
+            particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments, outbreakOrigin);
             //particles.getEpiLikelihoods(caseIncidence.incidence[step]);
-            if (particles.checkEpiLikelihoods()) {return true;}
+            //particles.printParticles();
+            if (Storage.epiActive) {
+                if (particles.checkEpiLikelihoods()) {return true;}
+            }
+
         }
 
         //If Phylo is involved at all
         else {
-
-            particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
+            particles.predictAndUpdate(step, this.tree, getRatesForStep(step), increments, outbreakOrigin);
             if (particles.checkPhyloLikelihoods()) {
                 System.out.println("Quitting due to neginf Phylo particles; step "+step);
                 return true;}
             //If it's a combined run get the epi likelihoods and check them
-            if (!Storage.isPhyloOnly()){
-                if (particles.checkEpiLikelihoods()) {
-                    System.out.println("Quitting due to neginf Epi particles; step "+step);
-                    return true;}
+            if (!Storage.isPhyloOnly()) {
+                if (Storage.epiActive) {
+                    if (particles.checkEpiLikelihoods()) {
+                        System.out.println("Quitting due to neginf Epi particles; step " + step);
+                        return true;
+                    }
+                }
             }
         }
 
@@ -137,7 +157,13 @@ public class ParticleFilter {
 
         checkParticles(step);
         //resample
-        particles.resampleParticles(step);
+        if (Storage.isEpiOnly()) {
+            if (Storage.epiActive) {
+                particles.resampleParticles(step);
+            }
+        } else {
+            particles.resampleParticles(step);
+        }
 
         checkParticles(step);
 
@@ -392,4 +418,10 @@ public class ParticleFilter {
             System.out.println("["+i+"]"+ Arrays.toString(candidateRates[i]));
         }
     }
+
+    private void adjustTOI() {
+        int index = Storage.priors.parameterIndexes.get("outbreakOrigin")[0];
+        this.outbreakOrigin = (int) candidateParameters[index];
+    }
+
 }
