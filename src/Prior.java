@@ -53,7 +53,7 @@ public class Prior {
             double mean = Double.parseDouble(element.getElementsByTagName("mean").item(0).getTextContent());
             double standardDeviation = Double.parseDouble(element.getElementsByTagName("standarddev").item(0).getTextContent());
             double lowerBound = Double.parseDouble(element.getElementsByTagName("lowerbound").item(0).getTextContent());
-            double upperBound = Double.parseDouble(element.getElementsByTagName("upperbound").item(0).getTextContent());
+            //double upperBound = Double.parseDouble(element.getElementsByTagName("upperbound").item(0).getTextContent());
             return( new TruncatedNormalDist(mean, standardDeviation, lowerBound));
         } else if (disttype.equals("FixedParameter")) {
             double value = Double.parseDouble(element.getElementsByTagName("value").item(0).getTextContent());
@@ -70,6 +70,10 @@ public class Prior {
             double min = Double.parseDouble(element.getElementsByTagName("min").item(0).getTextContent());
             double max = Double.parseDouble(element.getElementsByTagName("max").item(0).getTextContent());
             isDiscrete = true;
+            if (label.equals("outbreakOrigin")) {
+                max = Math.min(max, Storage.maxTOI);
+                min = Math.max(min, 0);
+            }
             return(new UniformDiscreteDist(min, max));
         } else if (disttype.equals("Beta")) {
             double alpha = Double.parseDouble(element.getElementsByTagName("alpha").item(0).getTextContent());
