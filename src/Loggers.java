@@ -19,6 +19,7 @@ public class Loggers {
     public FileWriter positiveTests;
     public FileWriter particleLikelihoods;
     public FileWriter allLikelihoods;
+    public FileWriter treeIndexes;
     private String filePath;
     private int chainID;
 
@@ -33,6 +34,7 @@ public class Loggers {
         startBetas();
         startCumInfections();
         //this.allLikelihoods = new FileWriter(filePath + "/alllikelihoods.txt");
+        //this.treeIndexes = new FileWriter(filePath + "/sampledTrees.txt");
         if (!Storage.isPhyloOnly()) {
             startPositiveTests();
         }
@@ -173,6 +175,10 @@ public class Loggers {
         String toWrite = complete + "\n";
         this.completed.write(toWrite);
     }
+    public void logTreeIndex(int treeIndex) throws IOException {
+        String toWrite = treeIndex + "\n";
+        this.treeIndexes.write(toWrite);
+    }
 
     public void logPositiveTests(ArrayList<Integer> positives) throws IOException {
         String toWrite = "";
@@ -284,6 +290,7 @@ public class Loggers {
         if (!Storage.isPhyloOnly()) {
             logPositiveTests(particleFilter.particles.particles[0].positiveTestsFit);
         }
+        logTreeIndex(particleFilter.sampledTree);
         //logParticleLikelihoods(particleFilter.particles.particles[0]);
     }
 
@@ -295,6 +302,7 @@ public class Loggers {
         betas.close();
         cumInfections.close();
         completed.close();
+        //treeIndexes.close();
         //particleLikelihoods.close();
         //allLikelihoods.close();
         if (!Storage.isPhyloOnly()) {
