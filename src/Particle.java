@@ -32,7 +32,7 @@ public class Particle {
         //PoissonDistribution initialI = new PoissonDistribution(100);
         state = 1;
         setState(state);
-        this.traj = new Trajectory(new Day(0, 1, 0,0));
+        this.traj = new Trajectory(new Day(0, 0, 0,0));
         //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
         this.epiLikelihood = 0.0;
         //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
@@ -138,7 +138,8 @@ public class Particle {
             betaAttrib.set(0, Math.abs(Normal.staticNextDouble(0, stdDev)));
             slope = betaAttrib.get(0);
         } else {
-            betaAttrib.set(0, Normal.staticNextDouble(betaAttrib.get(0), stdDev));
+            //betaAttrib.set(0, Normal.staticNextDouble(betaAttrib.get(0), stdDev));
+            betaAttrib.set(0, Normal.staticNextDouble(0, stdDev));
             slope = betaAttrib.get(0);
         }
         for (int i=0; i<numToAdd; i++) {
