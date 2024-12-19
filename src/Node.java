@@ -82,6 +82,13 @@ class Internal extends Node {
     }
 
     public Node getRight() {
-        return children.get(1);
+        try {
+            return children.get(1);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Uh oh! Your tree is non-binary! Maybe check its structure is correct, you can use the is.binary()\n" +
+                    "function from the ape package in R.");
+            System.exit(0);
+            return null;
+        }
     }
 }

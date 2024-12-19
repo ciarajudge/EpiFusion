@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Arrays;
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
@@ -16,6 +17,7 @@ public class Incidence {
     int length;
     int start = 0;
     int end;
+    int earliest_case_data;
     public HashMap<Integer, Integer> pairedData;
 
     public Incidence(Element incidenceElement) throws FileNotFoundException {
@@ -120,7 +122,17 @@ public class Incidence {
         for (int i = 0 ; i<times.length; i++) {
             pairedData.put(times[i], incidence[i]);
         }
+        earliest_case_data = getFirstNonZeroKey(pairedData);
     }
 
+    public static Integer getFirstNonZeroKey(HashMap<Integer, Integer> map) {
+        int firstNonZeroKey = 2147483647;
+        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
+            if (entry.getValue() != 0) {
+                firstNonZeroKey = Math.min(entry.getKey(), firstNonZeroKey);
+            }
+        }
+        return firstNonZeroKey;
+    }
 
 }

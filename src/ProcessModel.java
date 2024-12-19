@@ -6,7 +6,7 @@ import static cern.jet.random.Poisson.staticNextInt;
 
 public class ProcessModel {
     //Steps functions
-    public static void step(Particle particle, TreeSegment[] treeSegments, int step, double[][] rates) {
+    public static void step(Particle particle, TreeSegment[] treeSegments, int step, double[][] rates, int origin) {
         int t = step*Storage.resampleEvery;
         int increments = treeSegments.length;
 
@@ -17,7 +17,6 @@ public class ProcessModel {
         for (int i=0; i<increments; i++) {
             //Turn on tree if we've reached it
             int actualDay = t+i;
-            //System.out.println("\nDay "+actualDay);
 
             if (!particle.treeOn && !(treeSegments[i].lineages == 0 && treeSegments[i].births == 0)) { //So if storage is false, and (characteristics of an inactive tree) is false, this means it's time to activate the tree
                 particle.treeOn = true;
@@ -26,26 +25,38 @@ public class ProcessModel {
                 particle.treeOn = false;
             }
             if (particle.treeOn) { //If the tree is on we can just do the day no questions asked
-                if (!Storage.segmentedDays) {
-                    day(particle, treeSegments[i], actualDay, rates[i]);
+                if (actualDay < origin) {
+                    preOriginDay(particle, actualDay);
                 } else {
-                    segmentedDay(particle, treeSegments[i], actualDay, rates[i]);
+                    if (!Storage.segmentedDays) {
+                        day(particle, treeSegments[i], actualDay, rates[i]);
+                    } else {
+                        segmentedDay(particle, treeSegments[i], actualDay, rates[i]);
+                    }
                 }
             } else if (!(Storage.isPhyloOnly())) { //If tree is off but we are running a combo this means we can use the epi only day
-                epiOnlyDay(particle, actualDay, rates[i]);
+                if (actualDay < origin) {
+                    preOriginDay(particle, actualDay);
+                } else {
+                    epiOnlyDay(particle, actualDay, rates[i]);
+                }
             } else if (Storage.isPhyloOnly()) { //If tree is off and we are phylo only we first need to know if it's before or after tree activation
                 if (particle.haveReachedTree) {
                     //System.out.println("Tree finished, quitting");
                     break;
                 } else {
                     //System.out.println("Day "+actualDay+" tree not active yet");
-                    epiOnlyDay(particle, actualDay, rates[i]);
+                    if (actualDay < origin) {
+                        preOriginDay(particle, actualDay);
+                    } else {
+                        epiOnlyDay(particle, actualDay, rates[i]);
+                    }
                 }
             }
         }
     }
 
-    public static void epiOnlyStep(Particle particle, int step, double[][] rates, int increments) {
+    public static void epiOnlyStep(Particle particle, int step, double[][] rates, int increments, int origin) {
         int t = step*Storage.resampleEvery;
         if (Storage.analysisType == 4) {
             particle.betaLinearSpline(increments);
@@ -80,6 +91,11 @@ public class ProcessModel {
         if (Double.isInfinite(particle.getPhyloLikelihood())) {
             Day tmpDay = new Day(t, particle.getState(), 0, 0);
             particle.updateTrajectory(tmpDay);
+            return;
+        } else if (state == 0 & tree.lineages > 0) {
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY);
             return;
         }
 
@@ -128,6 +144,9 @@ public class ProcessModel {
         if (tree.lineages > 0) {
             double[] adjustedPropensities = new double[]{observedInfectProp, unobservedInfectProp, allowedRecovProp, forbiddenRecovProp, sampleProp};
             double todayPhyloLikelihood = PhyloLikelihood.calculateLikelihood(tree, particle, adjustedPropensities, t);
+            /*if (t > 405 & t < 413) {
+                System.out.println("Particle "+particle.particleID+", day "+t+", likelihood: "+todayPhyloLikelihood);
+            }*/
             if (Double.isInfinite(todayPhyloLikelihood)) {
                 particle.setPhyloLikelihood(Double.NEGATIVE_INFINITY); //set phylo Likelihood of that particle to negative infinity which will quit the loop
                 return;
@@ -190,6 +209,7 @@ public class ProcessModel {
             //Get propensities and state
             state = particle.getState();
             propensities = particle.getSegmentPropensities(rates, deltaT);
+            double recovProp = propensities[1];
 
             //Adjust the propensities
             unobservedInfectProp = state > 0
@@ -201,11 +221,11 @@ public class ProcessModel {
             }
             observedInfectProp = propensities[0] - unobservedInfectProp;
             if (state > treeLineages + propensities[1] + tree.samplings) { //Previous version of this was: tree.lineages + propensities[1] + tree.samplings + 1 (stops recov past limit issue)
-                allowedRecovProp = propensities[1];
+                allowedRecovProp = recovProp;
                 forbiddenRecovProp = 0.0;
             } else {
                 allowedRecovProp = 0.0;
-                forbiddenRecovProp = propensities[1];
+                forbiddenRecovProp = recovProp;
             }
             sampleProp = propensities[2];
 
@@ -249,10 +269,21 @@ public class ProcessModel {
     }
 
     public static void epiOnlyDay(Particle particle, int t, double[] dayRates) {
+        if (particle.getEpiLikelihood() == Double.NEGATIVE_INFINITY) {
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        }
 
         //Check if the particle phylo likelihood is negative infinity, if so just quit
         int state = particle.getState();
-        if (state <= 0) {
+        if (state < 0) {
+            particle.setEpiLikelihood(Double.NEGATIVE_INFINITY);
+            Day tmpDay = new Day(t, particle.getState(), 0, 0);
+            particle.updateTrajectory(tmpDay);
+            return;
+        } else if (state == 0) {
+            particle.setEpiLikelihood(Double.NEGATIVE_INFINITY);
             Day tmpDay = new Day(t, state, 0, 0);
             particle.updateTrajectory(tmpDay);
             return;
@@ -291,9 +322,21 @@ public class ProcessModel {
 
         if (!Storage.isPhyloOnly()) {
             if (Arrays.stream(Storage.incidence.times).anyMatch(num -> num == t)) {
-                particle.setEpiLikelihood(EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle));
+                double ll = EpiLikelihood.epiLikelihood(Storage.incidence.pairedData.get(t), particle);
+                //System.out.println("EpiOnlyDay "+t+" Particle "+particle.particleID+" likelihood: "+ll);
+                particle.setEpiLikelihood(ll);
             }
         }
+    }
+
+    public static void preOriginDay(Particle particle, int t) {
+        int state = 0;
+        int births = 0;
+        int deaths = 0;
+
+        Day tmpDay = new Day(t, state, births, deaths);
+        particle.updateTrajectory(tmpDay);
+        particle.incrementCumInfections();
     }
 
     //Housekeeping functions
@@ -306,9 +349,9 @@ public class ProcessModel {
     }
 
     public static int poissonSampler(double rate) {
-        if (rate <= 0.0) {
+        /*if (rate <= 0.0) {
             return 0;
-        }
+        }*/
         int res = staticNextInt(rate);
         return res;
     }

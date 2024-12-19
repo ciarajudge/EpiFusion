@@ -4,6 +4,8 @@ import org.apache.commons.math3.distribution.PascalDistribution;
 public class EpiLikelihood {
 
     public static double epiLikelihood(int incidence, Particle particle) {
+        Storage.epiActive = true;
+        //System.out.println("setting epi active to true");
         double likelihood;
         if (Storage.epiObservationModel.equals("poisson")) {
             likelihood = poissonLikelihood(incidence, particle);
@@ -38,7 +40,7 @@ public class EpiLikelihood {
         double logLikelihood = -p + incidence * Math.log(p) - logFactorial(incidence);
         particle.positiveTestsFit.add(particle.positiveTests);
         particle.positiveTests = 0;
-        return Math.exp(logLikelihood);
+        return logLikelihood;
     }
     /*
      public static double poissonLikelihood(int incidence, Particle particle) {
@@ -62,7 +64,7 @@ public class EpiLikelihood {
         particle.positiveTestsFit.add(particle.positiveTests);
         particle.positiveTests = 0;
         // return the likelihood
-        return Math.exp(probability);
+        return probability;
     }
 
 

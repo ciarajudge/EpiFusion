@@ -8,13 +8,14 @@ import cern.jet.random.Normal;
 public class Particle {
     int particleID;
     private int state;
-    double phyloLikelihood;
-    double epiLikelihood;
+    double phyloLikelihood; //Stored as log
+    double epiLikelihood; // Stored as log
     double phyloWeight;
     double epiWeight;
     double weight;
     Trajectory traj;
     ArrayList<Double> beta;
+    ArrayList<Double> betaAttrib;
     //double[][] likelihoodMatrix;
     private double stdDev;
     public boolean treeOn;
@@ -31,14 +32,16 @@ public class Particle {
         //PoissonDistribution initialI = new PoissonDistribution(100);
         state = 1;
         setState(state);
-        this.traj = new Trajectory(new Day(0, 1, 0,0));
+        this.traj = new Trajectory(new Day(0, 0, 0,0));
         //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.epiLikelihood = 1.0;
+        this.epiLikelihood = 0.0;
         //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.epiWeight = 1.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.phyloWeight = Storage.isEpiOnly() ? 1.0/Storage.numParticles : 0.0;
         this.beta = new ArrayList<>();
+        this.betaAttrib = new ArrayList<>();
+
         //this.likelihoodMatrix = new double[Storage.T][6];
         this.treeOn = false;
         this.haveReachedTree = false;
@@ -55,7 +58,7 @@ public class Particle {
         this.particleID = pID;
         this.state = other.state;
         //this.epiLikelihood = Storage.isPhyloOnly() ? 1.0 : 0.0;
-        this.epiLikelihood = 1.0;
+        this.epiLikelihood = 0.0;
         this.phyloLikelihood = Storage.isEpiOnly() ? 1.0 : 0.0;
         this.weight = 0.0;
         //this.epiWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
@@ -63,6 +66,7 @@ public class Particle {
         this.phyloWeight = Storage.isPhyloOnly() ? 1.0/Storage.numParticles : 0.0;
         this.traj = new Trajectory(other.traj);
         this.beta = new ArrayList<>(other.beta);
+        this.betaAttrib = new ArrayList<>(other.betaAttrib);
         //this.likelihoodMatrix = copy2DArray(other.likelihoodMatrix);
         this.stdDev = other.stdDev;
         this.treeOn = other.treeOn;
@@ -80,7 +84,7 @@ public class Particle {
         System.out.println("State: "+ state);
         traj.printTrajectory();
         System.out.println("Phylo Likelihood:" + phyloLikelihood);
-        System.out.println("Epi Likelihood:"+ Math.log(epiLikelihood));
+        System.out.println("Epi Likelihood:"+ epiLikelihood);
         //System.out.println();
     }
     public void printBeta() {
@@ -107,9 +111,9 @@ public class Particle {
         this.epiWeight = weight;
     }
     public void setEpiLikelihood(double epiLikelihood){
-        this.epiLikelihood = this.epiLikelihood * epiLikelihood;
+        this.epiLikelihood = this.epiLikelihood + epiLikelihood;
         //this.epiLikelihood = epiLikelihood;
-        this.epiWeight = Math.log(this.epiLikelihood);
+        this.epiWeight = this.epiLikelihood;
     }
     public void setPhyloLikelihood(double newLikelihood) {
         this.phyloLikelihood = newLikelihood;
@@ -118,16 +122,27 @@ public class Particle {
     public void setBeta(Double betaT, double stdDev) {
         beta.add(betaT);
         this.stdDev = stdDev;
+        betaAttrib.add(Normal.staticNextDouble(0.0, stdDev));
     }
     public void nextBeta(double reFactor) {
         //TruncatedNormalDist truncatedNormalDistribution = new TruncatedNormalDist(current, stdDev, 0.0);
-        Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor) + Normal.staticNextDouble(0.0, stdDev));
+        //Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor) + Normal.staticNextDouble(0.0, stdDev));
+        Double newBeta = Math.abs((beta.get(beta.size()-1)*reFactor+ Normal.staticNextDouble(0.0, stdDev)));
         beta.add(newBeta);
     }
 
     public void betaLinearSpline(int numToAdd) {
-        Double slope = Normal.staticNextDouble(0.0, stdDev);
+        double slope;
         Double intercept = beta.get(beta.size()-1);
+        if (intercept == 0) {
+            betaAttrib.set(0, Math.abs(Normal.staticNextDouble(0, stdDev)));
+            slope = betaAttrib.get(0);
+        } else {
+            betaAttrib.set(0, Normal.staticNextDouble(((betaAttrib.get(0)+0)/2), stdDev));
+            //betaAttrib.set(0, Normal.staticNextDouble(betaAttrib.get(0), stdDev));
+            //betaAttrib.set(0, Normal.staticNextDouble(0, stdDev));
+            slope = betaAttrib.get(0);
+        }
         for (int i=0; i<numToAdd; i++) {
             beta.add(Math.max((intercept+(i*slope)), 0.0));
         }

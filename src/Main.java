@@ -1,14 +1,11 @@
 import javax.xml.parsers.ParserConfigurationException;
-
-
 import org.xml.sax.SAXException;
-
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.util.Arrays;
 import java.util.Objects;
 import java.nio.file.Files;
 
@@ -16,8 +13,9 @@ import java.nio.file.Files;
 public class Main {
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         if (args.length == 0) {
+
             System.out.println("This is EpiFusion, a program to model infection and Rt trajectories conditioned on both \n" +
-                    "case incidence and phylogenetic tree data. This is a new model that is undergoing peer review \n" +
+                    "case incidence and phylogenetic tree data. This is a relatively new model \n" +
                     "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
                     "improvements. Further information and example input XML files are available at the project github: \n" +
                     "https://github.com/ciarajudge/EpiFusion. To get started, rerun this command and include the path to \n" +
@@ -25,13 +23,14 @@ public class Main {
                     "----\n" +
                     "Usage: java -jar EpiFusion.jar <path to xml file>\n"+
                     "----\n");
+
         } else if (args.length == 1) {
+
             System.out.println("This is EpiFusion, a program to model infection and Rt trajectories conditioned on both\n" +
-                    "case incidence and phylogenetic tree data. This is a new model that is undergoing peer review \n" +
+                    "case incidence and phylogenetic tree data. This is a relatively new model \n" +
                     "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
                     "improvements. Further information and example input XML files are available at the project github: \n" +
                     "https://github.com/ciarajudge/EpiFusion.\n");
-            long startTime = System.nanoTime();
 
             try {
                 XMLParser.parseXMLInput(args[0]);
@@ -41,9 +40,10 @@ public class Main {
             }
 
             Storage.loggers = Objects.equals(Storage.fileBase, "null") ? new MasterLoggers() : new MasterLoggers(Storage.fileBase);
+
             logXML(args[0]);
 
-
+            long startTime = System.nanoTime();
             for (int i = 0; i < Storage.numChains; i++) {
                 try {
                     ParticleFilter particleFilter = new ParticleFilter(i);
@@ -60,7 +60,9 @@ public class Main {
             FileWriter timings = new FileWriter(Storage.folder + "/timings.txt");
             timings.write(Long.toString((endTime - startTime)));
             timings.close();
+
         } else {
+
             System.out.println("Oops! It seems you have provided multiple command line arguments to the program. Reminder\n" +
                     "that the program takes a single path to an XML file as it's input:\n" +
                     "----" +
@@ -69,8 +71,8 @@ public class Main {
                     "This is EpiFusion, a program to model infection and Rt trajectories conditioned on both \n" +
                     "case incidence and phylogenetic tree data. Further information and example input XML files are \n" +
                     "available at the project github: https://github.com/ciarajudge/EpiFusion.\n");
-        }
 
+        }
 
     }
 
@@ -81,7 +83,5 @@ public class Main {
         Path destinationPath = destinationDir.resolve(fileName);
         Files.copy(sourcePath, destinationPath);
     }
-
-
 
 }

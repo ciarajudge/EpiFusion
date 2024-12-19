@@ -1,6 +1,6 @@
 import java.util.Arrays;
 import java.io.IOException;
-
+import java.util.Random;
 
 public class ParticleFilter {
     public int chainID;
@@ -22,12 +22,15 @@ public class ParticleFilter {
     private final int numParticles;
     public Particle currentSampledParticle;
     public Loggers loggers;
+    public Random rand;
+    private int outbreakOrigin = 0;
+    public int sampledTree = 0;
 
 
     public ParticleFilter(int chainID) throws IOException {
         this.chainID = chainID;
         this.numParticles = Storage.numParticles;
-        this.tree = Storage.tree;
+        this.tree = Storage.tree.trees[0]; //come back here
         this.caseIncidence = Storage.incidence;
         this.T = Storage.T;
         this.resampleEvery = Storage.resampleEvery;
@@ -35,6 +38,7 @@ public class ParticleFilter {
         this.candidateRates = new double[this.T][5];
         this.loggers = new Loggers(chainID);
         particles = new Particles(numParticles);
+        this.rand = new Random();
         initialisePF();
     }
 
@@ -43,9 +47,11 @@ public class ParticleFilter {
         int i = 0;
         while (Double.isInfinite(likelihood)) {
             i += 1;
-            runPF(Storage.priors.sampleInitial());
+            runPF(Storage.priors.sampleInitial(), 0);
             currentParameters = candidateParameters;
+            currentRates = candidateRates;
             logLikelihoodCurrent = logLikelihoodCandidate;
+            logPriorCurrent = logPriorCandidate;
             likelihood = logLikelihoodCandidate;
             currentSampledParticle = new Particle(particles.particles[0], 0);
             System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
@@ -58,12 +64,21 @@ public class ParticleFilter {
         System.out.println("CHAIN "+chainID+"\nFinal parameter set: "+Arrays.toString(currentParameters)+"\nInitial LL: "+logLikelihoodCurrent);
     }
 
-    public void runPF(double[] parameters) throws IOException {
+    public void runPF(double[] parameters, int mcmcstep) throws IOException {
         clearCache();
+
+        //Sample a new tree
+        //System.out.println(sampledTree);
+        this.tree = Storage.tree.trees[sampledTree];
+        //tree.printTreeInSegments(100);
+
         //Convert parameters into rates
         candidateParameters = parameters;
 
         parametersToRates();
+        if (Storage.inferTOI) {
+            adjustTOI();
+        }
 
         if (Storage.firstStep > 0 ){
             int initialState = (int) parameters[Storage.priors.parameterIndexes.get("initialI")[0]];
@@ -96,7 +111,6 @@ public class ParticleFilter {
 
     }
 
-
     public boolean filterStep(int step)  throws IOException {
         increments = Math.min(resampleEvery, (Storage.end-(step*resampleEvery)));
         int phiIndex = step*increments;
@@ -104,23 +118,29 @@ public class ParticleFilter {
 
         //Epi Only Scenario
         if (Storage.isEpiOnly()) {
-            particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments);
+            particles.epiOnlyPredictAndUpdate(step, getRatesForStep(step), increments, outbreakOrigin);
             //particles.getEpiLikelihoods(caseIncidence.incidence[step]);
-            if (particles.checkEpiLikelihoods()) {return true;}
+            //particles.printParticles();
+            if (Storage.epiActive) {
+                if (particles.checkEpiLikelihoods()) {return true;}
+            }
+
         }
 
         //If Phylo is involved at all
         else {
-
-            particles.predictAndUpdate(step, tree, getRatesForStep(step), increments);
+            particles.predictAndUpdate(step, this.tree, getRatesForStep(step), increments, outbreakOrigin);
             if (particles.checkPhyloLikelihoods()) {
-                //System.out.println("Quitting due to neginf particles; step "+step);
+                System.out.println("Quitting due to neginf Phylo particles; step "+step);
                 return true;}
             //If it's a combined run get the epi likelihoods and check them
-            if (!Storage.isPhyloOnly()){
-                if (particles.checkEpiLikelihoods()) {
-                    //System.out.println("Epi Likelihood Issue in step "+step);
-                    return true;}
+            if (!Storage.isPhyloOnly()) {
+                if (Storage.epiActive) {
+                    if (particles.checkEpiLikelihoods()) {
+                        System.out.println("Quitting due to neginf Epi particles; step " + step);
+                        return true;
+                    }
+                }
             }
         }
 
@@ -138,7 +158,13 @@ public class ParticleFilter {
 
         checkParticles(step);
         //resample
-        particles.resampleParticles();
+        if (Storage.isEpiOnly()) {
+            if (Storage.epiActive) {
+                particles.resampleParticles(step);
+            }
+        } else {
+            particles.resampleParticles(step);
+        }
 
         checkParticles(step);
 
@@ -158,7 +184,6 @@ public class ParticleFilter {
         logPrior = Math.log(logPrior);
         return logPrior;
     }
-
 
     //Getters
     public double[][] getCurrentRates() {return currentRates;}
@@ -186,7 +211,6 @@ public class ParticleFilter {
         }
         return ratesForStep;
     }
-
 
     //Setters
     public void resetCurrentParameters() { //Special case, resets current to candidates (called if MCMC step is accepted)
@@ -257,6 +281,13 @@ public class ParticleFilter {
         } else if (Storage.analysisType == 4) {
             candidateRates = randomWalkRateParsing();
         }
+
+        // if pairedPsi is true, do the multiplication thing
+        for (int i = 0; i < candidateRates.length; i++) {
+            candidateRates[i][2] = candidateRates[i][2] * candidateRates[i][3];
+        }
+
+
     }
 
     private double[] getParamAcrossTime(String paramLabel) {
@@ -269,13 +300,21 @@ public class ParticleFilter {
             }
         } else {
             int start = 0;
+            int buffer = Storage.priors.parameterDict.get(paramLabel).buffer;
             for (int i=0; i<indexes.length-1; i+=2) {
                 int changeTime = (int) candidateParameters[indexes[i+1]];
                 double value = candidateParameters[indexes[i]];
-                for (int k = start; k < changeTime; k++) {
+                double nextvalue = candidateParameters[indexes[i+2]];
+                int bufferStart = Math.max(start, (changeTime - buffer));
+                int bufferEnd = Math.min(T, (changeTime + buffer));
+                double diff = (nextvalue - value)/(bufferEnd - bufferStart);
+                for (int k = start; k < bufferStart; k++) {
                     paramAcrossTime[k] = value;
                 }
-                start = changeTime;
+                for (int k = bufferStart; k < bufferEnd; k++) {
+                    paramAcrossTime[k] = value + (diff*(k-bufferStart+1));
+                }
+                start = bufferEnd;
             }
             double value = candidateParameters[indexes[indexes.length-1]];
             for (int k = start; k < T; k++) {
@@ -388,4 +427,10 @@ public class ParticleFilter {
             System.out.println("["+i+"]"+ Arrays.toString(candidateRates[i]));
         }
     }
+
+    private void adjustTOI() {
+        int index = Storage.priors.parameterIndexes.get("outbreakOrigin")[0];
+        this.outbreakOrigin = (int) candidateParameters[index];
+    }
+
 }

@@ -7,6 +7,7 @@ import java.util.Arrays;
 public class Particles {
     Particle[] particles;
     int N;
+    double[][] betas;
 
     public Particles(int numParticles){
         N = numParticles;
@@ -14,6 +15,7 @@ public class Particles {
         for (int i = 0; i< N; i++) {
             particles[i] = new Particle(i);
         }
+        betas = new double[N][Storage.T];
     }
 
     //Printers
@@ -120,7 +122,7 @@ public class Particles {
         //Case 1: all NaN. Can happen if state is negative in which case the pf needs quitting
         boolean allNaN = true;
         for (Particle particle : particles) {
-            if (!(Double.isNaN(Math.log(particle.getEpiLikelihood())))) {
+            if (!(Double.isNaN(particle.getEpiLikelihood()))) {
                 allNaN = false;
                 break;
             }
@@ -132,7 +134,7 @@ public class Particles {
             //Case 2: all -Inf. Could happen if the state is very far from incidence, or is 0.
             boolean allNegInf = true;
             for (Particle particle : particles) {
-                if (!(Double.isInfinite(Math.log(particle.getEpiLikelihood())))) {
+                if (!(Double.isInfinite(particle.getEpiLikelihood()))) {
                     allNegInf = false;
                     break;
                 }
@@ -247,7 +249,8 @@ public class Particles {
 
         int iter = 0;
         for (Particle particle : particles) {
-            if (Double.isInfinite(Math.log(particle.epiLikelihood))) {
+            //if (Double.isInfinite(Math.log(particle.epiLikelihood))) {
+            if (Double.isInfinite(particle.epiLikelihood)) {
                 particle.epiWeight = Double.NEGATIVE_INFINITY;
             }
             maxLogWeight = Math.max(particle.epiWeight, maxLogWeight);
@@ -314,7 +317,7 @@ public class Particles {
 
 
     //Actual propagation
-    public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments){
+    public void predictAndUpdate(int step, Tree tree, double[][] rates, int increments, int origin){
         ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
         try {
             int t = step*Storage.resampleEvery;
@@ -323,14 +326,14 @@ public class Particles {
 
             int ind = 0;
             for (int i=t; i<t+increments; i++) {
-                treeSegments[ind] = Storage.tree.segmentedTree[i];
+                treeSegments[ind] = tree.segmentedTree[i];
                 ind++;
             }
 
 
 
             for (Particle particle : particles) {
-                executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates));
+                executor.submit(() -> ProcessModel.step(particle, treeSegments, step, rates, origin));
             }
 
             executor.shutdown();
@@ -343,11 +346,11 @@ public class Particles {
             throw new RuntimeException("Interrupted while waiting", e);
         }
     }
-    public void epiOnlyPredictAndUpdate(int step, double[][] rates, int increments){
+    public void epiOnlyPredictAndUpdate(int step, double[][] rates, int increments, int origin){
         ExecutorService executor = Executors.newFixedThreadPool(Storage.numThreads);
         try {
             for (Particle particle : particles) {
-                executor.submit(() -> ProcessModel.epiOnlyStep(particle, step, rates, increments));
+                executor.submit(() -> ProcessModel.epiOnlyStep(particle, step, rates, increments, origin));
             }
             executor.shutdown();
             boolean done = executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
@@ -362,7 +365,8 @@ public class Particles {
 
 
     //Resampling
-    public void resampleParticles() throws IOException {
+    public void resampleParticles(int resamplingStep) throws IOException {
+
         int[] resampledParticleIDs = new int[N];
         int[] resampledParticleStates = new int[N];
         double[] resampledParticleLikelihoods = new double[N];
@@ -375,6 +379,17 @@ public class Particles {
             totalWeight += particle.weight;
         }
         //System.out.println(totalWeight);
+
+        /*
+        for (int i = 0; i < N; i++) {
+            betas[i][0+(resamplingStep*7)] = particles[i].beta.get(0+(resamplingStep*7));
+            betas[i][1+(resamplingStep*7)] = particles[i].beta.get(1+(resamplingStep*7));
+            betas[i][2+(resamplingStep*7)] = particles[i].beta.get(2+(resamplingStep*7));
+            betas[i][3+(resamplingStep*7)] = particles[i].beta.get(3+(resamplingStep*7));
+            betas[i][4+(resamplingStep*7)] = particles[i].beta.get(4+(resamplingStep*7));
+            betas[i][5+(resamplingStep*7)] = particles[i].beta.get(5+(resamplingStep*7));
+            betas[i][6+(resamplingStep*7)] = particles[i].beta.get(6+(resamplingStep*7));
+        }*/
 
 
         // Generate a random number between 0 and total weight

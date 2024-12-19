@@ -12,7 +12,10 @@ public class PhyloLikelihood {
             // Case 2: Likelihood given something does happen
             int[] observations = tree.observationOrder;
             for (int observation : observations) {
-                if (observation == 0) {
+                if (observation == 0) { // note that I've done this
+                    if ((propensities[0] + propensities[1]) == 0) {
+                        propensities[1] = 10e-16;
+                    }
                     conditionalLogP += observedEventProbability(observation, particle, propensities[0] + propensities[1], t);
                 }
                 else {
@@ -36,7 +39,12 @@ public class PhyloLikelihood {
 
 
         if (eventType != 2) {
+            /*if ((propensities[0] + propensities[1]) == 0) {
+                propensities[1] = 10e-16;
+            }*/
+
             double prop = eventType == 0 ? propensities[0] + propensities[1] : propensities[4];
+
             conditionalLogP += observedEventProbability(eventType, particle, prop, t);
         }
 
@@ -54,12 +62,20 @@ public class PhyloLikelihood {
 
         if (type == 0) { //Coalescence
             particle.setState(state+1);
-            conditionalLogP += Math.log(2.0 / state / (state-1) * prop);
+            double plc = Math.log(2.0 / state / (state-1) * prop);
+            /*if (Double.isInfinite(plc)) {
+                System.out.println("Birth event messing it up on day "+t+", prop is"+prop+", state is"+state);
+            }*/
+            conditionalLogP += plc;
             particle.setState(state + 1);
             particle.todaysInfs = particle.todaysInfs + 1;
         }
         else { //sampling
-            conditionalLogP += Math.log(prop);
+            double plc = Math.log(prop);
+            /*if (Double.isInfinite(plc)) {
+                System.out.println("Sampling event messing it up on day "+t+", prop is"+prop);
+            }*/
+            conditionalLogP += plc;
             particle.setState(state-Storage.removalProbability);
         }
 

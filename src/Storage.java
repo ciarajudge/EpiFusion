@@ -39,26 +39,33 @@ public class Storage {
     public static Integer start = null;
     public static Integer end = null;
     public static int analysisType = 0;
+    public static boolean inferTOI = false;
 
     //Model things
     public static String epiObservationModel;
     public static Double overdispersion = 10.0;
 
     //Data things
-    public static Tree tree = null;
+    public static Trees tree = null;
+    public static boolean phyloUncertainty = false;
     public static Incidence incidence = null;
     public static int T; //Right now T is the length of the dataset
     public static double[] confidenceSplit = null;
+    public static int maxTOI;
+    public static int maxTime;
 
 
     //Priors things
     public static Priors priors;
+    public static boolean pairedPsi = false;
+    public static double[] psiProp;
 
     //Extras
     public static boolean tooBig = false;
     public static boolean initialised = false;
     public static int[] completedRuns;
     public static int firstStep = 0;
+    public static boolean epiActive = false;
 
     //Functions
     public static void setNumParticles(int N) {numParticles = N;}
@@ -87,7 +94,7 @@ public class Storage {
         return epiOnly;
     }
 
-    public static void setTree(Tree t) {
+    public static void setTree(Trees t) {
         tree = t;
     }
 

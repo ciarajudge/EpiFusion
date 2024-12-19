@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
+import java.util.Arrays;
 
 public class XMLParser {
     public static void parseXMLInput(String xmlFile) throws IOException, ParserConfigurationException, SAXException {
@@ -39,12 +40,19 @@ public class XMLParser {
         }
 
         //Send the elements to the parsing functions
+        //System.out.println("Parsing Loggers");
         parseLoggers(loggersElement);
+        //System.out.println("Parsing Parameters");
         parseParameters(parametersElement);
+        //System.out.println("Parsing Analysis");
         parseAnalysis(analysisElement);
+        //System.out.println("Parsing Model");
         parseModel(modelElement);
+        //System.out.println("Parsing Data");
         parseData(dataElement);
+        //System.out.println("Parsing Priors");
         Storage.setPriors(priorElement);
+        //System.out.println("Parsing complete");
 
 
         if (!(Storage.start.equals(null))) {
@@ -54,6 +62,10 @@ public class XMLParser {
             Storage.firstStep = 0;
         }
         //Do a dates days check here, check data generally
+
+
+        // The special paried psi case, will require the creation of a fixed psi param and calculation of the proportion vector
+
 
     }
 
@@ -90,9 +102,8 @@ public class XMLParser {
         Storage.setStepCoefficient(Double.parseDouble(parametersElement.getElementsByTagName("stepCoefficient").item(0).getTextContent()));
         Storage.setResampling(Integer.parseInt(parametersElement.getElementsByTagName("resampleEvery").item(0).getTextContent()));
         Storage.segmentedDays = Boolean.parseBoolean(parametersElement.getElementsByTagName("segmentedDays").item(0).getTextContent());
-        Storage.maxEpidemicSize = Integer.parseInt(parametersElement.getElementsByTagName("maxEpidemicSize").item(0).getTextContent());
         Storage.removalProbability = Integer.parseInt(parametersElement.getElementsByTagName("samplingsAsRemovals").item(0).getTextContent());
-        Storage.genTime = readDoubleArray(parametersElement.getElementsByTagName("generationPMF").item(0).getTextContent());
+        Storage.pairedPsi = Boolean.parseBoolean(parametersElement.getElementsByTagName("pairedPsi").item(0).getTextContent());
 
         if (parametersElement.getElementsByTagName("likelihoodScaler").getLength() > 0) {
             Storage.likelihoodScaler = Integer.parseInt(parametersElement.getElementsByTagName("likelihoodScaler").item(0).getTextContent());
@@ -100,6 +111,8 @@ public class XMLParser {
     }
 
     public static void parseAnalysis(Element analysisElement) {
+        Storage.inferTOI = Boolean.parseBoolean(analysisElement.getElementsByTagName("inferTimeOfIntroduction").item(0).getTextContent());
+
         String type = analysisElement.getElementsByTagName("type").item(0).getTextContent();
         if (type.equals("looseformbeta")) {
             Storage.analysisType = 1;
@@ -136,10 +149,10 @@ public class XMLParser {
 
     public static void parseData(Element dataElement) throws IOException{
         Incidence incidence = null;
-        Tree tree = null;
+        Trees tree = null;
 
-        if (!Storage.isPhyloOnly()) {
-            if (dataElement.getElementsByTagName("incidence").getLength() > 0) { //File will be a table of times and values
+        if (!Storage.isPhyloOnly() || Storage.pairedPsi) {
+            if (dataElement.getElementsByTagName("incidence").getLength() > 0) {
                 Element incidenceElement = (Element) dataElement.getElementsByTagName("incidence").item(0);
                 incidence = new Incidence(incidenceElement);
                 Storage.setIncidence(incidence);
@@ -149,33 +162,30 @@ public class XMLParser {
         }
 
         if (!Storage.isEpiOnly()) {
-            boolean treeFileExists = dataElement.getElementsByTagName("treeFile").getLength() > 0;
-            if (treeFileExists) {
-                String treeFile = dataElement.getElementsByTagName("treeFile").item(0).getTextContent();
-                tree = new Tree(treeFile);
+            if (dataElement.getElementsByTagName("tree").getLength() > 0) {
+                Element treeElement = (Element) dataElement.getElementsByTagName("tree").item(0);
+                tree = new Trees(treeElement);
                 Storage.setTree(tree);
             } else {
-                boolean treeExists = dataElement.getElementsByTagName("tree").getLength() > 0;
-                if (treeExists) {
-                    String treeString = dataElement.getElementsByTagName("tree").item(0).getTextContent();
-                    tree = new Tree(treeString, true);
-                    Storage.setTree(tree);
-                } else {
-                    System.out.println("ERROR: Analysis includes phylo model but no tree data provided");
-                }
+                System.out.println("ERROR: Analysis includes phylo model but no tree data provided");
             }
         }
+
+
         int masterStart, masterEnd;
 
         if (!(Storage.isPhyloOnly() | Storage.isEpiOnly())) {
-            masterStart = Storage.start == null ? Math.min(incidence.start, tree.start) :  Storage.start;
-            masterEnd = Storage.end == null ? Math.max(incidence.end, tree.end) : Storage.end;
+            masterStart = Storage.start == null ? Math.min(incidence.start, tree.trees[0].start) :  Storage.start;
+            masterEnd = Storage.end == null ? Math.max(incidence.end, tree.trees[0].end) : Storage.end;
+            Storage.maxTOI = Math.min(Storage.tree.latest_root_node, Storage.incidence.earliest_case_data);
         } else if (Storage.isPhyloOnly()){
-            masterStart = Storage.start == null ? tree.start :   Storage.start;
-            masterEnd = Storage.end == null ?  tree.end - 1 :  Storage.end;
+            masterStart = Storage.start == null ? tree.trees[0].start :   Storage.start;
+            masterEnd = Storage.end == null ?  tree.trees[0].end - 1 :  Storage.end;
+            Storage.maxTOI = Storage.tree.latest_root_node;
         } else {
             masterStart = Storage.start == null ? incidence.start :  Storage.start;
             masterEnd = Storage.end == null ? incidence.end : Storage.end;
+            Storage.maxTOI = Storage.incidence.earliest_case_data;
         }
         Storage.start = masterStart;
         Storage.end = masterEnd + 1;
@@ -183,20 +193,17 @@ public class XMLParser {
         int T = masterEnd - masterStart + 1;
         Storage.setT(T);
 
+        if (!Storage.isEpiOnly()) {
+            Storage.tree.assembleSegmentedTrees(Storage.end);
+        } else {
+            Storage.tree = new Trees();
+        }
+
         double[] epiContrib = readDoubleArray(dataElement.getElementsByTagName("epicontrib").item(0).getTextContent());
         int[] weightChangeTimes = readIntegerArray(dataElement.getElementsByTagName("changetimes").item(0).getTextContent());
         double[] weightsOverTime = getArrayAcrossTime(epiContrib, weightChangeTimes);
         Storage.confidenceSplit = weightsOverTime;
 
-
-        if (!Storage.isEpiOnly()) {
-            Storage.tree.segmentedTree = new TreeSegment[Storage.end];
-            for (int i=0; i<Storage.end; i++) {
-                double t = (double) i + 1;
-                Storage.tree.segmentedTree[i] = new TreeSegment(Storage.tree, i, t);
-                //segmentedTree[i].printTreeSegment();
-            }
-        }
 
     }
 
