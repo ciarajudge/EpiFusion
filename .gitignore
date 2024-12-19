@@ -29,3 +29,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### R ###
+*.Rhistory
