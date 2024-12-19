@@ -15,7 +15,7 @@ public class Main {
         if (args.length == 0) {
 
             System.out.println("This is EpiFusion, a program to model infection and Rt trajectories conditioned on both \n" +
-                    "case incidence and phylogenetic tree data. This is a new model that is undergoing peer review \n" +
+                    "case incidence and phylogenetic tree data. This is a relatively new model \n" +
                     "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
                     "improvements. Further information and example input XML files are available at the project github: \n" +
                     "https://github.com/ciarajudge/EpiFusion. To get started, rerun this command and include the path to \n" +
@@ -27,7 +27,7 @@ public class Main {
         } else if (args.length == 1) {
 
             System.out.println("This is EpiFusion, a program to model infection and Rt trajectories conditioned on both\n" +
-                    "case incidence and phylogenetic tree data. This is a new model that is undergoing peer review \n" +
+                    "case incidence and phylogenetic tree data. This is a relatively new model \n" +
                     "so we suggest caution in its use, and are happy to hear any feedback about bugs or suggested \n" +
                     "improvements. Further information and example input XML files are available at the project github: \n" +
                     "https://github.com/ciarajudge/EpiFusion.\n");
