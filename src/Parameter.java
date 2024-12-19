@@ -16,6 +16,7 @@ public class Parameter {
     Prior[] priors;
     ArrayList<String> subLabels;
     String label;
+    public int buffer = 0;
 
 
 
@@ -51,6 +52,10 @@ public class Parameter {
                 getParams((Element) element.getElementsByTagName("distribs").item(0));
                 numDistribs = numChanges + numValues;
                 knitDistribs();
+                // Check if there's a changeTime buffer
+                if (element.getElementsByTagName("buffer").getLength() > 0) { //File will be a table of times and values
+                    this.buffer = Integer.parseInt(element.getElementsByTagName("buffer").item(0).getTextContent());
+                }
 
             } else {
                 numChanges = 0;
@@ -182,7 +187,7 @@ public class Parameter {
             int seqs = 0;
             for (int i = init; i < incidenceTimes[t]; i++) {
                 try {
-                    seqs += Storage.tree.segmentedTree[i].samplings;
+                    seqs += Storage.tree.trees[0].segmentedTree[i].samplings;
                 } catch (Exception e) {
                     System.out.println("Tree ends before cases, technically FYI");
                 }

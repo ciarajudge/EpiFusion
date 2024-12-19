@@ -138,8 +138,9 @@ public class Particle {
             betaAttrib.set(0, Math.abs(Normal.staticNextDouble(0, stdDev)));
             slope = betaAttrib.get(0);
         } else {
+            betaAttrib.set(0, Normal.staticNextDouble(((betaAttrib.get(0)+0)/2), stdDev));
             //betaAttrib.set(0, Normal.staticNextDouble(betaAttrib.get(0), stdDev));
-            betaAttrib.set(0, Normal.staticNextDouble(0, stdDev));
+            //betaAttrib.set(0, Normal.staticNextDouble(0, stdDev));
             slope = betaAttrib.get(0);
         }
         for (int i=0; i<numToAdd; i++) {

@@ -28,13 +28,14 @@ public class MCMC {
             double[] candidateParameters = getCandidateParameters(currentParameters, Storage.stepCoefficient); //version without cooling
 
             // Run particle filter to generate logPrior and logLikelihood for new params
-            particleFilter.runPF(candidateParameters);
+            particleFilter.runPF(candidateParameters, i);
 
             //Compute acceptance probability
             double acceptanceProbability = this.computeAcceptanceProbability();
 
             // Accept or reject the proposal based on the acceptance probability
-            if (this.random.nextDouble() < acceptanceProbability) {
+            boolean accepted = this.random.nextDouble() < acceptanceProbability;
+            if (accepted) {
                 currentParameters = candidateParameters;
                 this.particleFilter.resetCurrentParameters();
                 acceptanceRate += 1;
@@ -53,8 +54,34 @@ public class MCMC {
                 particleFilter.loggers.log(particleFilter, acceptanceRate);
                 //particleFilter.particles.particles[0].traj.printTrajectory();
                 Storage.completedRuns[particleFilter.chainID] = 0;
+
+                if (acceptanceRate == 0 && Storage.phyloUncertainty) {
+                    System.out.println("Sampling new tree due to low acceptance rate.");
+                    particleFilter.sampledTree = random.nextInt(Storage.tree.trees.length);
+                    particleFilter.runPF(currentParameters, i);
+                    while (Double.isInfinite(particleFilter.getLogLikelihoodCandidate())) {
+                        particleFilter.sampledTree = random.nextInt(Storage.tree.trees.length);
+                        particleFilter.runPF(currentParameters, i);
+                    }
+                    this.particleFilter.resetCurrentParameters();
+                }
+
                 acceptanceRate = 0;
+
+
             }
+
+            if ((accepted && Storage.phyloUncertainty) || (Double.isInfinite(particleFilter.getLogLikelihoodCandidate()) && Storage.phyloUncertainty)) { // If phylo uncertainty and accepted, sample a new tree
+                System.out.println("Sampling new tree and recalculating parameter likelihood with new tree.");
+                particleFilter.sampledTree = random.nextInt(Storage.tree.trees.length);
+                particleFilter.runPF(currentParameters, i);
+                while (Double.isInfinite(particleFilter.getLogLikelihoodCandidate())) {
+                    particleFilter.sampledTree = random.nextInt(Storage.tree.trees.length);
+                    particleFilter.runPF(currentParameters, i);
+                }
+                this.particleFilter.resetCurrentParameters();
+            }
+
             // Clear the pf cache
             this.particleFilter.clearCache();
         }

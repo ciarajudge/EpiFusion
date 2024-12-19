@@ -24,7 +24,7 @@ public class ParticleFilter {
     public Loggers loggers;
     public Random rand;
     private int outbreakOrigin = 0;
-    public int sampledTree = 1;
+    public int sampledTree = 0;
 
 
     public ParticleFilter(int chainID) throws IOException {
@@ -47,9 +47,11 @@ public class ParticleFilter {
         int i = 0;
         while (Double.isInfinite(likelihood)) {
             i += 1;
-            runPF(Storage.priors.sampleInitial());
+            runPF(Storage.priors.sampleInitial(), 0);
             currentParameters = candidateParameters;
+            currentRates = candidateRates;
             logLikelihoodCurrent = logLikelihoodCandidate;
+            logPriorCurrent = logPriorCandidate;
             likelihood = logLikelihoodCandidate;
             currentSampledParticle = new Particle(particles.particles[0], 0);
             System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
@@ -62,12 +64,11 @@ public class ParticleFilter {
         System.out.println("CHAIN "+chainID+"\nFinal parameter set: "+Arrays.toString(currentParameters)+"\nInitial LL: "+logLikelihoodCurrent);
     }
 
-    public void runPF(double[] parameters) throws IOException {
+    public void runPF(double[] parameters, int mcmcstep) throws IOException {
         clearCache();
 
         //Sample a new tree
-        sampledTree = rand.nextInt(Storage.tree.trees.length);
-        System.out.println(sampledTree);
+        //System.out.println(sampledTree);
         this.tree = Storage.tree.trees[sampledTree];
         //tree.printTreeInSegments(100);
 
@@ -299,13 +300,21 @@ public class ParticleFilter {
             }
         } else {
             int start = 0;
+            int buffer = Storage.priors.parameterDict.get(paramLabel).buffer;
             for (int i=0; i<indexes.length-1; i+=2) {
                 int changeTime = (int) candidateParameters[indexes[i+1]];
                 double value = candidateParameters[indexes[i]];
-                for (int k = start; k < changeTime; k++) {
+                double nextvalue = candidateParameters[indexes[i+2]];
+                int bufferStart = Math.max(start, (changeTime - buffer));
+                int bufferEnd = Math.min(T, (changeTime + buffer));
+                double diff = (nextvalue - value)/(bufferEnd - bufferStart);
+                for (int k = start; k < bufferStart; k++) {
                     paramAcrossTime[k] = value;
                 }
-                start = changeTime;
+                for (int k = bufferStart; k < bufferEnd; k++) {
+                    paramAcrossTime[k] = value + (diff*(k-bufferStart+1));
+                }
+                start = bufferEnd;
             }
             double value = candidateParameters[indexes[indexes.length-1]];
             for (int k = start; k < T; k++) {
