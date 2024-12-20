@@ -13,9 +13,10 @@ public class PhyloLikelihood {
             int[] observations = tree.observationOrder;
             for (int observation : observations) {
                 if (observation == 0) { // note that I've done this
+                    /*
                     if ((propensities[0] + propensities[1]) == 0) {
                         propensities[1] = 10e-16;
-                    }
+                    }*/
                     conditionalLogP += observedEventProbability(observation, particle, propensities[0] + propensities[1], t);
                 }
                 else {

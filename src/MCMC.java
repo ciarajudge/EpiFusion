@@ -55,6 +55,7 @@ public class MCMC {
                 //particleFilter.particles.particles[0].traj.printTrajectory();
                 Storage.completedRuns[particleFilter.chainID] = 0;
 
+                 /* Old and possibly future phylo uncertainty infra - currently have a more primitive version in use
                 if (acceptanceRate == 0 && Storage.phyloUncertainty) {
                     System.out.println("Sampling new tree due to low acceptance rate.");
                     particleFilter.sampledTree = random.nextInt(Storage.tree.trees.length);
@@ -64,13 +65,14 @@ public class MCMC {
                         particleFilter.runPF(currentParameters, i);
                     }
                     this.particleFilter.resetCurrentParameters();
-                }
+                }*/
 
                 acceptanceRate = 0;
 
 
             }
 
+            /* Old and possibly future phylo uncertainty infra - currently have a more primitive version in use
             if ((accepted && Storage.phyloUncertainty) || (Double.isInfinite(particleFilter.getLogLikelihoodCandidate()) && Storage.phyloUncertainty)) { // If phylo uncertainty and accepted, sample a new tree
                 System.out.println("Sampling new tree and recalculating parameter likelihood with new tree.");
                 particleFilter.sampledTree = random.nextInt(Storage.tree.trees.length);
@@ -80,7 +82,7 @@ public class MCMC {
                     particleFilter.runPF(currentParameters, i);
                 }
                 this.particleFilter.resetCurrentParameters();
-            }
+            }*/
 
             // Clear the pf cache
             this.particleFilter.clearCache();

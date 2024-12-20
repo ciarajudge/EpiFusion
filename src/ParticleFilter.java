@@ -47,6 +47,7 @@ public class ParticleFilter {
         int i = 0;
         while (Double.isInfinite(likelihood)) {
             i += 1;
+            this.sampledTree = rand.nextInt(Storage.tree.trees.length);
             runPF(Storage.priors.sampleInitial(), 0);
             currentParameters = candidateParameters;
             currentRates = candidateRates;
@@ -54,7 +55,7 @@ public class ParticleFilter {
             logPriorCurrent = logPriorCandidate;
             likelihood = logLikelihoodCandidate;
             currentSampledParticle = new Particle(particles.particles[0], 0);
-            System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)
+            System.out.println("CHAIN "+chainID+"\nInitialisation attempt "+(i)+"\nTree index "+(this.sampledTree)
                     +"\nLog Likelihood: "+logLikelihoodCandidate+"\nParameters: "
                     +Arrays.toString(candidateParameters)+"\nBeta: "+currentSampledParticle.beta+"\nTrajectory"+Arrays.toString(particles.particles[0].traj.getTrajArray()));
             //loggers.saveParticleTrajectoryBreakdown(particles.trajectories);
