@@ -21,7 +21,7 @@ We encourage any user to point out problems or suggest ideas for improvement by 
 
 ## License
 
-We are sharing EpiFusion as a free software under the GNU General Public License (v3). We point out that the models implemented by EpiFusion are awaiting peer review, and the program is in it's infancy. We recommend caution in its use and ask for patience as continue to validate it.
+We are sharing EpiFusion as a free software under the GNU General Public License (v3). We point out that the program is in it's infancy, recommend caution in its use and ask for patience as continue to validate it.
 
 
 ## Acknowledgements
