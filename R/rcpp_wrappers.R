@@ -340,16 +340,22 @@ epifusion_config <- function(
 #' @param values Numeric vector of interval values.
 #' @param change_days Optional integer vector of change-point days where each new
 #'   value starts (0-indexed day scale).
+#' @param buffer_days Optional non-negative integer transition half-width used to
+#'   linearly interpolate around each change day.
 #'
 #' @return Numeric vector of length `n_days`.
 #' @export
-build_piecewise_schedule <- function(n_days, values, change_days = NULL) {
+build_piecewise_schedule <- function(n_days, values, change_days = NULL, buffer_days = 0L) {
   n_days <- as.integer(n_days)
   values <- as.numeric(values)
   if (n_days <= 0L) stop("`n_days` must be > 0.", call. = FALSE)
   if (length(values) == 0L) stop("`values` must have at least one entry.", call. = FALSE)
   if (is.null(change_days)) {
     return(rep(values[1], n_days))
+  }
+  buffer_days <- as.integer(buffer_days)
+  if (buffer_days < 0L) {
+    stop("`buffer_days` must be >= 0.", call. = FALSE)
   }
   change_days <- as.integer(change_days)
   if (length(change_days) != (length(values) - 1L)) {
@@ -363,6 +369,16 @@ build_piecewise_schedule <- function(n_days, values, change_days = NULL) {
   seg_ends <- c(change_days - 1L, n_days - 1L)
   for (k in seq_along(values)) {
     out[(seg_starts[k] + 1L):(seg_ends[k] + 1L)] <- values[k]
+  }
+  if (buffer_days > 0L) {
+    for (k in seq_along(change_days)) {
+      cp <- change_days[k]
+      left <- max(0L, cp - buffer_days)
+      right <- min(n_days - 1L, cp + buffer_days)
+      if (right > left) {
+        out[(left + 1L):(right + 1L)] <- seq(values[k], values[k + 1L], length.out = right - left + 1L)
+      }
+    }
   }
   out
 }
