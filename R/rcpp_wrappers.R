@@ -331,6 +331,43 @@ epifusion_config <- function(
   out
 }
 
+#' Epi Observation Log-Likelihood Dispatcher
+#'
+#' Computes per-particle log-likelihood for observation windows under the chosen
+#' epi observation model.
+#'
+#' @param observed Integer vector of observed counts (window-level).
+#' @param expected_by_particle Numeric matrix of expected/modelled counts with
+#'   rows as windows and columns as particles.
+#' @param model Observation model name: `"poisson"` or `"negbinom"`.
+#' @param overdispersion Negative binomial overdispersion parameter.
+#'
+#' @return Numeric matrix of log-likelihood contributions (windows x particles).
+#' @export
+epi_observation_loglik <- function(observed, expected_by_particle,
+                                   model = c("poisson", "negbinom"),
+                                   overdispersion = 10) {
+  model <- match.arg(model)
+  y <- as.integer(observed)
+  x <- as.matrix(expected_by_particle)
+  if (nrow(x) != length(y)) {
+    stop("`expected_by_particle` rows must match `observed` length.", call. = FALSE)
+  }
+  if (model == "poisson") {
+    return(t(vapply(seq_len(ncol(x)), function(j) {
+      lambda <- pmax(x[, j], 1e-3)
+      dpois(y, lambda = lambda, log = TRUE)
+    }, numeric(length(y)))))
+  }
+  if (!is.finite(overdispersion) || overdispersion <= 0) {
+    stop("`overdispersion` must be > 0 for negbinom.", call. = FALSE)
+  }
+  t(vapply(seq_len(ncol(x)), function(j) {
+    mu <- pmax(x[, j], 1e-6)
+    dnbinom(y, size = overdispersion, mu = mu, log = TRUE)
+  }, numeric(length(y))))
+}
+
 #' Build Piecewise Daily Schedule
 #'
 #' Utility to expand interval values into a daily vector of length `n_days`.
