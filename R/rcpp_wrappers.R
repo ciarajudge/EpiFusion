@@ -331,6 +331,42 @@ epifusion_config <- function(
   out
 }
 
+#' Build Piecewise Daily Schedule
+#'
+#' Utility to expand interval values into a daily vector of length `n_days`.
+#' Intended for future interval-based parameter inference parity with Java.
+#'
+#' @param n_days Number of days in the schedule.
+#' @param values Numeric vector of interval values.
+#' @param change_days Optional integer vector of change-point days where each new
+#'   value starts (0-indexed day scale).
+#'
+#' @return Numeric vector of length `n_days`.
+#' @export
+build_piecewise_schedule <- function(n_days, values, change_days = NULL) {
+  n_days <- as.integer(n_days)
+  values <- as.numeric(values)
+  if (n_days <= 0L) stop("`n_days` must be > 0.", call. = FALSE)
+  if (length(values) == 0L) stop("`values` must have at least one entry.", call. = FALSE)
+  if (is.null(change_days)) {
+    return(rep(values[1], n_days))
+  }
+  change_days <- as.integer(change_days)
+  if (length(change_days) != (length(values) - 1L)) {
+    stop("`change_days` must have length `length(values) - 1`.", call. = FALSE)
+  }
+  if (any(diff(change_days) <= 0L) || any(change_days < 0L) || any(change_days >= n_days)) {
+    stop("`change_days` must be strictly increasing and within [0, n_days).", call. = FALSE)
+  }
+  out <- numeric(n_days)
+  seg_starts <- c(0L, change_days)
+  seg_ends <- c(change_days - 1L, n_days - 1L)
+  for (k in seq_along(values)) {
+    out[(seg_starts[k] + 1L):(seg_ends[k] + 1L)] <- values[k]
+  }
+  out
+}
+
 #' Run Epi-Only Poisson Particle Filter
 #'
 #' Runs a bootstrap particle filter for an epi-only Poisson observation model
