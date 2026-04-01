@@ -841,6 +841,7 @@ run_migration_baseline <- function(
     index_date = start_date
   )
 
+  fits <- NULL
   elapsed <- system.time({
     if (as.integer(num_chains) <= 1L) {
       fit <- run_mcmc_looseformbeta_adaptive(
@@ -1011,6 +1012,35 @@ run_migration_baseline <- function(
   writeLines(as.character(cumsum(as.numeric(chain$accepted)) / seq_along(chain$accepted)),
              file.path(raw_dir, "completed_chain0.txt"))
   writeLines(as.character(as.numeric(elapsed[["elapsed"]])), file.path(raw_dir, "timings.txt"))
+
+  if (!is.null(fits) && length(fits) > 1L) {
+    for (ch in seq_along(fits)) {
+      ch_samples <- as.matrix(fits[[ch]]$chain$samples)
+      ch_params_df <- data.frame(
+        gamma = ch_samples[, "gamma"],
+        psi = 0.001,
+        phi = ch_samples[, "phi"],
+        betaJitter = ch_samples[, "beta_jitter"],
+        initialBeta = ch_samples[, "initial_beta"]
+      )
+      write.table(
+        cbind(ch_params_df, .trailing = ""),
+        file = file.path(raw_dir, paste0("params_chain", ch - 1L, ".csv")),
+        sep = ",",
+        row.names = FALSE,
+        col.names = c(names(ch_params_df), ""),
+        quote = FALSE
+      )
+      writeLines(as.character(fits[[ch]]$chain$loglik_trace),
+                 file.path(raw_dir, paste0("likelihoods_chain", ch - 1L, ".txt")))
+      writeLines(as.character(as.numeric(fits[[ch]]$chain$accepted)),
+                 file.path(raw_dir, paste0("acceptance_chain", ch - 1L, ".txt")))
+      writeLines(
+        as.character(cumsum(as.numeric(fits[[ch]]$chain$accepted)) / seq_along(fits[[ch]]$chain$accepted)),
+        file.path(raw_dir, paste0("completed_chain", ch - 1L, ".txt"))
+      )
+    }
+  }
 
   # Compute metrics from raw trajectories file content (chain0 format).
   traj_loaded <- utils::read.csv(file.path(raw_dir, "trajectories_chain0.csv"), check.names = FALSE)
