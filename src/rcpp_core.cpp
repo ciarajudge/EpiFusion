@@ -211,17 +211,16 @@ Rcpp::List epi_only_poisson_pf_cpp(
     }
     ess_by_time[t] = 1.0 / sumsq;
 
-    // Systematic resampling every step.
+    // Multinomial resampling every step.
     Rcpp::NumericVector cdf(num_particles);
     cdf[0] = w[0];
     for (int p = 1; p < num_particles; ++p) {
       cdf[p] = cdf[p - 1] + w[p];
     }
-    const double u0 = R::runif(0.0, 1.0 / static_cast<double>(num_particles));
     Rcpp::IntegerVector resampled_states(num_particles);
-    int i = 0;
     for (int m = 0; m < num_particles; ++m) {
-      const double u = u0 + static_cast<double>(m) / static_cast<double>(num_particles);
+      const double u = R::runif(0.0, 1.0);
+      int i = 0;
       while (i < num_particles - 1 && cdf[i] < u) {
         ++i;
       }
@@ -409,7 +408,6 @@ Rcpp::List epi_only_poisson_pf_window_cpp(
       for (int p = 1; p < num_particles; ++p) {
         cdf[p] = cdf[p - 1] + w[p];
       }
-      const double u0 = R::runif(0.0, 1.0 / static_cast<double>(num_particles));
       Rcpp::IntegerVector resampled_states(num_particles);
       Rcpp::NumericVector resampled_betas(num_particles);
       Rcpp::IntegerMatrix resampled_states_hist(day + 1, num_particles);
@@ -417,9 +415,9 @@ Rcpp::List epi_only_poisson_pf_window_cpp(
       for (int p = 0; p < num_particles; ++p) {
         window_positive_tests[p] = 0;
       }
-      int i = 0;
       for (int m = 0; m < num_particles; ++m) {
-        const double u = u0 + static_cast<double>(m) / static_cast<double>(num_particles);
+        const double u = R::runif(0.0, 1.0);
+        int i = 0;
         while (i < num_particles - 1 && cdf[i] < u) {
           ++i;
         }
@@ -540,15 +538,14 @@ static double pf_window_loglik_only_internal(
       for (int p = 1; p < num_particles; ++p) {
         cdf[p] = cdf[p - 1] + w[p];
       }
-      const double u0 = R::runif(0.0, 1.0 / static_cast<double>(num_particles));
       Rcpp::IntegerVector resampled_states(num_particles);
       Rcpp::NumericVector resampled_betas(num_particles);
       for (int p = 0; p < num_particles; ++p) {
         window_positive_tests[p] = 0;
       }
-      int i = 0;
       for (int m = 0; m < num_particles; ++m) {
-        const double u = u0 + static_cast<double>(m) / static_cast<double>(num_particles);
+        const double u = R::runif(0.0, 1.0);
+        int i = 0;
         while (i < num_particles - 1 && cdf[i] < u) {
           ++i;
         }
