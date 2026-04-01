@@ -522,6 +522,30 @@ run_epi_only_poisson_pf <- function(
   out
 }
 
+#' Coerce PF Output into Structured State Object
+#'
+#' @param pf_out Output list from `run_epi_only_poisson_pf()`.
+#'
+#' @return An object of class `epifusion_pf_state`.
+#' @export
+as_epifusion_pf_state <- function(pf_out) {
+  req <- c("states_by_day", "betas_by_day", "window_tests_by_particle", "final_states")
+  if (!is.list(pf_out) || !all(req %in% names(pf_out))) {
+    stop("`pf_out` does not have expected PF fields.", call. = FALSE)
+  }
+  out <- list(
+    latent_states = pf_out$states_by_day,
+    latent_betas = pf_out$betas_by_day,
+    observed_window_tests = pf_out$window_tests_by_particle,
+    final_states = pf_out$final_states,
+    loglik = pf_out$loglik,
+    loglik_by_obs = pf_out$loglik_by_obs,
+    ess_by_obs = pf_out$ess_by_obs
+  )
+  class(out) <- "epifusion_pf_state"
+  out
+}
+
 #' Run a Looseformbeta MH Chain
 #'
 #' Runs a Metropolis-Hastings chain around the looseformbeta particle filter.

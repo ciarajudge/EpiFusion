@@ -2,6 +2,7 @@ useDynLib(EpiFusion, .registration = TRUE)
 importFrom(Rcpp, evalCpp)
 
 export(add_two)
+export(as_epifusion_pf_state)
 export(benchmark_epi_layouts)
 export(benchmark_epi_layouts_from_xml)
 export(build_piecewise_schedule)
