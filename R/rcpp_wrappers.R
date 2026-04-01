@@ -367,6 +367,41 @@ build_piecewise_schedule <- function(n_days, values, change_days = NULL) {
   out
 }
 
+#' Validate Interval Prior Specification
+#'
+#' Checks a structured prior spec for interval-based parameters.
+#'
+#' @param prior_spec Named list with entries containing at least `mean`, `sd`,
+#'   `lower`, and `upper`.
+#'
+#' @return Invisibly returns `TRUE` if valid.
+#' @export
+validate_interval_prior_spec <- function(prior_spec) {
+  if (!is.list(prior_spec) || length(prior_spec) == 0L) {
+    stop("`prior_spec` must be a non-empty named list.", call. = FALSE)
+  }
+  if (is.null(names(prior_spec)) || any(names(prior_spec) == "")) {
+    stop("`prior_spec` must be named by parameter block.", call. = FALSE)
+  }
+  req <- c("mean", "sd", "lower", "upper")
+  for (nm in names(prior_spec)) {
+    s <- prior_spec[[nm]]
+    if (!is.list(s) || !all(req %in% names(s))) {
+      stop(sprintf("Prior block `%s` must include mean/sd/lower/upper.", nm), call. = FALSE)
+    }
+    if (!is.finite(s$mean) || !is.finite(s$sd) || s$sd <= 0) {
+      stop(sprintf("Prior block `%s` has invalid mean/sd.", nm), call. = FALSE)
+    }
+    if (!is.finite(s$lower) || !is.finite(s$upper) || s$lower >= s$upper) {
+      stop(sprintf("Prior block `%s` has invalid lower/upper bounds.", nm), call. = FALSE)
+    }
+    if (!is.null(s$discrete) && !is.logical(s$discrete)) {
+      stop(sprintf("Prior block `%s` has non-logical `discrete`.", nm), call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
 #' Run Epi-Only Poisson Particle Filter
 #'
 #' Runs a bootstrap particle filter for an epi-only Poisson observation model
