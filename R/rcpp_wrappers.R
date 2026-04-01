@@ -266,6 +266,10 @@ benchmark_epi_layouts_from_xml <- function(
 #' @param parameters Optional named list of parameter settings.
 #' @param priors Optional named list of prior settings.
 #' @param loggers Optional named list of logger settings.
+#' @param rate_schedules Optional named list of interval schedule definitions.
+#' @param prior_spec Optional interval prior specification validated by
+#'   `validate_interval_prior_spec()`.
+#' @param model_spec Optional named list for observation/process model options.
 #'
 #' @return An object of class `epifusion_config`.
 #' @export
@@ -277,7 +281,10 @@ epifusion_config <- function(
   model = list(),
   parameters = list(),
   priors = list(),
-  loggers = list()
+  loggers = list(),
+  rate_schedules = list(),
+  prior_spec = NULL,
+  model_spec = list()
 ) {
   if (!is.data.frame(case_incidence)) {
     stop("`case_incidence` must be a data frame.", call. = FALSE)
@@ -312,6 +319,9 @@ epifusion_config <- function(
 
   incidence_times <- as.integer(ci$Date - index_date)
   incidence_vals <- as.numeric(ci$Cases)
+  if (!is.null(prior_spec)) {
+    validate_interval_prior_spec(prior_spec)
+  }
 
   out <- list(
     data = list(
@@ -325,7 +335,10 @@ epifusion_config <- function(
     model = model,
     parameters = parameters,
     priors = priors,
-    loggers = loggers
+    loggers = loggers,
+    rate_schedules = rate_schedules,
+    prior_spec = prior_spec,
+    model_spec = model_spec
   )
   class(out) <- "epifusion_config"
   out
