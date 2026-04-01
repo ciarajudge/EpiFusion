@@ -1065,6 +1065,7 @@ run_migration_baseline <- function(
   warmup_steps = 500L,
   adapt_interval = 50L,
   n_posterior_pf_draws = 30L,
+  posterior_draw_proportion = NULL,
   seed = 123L,
   root_dir = ".",
   truth_path = file.path(root_dir, "data", "truth", "baseline_truth.csv"),
@@ -1159,11 +1160,26 @@ run_migration_baseline <- function(
     chain_ids <- rep(1L, nrow(samples))
   }
   post_idx <- seq.int(max(1L, floor(nrow(samples) * 0.5)), nrow(samples))
-  n_draws <- min(as.integer(n_posterior_pf_draws), length(post_idx))
-  if (n_draws <= 0L) {
-    stop("`n_posterior_pf_draws` must be >= 1.", call. = FALSE)
+  if (!is.null(posterior_draw_proportion)) {
+    p <- as.numeric(posterior_draw_proportion)
+    if (!is.finite(p) || p <= 0 || p > 1) {
+      stop("`posterior_draw_proportion` must be in (0, 1].", call. = FALSE)
+    }
+    thin_idx <- integer()
+    for (ch in sort(unique(chain_ids))) {
+      ch_rows <- which(chain_ids == ch)
+      ch_n <- max(1L, as.integer(round(length(ch_rows) * p)))
+      ch_sel <- ch_rows[round(seq(1L, length(ch_rows), length.out = ch_n))]
+      thin_idx <- c(thin_idx, ch_sel)
+    }
+    n_draws <- length(thin_idx)
+  } else {
+    n_draws <- min(as.integer(n_posterior_pf_draws), length(post_idx))
+    if (n_draws <= 0L) {
+      stop("`n_posterior_pf_draws` must be >= 1.", call. = FALSE)
+    }
+    thin_idx <- post_idx[round(seq(1L, length(post_idx), length.out = n_draws))]
   }
-  thin_idx <- post_idx[round(seq(1L, length(post_idx), length.out = n_draws))]
 
   # For trajectory-style raw outputs, sample one random particle from each PF run
   # (one PF run per selected posterior draw).
@@ -1366,6 +1382,7 @@ run_migration_baseline <- function(
     n_steps = as.integer(n_steps),
     warmup_steps = as.integer(warmup_steps),
     n_posterior_pf_draws = as.integer(n_draws),
+    posterior_draw_proportion = if (is.null(posterior_draw_proportion)) NA_real_ else as.numeric(posterior_draw_proportion),
     num_chains = as.integer(num_chains),
     chain_pool_mode = chain_pool_mode,
     num_particles = as.integer(num_particles),
