@@ -211,16 +211,17 @@ Rcpp::List epi_only_poisson_pf_cpp(
     }
     ess_by_time[t] = 1.0 / sumsq;
 
-    // Multinomial resampling every step.
+    // Systematic resampling every step.
     Rcpp::NumericVector cdf(num_particles);
     cdf[0] = w[0];
     for (int p = 1; p < num_particles; ++p) {
       cdf[p] = cdf[p - 1] + w[p];
     }
+    const double u0 = R::runif(0.0, 1.0 / static_cast<double>(num_particles));
     Rcpp::IntegerVector resampled_states(num_particles);
+    int i = 0;
     for (int m = 0; m < num_particles; ++m) {
-      const double u = R::runif(0.0, 1.0);
-      int i = 0;
+      const double u = u0 + static_cast<double>(m) / static_cast<double>(num_particles);
       while (i < num_particles - 1 && cdf[i] < u) {
         ++i;
       }
@@ -408,6 +409,7 @@ Rcpp::List epi_only_poisson_pf_window_cpp(
       for (int p = 1; p < num_particles; ++p) {
         cdf[p] = cdf[p - 1] + w[p];
       }
+      const double u0 = R::runif(0.0, 1.0 / static_cast<double>(num_particles));
       Rcpp::IntegerVector resampled_states(num_particles);
       Rcpp::NumericVector resampled_betas(num_particles);
       Rcpp::IntegerMatrix resampled_states_hist(day + 1, num_particles);
@@ -415,9 +417,9 @@ Rcpp::List epi_only_poisson_pf_window_cpp(
       for (int p = 0; p < num_particles; ++p) {
         window_positive_tests[p] = 0;
       }
+      int i = 0;
       for (int m = 0; m < num_particles; ++m) {
-        const double u = R::runif(0.0, 1.0);
-        int i = 0;
+        const double u = u0 + static_cast<double>(m) / static_cast<double>(num_particles);
         while (i < num_particles - 1 && cdf[i] < u) {
           ++i;
         }
@@ -538,14 +540,15 @@ static double pf_window_loglik_only_internal(
       for (int p = 1; p < num_particles; ++p) {
         cdf[p] = cdf[p - 1] + w[p];
       }
+      const double u0 = R::runif(0.0, 1.0 / static_cast<double>(num_particles));
       Rcpp::IntegerVector resampled_states(num_particles);
       Rcpp::NumericVector resampled_betas(num_particles);
       for (int p = 0; p < num_particles; ++p) {
         window_positive_tests[p] = 0;
       }
+      int i = 0;
       for (int m = 0; m < num_particles; ++m) {
-        const double u = R::runif(0.0, 1.0);
-        int i = 0;
+        const double u = u0 + static_cast<double>(m) / static_cast<double>(num_particles);
         while (i < num_particles - 1 && cdf[i] < u) {
           ++i;
         }
@@ -572,13 +575,16 @@ Rcpp::List run_mh_chain_looseformbeta_cpp(
     double beta_refactor,
     Rcpp::NumericVector init_params,
     Rcpp::NumericVector proposal_sds,
+    Rcpp::NumericVector prior_means,
+    Rcpp::NumericVector prior_sds,
     Rcpp::NumericVector lower_bounds,
     Rcpp::NumericVector upper_bounds,
     int seed
 ) {
   if (init_params.size() != 4 || proposal_sds.size() != 4 ||
+      prior_means.size() != 4 || prior_sds.size() != 4 ||
       lower_bounds.size() != 4 || upper_bounds.size() != 4) {
-    Rcpp::stop("init/proposal/bounds vectors must each have length 4.");
+    Rcpp::stop("init/proposal/prior/bounds vectors must each have length 4.");
   }
   if (n_steps <= 0) {
     Rcpp::stop("`n_steps` must be > 0.");
@@ -595,6 +601,21 @@ Rcpp::List run_mh_chain_looseformbeta_cpp(
     }
     return true;
   };
+  auto log_prior = [&](const Rcpp::NumericVector& x) {
+    double lp = 0.0;
+    for (int j = 0; j < 4; ++j) {
+      if (x[j] <= 0.0) {
+        return R_NegInf;
+      }
+      const double sigma = prior_sds[j];
+      if (sigma <= 0.0 || !R_finite(sigma)) {
+        return R_NegInf;
+      }
+      const double z = (std::log(x[j]) - std::log(prior_means[j])) / sigma;
+      lp += -0.5 * z * z - std::log(x[j]) - std::log(sigma);
+    }
+    return lp;
+  };
 
   Rcpp::NumericMatrix samples(n_steps, 4);
   colnames(samples) = Rcpp::CharacterVector::create(
@@ -607,6 +628,10 @@ Rcpp::List run_mh_chain_looseformbeta_cpp(
   if (!in_bounds(current)) {
     Rcpp::stop("`init_params` are outside prior bounds.");
   }
+  const double current_lp = log_prior(current);
+  if (!R_finite(current_lp)) {
+    Rcpp::stop("Initial parameter set produced non-finite log-prior.");
+  }
 
   double current_ll = pf_window_loglik_only_internal(
       observation_counts, observation_times,
@@ -616,6 +641,7 @@ Rcpp::List run_mh_chain_looseformbeta_cpp(
     Rcpp::stop("Initial parameter set produced non-finite log-likelihood.");
   }
 
+  double active_current_lp = current_lp;
   int n_accept = 0;
   for (int i = 0; i < n_steps; ++i) {
     Rcpp::NumericVector cand(4);
@@ -627,6 +653,15 @@ Rcpp::List run_mh_chain_looseformbeta_cpp(
     bool accept = false;
     double cand_ll = R_NegInf;
     if (in_bounds(cand)) {
+      const double cand_lp = log_prior(cand);
+      if (!R_finite(cand_lp)) {
+        accepted[i] = false;
+        for (int j = 0; j < 4; ++j) {
+          samples(i, j) = current[j];
+        }
+        loglik_trace[i] = current_ll;
+        continue;
+      }
       cand_ll = pf_window_loglik_only_internal(
           observation_counts, observation_times,
           cand[0], cand[1], beta_refactor, cand[2], cand[3],
@@ -637,8 +672,11 @@ Rcpp::List run_mh_chain_looseformbeta_cpp(
         for (int j = 0; j < 4; ++j) {
           jac += std::log(cand[j]) - std::log(current[j]);
         }
-        const double log_alpha = (cand_ll - current_ll) + jac;
+        const double log_alpha = (cand_ll - current_ll) + (cand_lp - active_current_lp) + jac;
         accept = (std::log(R::runif(0.0, 1.0)) < log_alpha);
+        if (accept) {
+          active_current_lp = cand_lp;
+        }
       }
     }
 

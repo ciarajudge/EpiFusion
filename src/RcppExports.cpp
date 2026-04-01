@@ -96,8 +96,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // run_mh_chain_looseformbeta_cpp
-Rcpp::List run_mh_chain_looseformbeta_cpp(Rcpp::IntegerVector observation_counts, Rcpp::IntegerVector observation_times, int n_steps, int num_particles, int initial_state, double beta_refactor, Rcpp::NumericVector init_params, Rcpp::NumericVector proposal_sds, Rcpp::NumericVector lower_bounds, Rcpp::NumericVector upper_bounds, int seed);
-RcppExport SEXP _EpiFusion_run_mh_chain_looseformbeta_cpp(SEXP observation_countsSEXP, SEXP observation_timesSEXP, SEXP n_stepsSEXP, SEXP num_particlesSEXP, SEXP initial_stateSEXP, SEXP beta_refactorSEXP, SEXP init_paramsSEXP, SEXP proposal_sdsSEXP, SEXP lower_boundsSEXP, SEXP upper_boundsSEXP, SEXP seedSEXP) {
+Rcpp::List run_mh_chain_looseformbeta_cpp(Rcpp::IntegerVector observation_counts, Rcpp::IntegerVector observation_times, int n_steps, int num_particles, int initial_state, double beta_refactor, Rcpp::NumericVector init_params, Rcpp::NumericVector proposal_sds, Rcpp::NumericVector prior_means, Rcpp::NumericVector prior_sds, Rcpp::NumericVector lower_bounds, Rcpp::NumericVector upper_bounds, int seed);
+RcppExport SEXP _EpiFusion_run_mh_chain_looseformbeta_cpp(SEXP observation_countsSEXP, SEXP observation_timesSEXP, SEXP n_stepsSEXP, SEXP num_particlesSEXP, SEXP initial_stateSEXP, SEXP beta_refactorSEXP, SEXP init_paramsSEXP, SEXP proposal_sdsSEXP, SEXP prior_meansSEXP, SEXP prior_sdsSEXP, SEXP lower_boundsSEXP, SEXP upper_boundsSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -109,10 +109,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta_refactor(beta_refactorSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type init_params(init_paramsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type proposal_sds(proposal_sdsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prior_means(prior_meansSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prior_sds(prior_sdsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lower_bounds(lower_boundsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type upper_bounds(upper_boundsSEXP);
     Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(run_mh_chain_looseformbeta_cpp(observation_counts, observation_times, n_steps, num_particles, initial_state, beta_refactor, init_params, proposal_sds, lower_bounds, upper_bounds, seed));
+    rcpp_result_gen = Rcpp::wrap(run_mh_chain_looseformbeta_cpp(observation_counts, observation_times, n_steps, num_particles, initial_state, beta_refactor, init_params, proposal_sds, prior_means, prior_sds, lower_bounds, upper_bounds, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -124,7 +126,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_EpiFusion_epi_loglik_poisson_pt_cpp", (DL_FUNC) &_EpiFusion_epi_loglik_poisson_pt_cpp, 2},
     {"_EpiFusion_epi_only_poisson_pf_cpp", (DL_FUNC) &_EpiFusion_epi_only_poisson_pf_cpp, 7},
     {"_EpiFusion_epi_only_poisson_pf_window_cpp", (DL_FUNC) &_EpiFusion_epi_only_poisson_pf_window_cpp, 10},
-    {"_EpiFusion_run_mh_chain_looseformbeta_cpp", (DL_FUNC) &_EpiFusion_run_mh_chain_looseformbeta_cpp, 11},
+    {"_EpiFusion_run_mh_chain_looseformbeta_cpp", (DL_FUNC) &_EpiFusion_run_mh_chain_looseformbeta_cpp, 13},
     {NULL, NULL, 0}
 };
 

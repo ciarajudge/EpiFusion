@@ -420,8 +420,10 @@ run_mcmc_looseformbeta <- function(
   beta_refactor = 1.0,
   init_params = c(initial_beta = 0.3, beta_jitter = 0.02, gamma = 0.143, phi = 0.02),
   proposal_sds = c(initial_beta = 0.1, beta_jitter = 0.1, gamma = 0.1, phi = 0.1),
-  lower_bounds = c(initial_beta = 0.1, beta_jitter = 0.001, gamma = 0.0, phi = 0.0),
-  upper_bounds = c(initial_beta = 0.5, beta_jitter = 0.1, gamma = 5.0, phi = 5.0),
+  prior_means = init_params,
+  prior_sds = c(initial_beta = 0.5, beta_jitter = 0.5, gamma = 0.25, phi = 0.25),
+  lower_bounds = c(initial_beta = 0.1, beta_jitter = 0.001, gamma = 0.05, phi = 0.005),
+  upper_bounds = c(initial_beta = 0.5, beta_jitter = 0.1, gamma = 0.5, phi = 0.1),
   seed = 1L
 ) {
   if (!inherits(config, "epifusion_config")) {
@@ -433,6 +435,9 @@ run_mcmc_looseformbeta <- function(
   if (!all(req %in% names(init_params))) {
     stop("`init_params` must be named with initial_beta, beta_jitter, gamma, phi.", call. = FALSE)
   }
+  if (!all(req %in% names(prior_means)) || !all(req %in% names(prior_sds))) {
+    stop("`prior_means` and `prior_sds` must be named with initial_beta, beta_jitter, gamma, phi.", call. = FALSE)
+  }
 
   run_mh_chain_looseformbeta_cpp(
     observation_counts = observation_counts,
@@ -443,6 +448,8 @@ run_mcmc_looseformbeta <- function(
     beta_refactor = as.numeric(beta_refactor),
     init_params = as.numeric(init_params[req]),
     proposal_sds = as.numeric(proposal_sds[req]),
+    prior_means = as.numeric(prior_means[req]),
+    prior_sds = as.numeric(prior_sds[req]),
     lower_bounds = as.numeric(lower_bounds[req]),
     upper_bounds = as.numeric(upper_bounds[req]),
     seed = as.integer(seed)
@@ -469,15 +476,17 @@ run_mcmc_looseformbeta_adaptive <- function(
   n_steps = 1000L,
   warmup_steps = 500L,
   adapt_interval = 50L,
-  target_accept = 0.234,
+  target_accept = 0.30,
   adaptation_rate = 0.8,
   num_particles = 1000L,
   initial_state = 5L,
   beta_refactor = 1.0,
   init_params = c(initial_beta = 0.3, beta_jitter = 0.02, gamma = 0.143, phi = 0.02),
   proposal_sds = c(initial_beta = 0.1, beta_jitter = 0.1, gamma = 0.1, phi = 0.1),
-  lower_bounds = c(initial_beta = 0.1, beta_jitter = 0.001, gamma = 0.0, phi = 0.0),
-  upper_bounds = c(initial_beta = 0.5, beta_jitter = 0.1, gamma = 5.0, phi = 5.0),
+  prior_means = init_params,
+  prior_sds = c(initial_beta = 0.5, beta_jitter = 0.5, gamma = 0.25, phi = 0.25),
+  lower_bounds = c(initial_beta = 0.1, beta_jitter = 0.001, gamma = 0.05, phi = 0.005),
+  upper_bounds = c(initial_beta = 0.5, beta_jitter = 0.1, gamma = 0.5, phi = 0.1),
   seed = 1L
 ) {
   req <- c("initial_beta", "beta_jitter", "gamma", "phi")
@@ -513,6 +522,8 @@ run_mcmc_looseformbeta_adaptive <- function(
         beta_refactor = beta_refactor,
         init_params = current_init,
         proposal_sds = current_prop,
+        prior_means = prior_means,
+        prior_sds = prior_sds,
         lower_bounds = lower_bounds,
         upper_bounds = upper_bounds,
         seed = current_seed
@@ -553,6 +564,8 @@ run_mcmc_looseformbeta_adaptive <- function(
     beta_refactor = as.numeric(beta_refactor),
     init_params = current_init,
     proposal_sds = current_prop,
+    prior_means = prior_means,
+    prior_sds = prior_sds,
     lower_bounds = lower_bounds,
     upper_bounds = upper_bounds,
     seed = as.integer(current_seed)
@@ -795,6 +808,8 @@ run_migration_baseline <- function(
   label = "iter",
   n_steps = 1000L,
   num_particles = 200L,
+  num_chains = 1L,
+  parallel_chains = TRUE,
   warmup_steps = 500L,
   adapt_interval = 50L,
   n_posterior_pf_draws = 30L,
@@ -827,17 +842,49 @@ run_migration_baseline <- function(
   )
 
   elapsed <- system.time({
-    fit <- run_mcmc_looseformbeta_adaptive(
-      config = cfg,
-      n_steps = as.integer(n_steps),
-      warmup_steps = as.integer(warmup_steps),
-      adapt_interval = as.integer(adapt_interval),
-      num_particles = as.integer(num_particles),
-      seed = as.integer(seed)
-    )
+    if (as.integer(num_chains) <= 1L) {
+      fit <- run_mcmc_looseformbeta_adaptive(
+        config = cfg,
+        n_steps = as.integer(n_steps),
+        warmup_steps = as.integer(warmup_steps),
+        adapt_interval = as.integer(adapt_interval),
+        num_particles = as.integer(num_particles),
+        seed = as.integer(seed)
+      )
+      chain <- fit$chain
+      warmup_history <- fit$warmup_history
+    } else {
+      chain_steps <- as.integer(n_steps)
+      run_one_chain <- function(ch) {
+        run_mcmc_looseformbeta_adaptive(
+          config = cfg,
+          n_steps = chain_steps,
+          warmup_steps = as.integer(warmup_steps),
+          adapt_interval = as.integer(adapt_interval),
+          num_particles = as.integer(num_particles),
+          seed = as.integer(seed + 1000L * ch)
+        )
+      }
+      if (isTRUE(parallel_chains) && .Platform$OS.type != "windows") {
+        fits <- parallel::mclapply(seq_len(as.integer(num_chains)), run_one_chain,
+                                   mc.cores = as.integer(num_chains))
+      } else {
+        fits <- lapply(seq_len(as.integer(num_chains)), run_one_chain)
+      }
+      chain <- list(
+        samples = do.call(rbind, lapply(fits, function(z) z$chain$samples)),
+        loglik_trace = unlist(lapply(fits, function(z) z$chain$loglik_trace), use.names = FALSE),
+        accepted = as.logical(unlist(lapply(fits, function(z) z$chain$accepted), use.names = FALSE)),
+        acceptance_rate = mean(unlist(lapply(fits, function(z) z$chain$accepted), use.names = FALSE))
+      )
+      warmup_history <- do.call(rbind, lapply(seq_along(fits), function(i) {
+        h <- as.data.frame(fits[[i]]$warmup_history)
+        h$chain <- i
+        h
+      }))
+    }
   })
 
-  chain <- fit$chain
   samples <- as.matrix(chain$samples)
   post_idx <- seq.int(max(1L, floor(nrow(samples) * 0.5)), nrow(samples))
   n_draws <- min(as.integer(n_posterior_pf_draws), length(post_idx))
@@ -1010,6 +1057,7 @@ run_migration_baseline <- function(
     n_steps = as.integer(n_steps),
     warmup_steps = as.integer(warmup_steps),
     n_posterior_pf_draws = as.integer(n_draws),
+    num_chains = as.integer(num_chains),
     num_particles = as.integer(num_particles),
     acceptance_rate = as.numeric(chain$acceptance_rate),
     post_mean_initial_beta = post_mean["initial_beta"],
@@ -1018,7 +1066,7 @@ run_migration_baseline <- function(
     post_mean_phi = post_mean["phi"]
   )
   write.csv(summary_df, file.path(run_dir, "timing_summary.csv"), row.names = FALSE)
-  write.csv(as.data.frame(fit$warmup_history), file.path(run_dir, "warmup_history.csv"), row.names = FALSE)
+  write.csv(as.data.frame(warmup_history), file.path(run_dir, "warmup_history.csv"), row.names = FALSE)
   metrics_combined <- data.frame(
     target = c("infections", "infections", "infections", "infections",
                "Rt", "Rt", "Rt", "Rt"),

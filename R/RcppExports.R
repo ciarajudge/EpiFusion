@@ -25,7 +25,7 @@ epi_only_poisson_pf_window_cpp <- function(observation_counts, observation_times
     .Call(`_EpiFusion_epi_only_poisson_pf_window_cpp`, observation_counts, observation_times, initial_beta, beta_jitter, beta_refactor, gamma, phi, initial_state, num_particles, seed)
 }
 
-run_mh_chain_looseformbeta_cpp <- function(observation_counts, observation_times, n_steps, num_particles, initial_state, beta_refactor, init_params, proposal_sds, lower_bounds, upper_bounds, seed) {
-    .Call(`_EpiFusion_run_mh_chain_looseformbeta_cpp`, observation_counts, observation_times, n_steps, num_particles, initial_state, beta_refactor, init_params, proposal_sds, lower_bounds, upper_bounds, seed)
+run_mh_chain_looseformbeta_cpp <- function(observation_counts, observation_times, n_steps, num_particles, initial_state, beta_refactor, init_params, proposal_sds, prior_means, prior_sds, lower_bounds, upper_bounds, seed) {
+    .Call(`_EpiFusion_run_mh_chain_looseformbeta_cpp`, observation_counts, observation_times, n_steps, num_particles, initial_state, beta_refactor, init_params, proposal_sds, prior_means, prior_sds, lower_bounds, upper_bounds, seed)
 }
 
