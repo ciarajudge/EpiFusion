@@ -17,7 +17,10 @@ Depends:
     R (>= 4.0.0)
 Imports: 
     ggplot2,
+    HDInterval,
+    Metrics,
     Rcpp,
+    scoringutils,
     stats,
     utils,
     xml2

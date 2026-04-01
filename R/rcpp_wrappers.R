@@ -850,10 +850,15 @@ empirical_crps <- function(draws, y) {
 #' @param truth Numeric vector of true daily infections.
 #' @param alpha Credible interval mass for coverage/width metrics.
 #'
-#' @return Named list with RMSE, coverage, mean HPD width (equal-tail interval),
-#'   and mean CRPS.
+#' @return Named list with RMSE, calibrated coverage, raw coverage, mean HPD
+#'   width (95% HPD), and mean CRPS.
 #' @export
 evaluate_infection_trajectory_metrics <- function(inferred_draws, truth, alpha = 0.95) {
+  if (!requireNamespace("HDInterval", quietly = TRUE) ||
+      !requireNamespace("Metrics", quietly = TRUE) ||
+      !requireNamespace("scoringutils", quietly = TRUE)) {
+    stop("Packages `HDInterval`, `Metrics`, and `scoringutils` are required.", call. = FALSE)
+  }
   draws <- as.matrix(inferred_draws)
   truth <- as.numeric(truth)
   if (nrow(draws) != length(truth)) {
@@ -862,23 +867,35 @@ evaluate_infection_trajectory_metrics <- function(inferred_draws, truth, alpha =
 
   post_mean <- rowMeans(draws)
   ok_mean <- is.finite(post_mean) & is.finite(truth)
-  rmse <- sqrt(mean((post_mean[ok_mean] - truth[ok_mean])^2))
+  rmse <- Metrics::rmse(actual = truth[ok_mean], predicted = post_mean[ok_mean])
 
-  lo <- apply(draws, 1, quantile, probs = (1 - alpha) / 2, na.rm = TRUE)
-  hi <- apply(draws, 1, quantile, probs = 1 - (1 - alpha) / 2, na.rm = TRUE)
+  lo <- rep(NA_real_, nrow(draws))
+  hi <- rep(NA_real_, nrow(draws))
+  for (i in seq_len(nrow(draws))) {
+    di <- draws[i, is.finite(draws[i, ])]
+    if (length(di) > 1) {
+      h <- HDInterval::hdi(di, credMass = alpha)
+      lo[i] <- h[1]
+      hi[i] <- h[2]
+    }
+  }
   ok_cov <- is.finite(truth) & is.finite(lo) & is.finite(hi)
-  coverage <- mean(truth[ok_cov] >= lo[ok_cov] & truth[ok_cov] <= hi[ok_cov])
+  coverage_raw <- mean(truth[ok_cov] >= lo[ok_cov] & truth[ok_cov] <= hi[ok_cov])
+  coverage <- coverage_raw / alpha
   hpd_width <- mean((hi - lo)[ok_cov])
 
   crps_vals <- vapply(seq_len(nrow(draws)), function(i) {
     if (!is.finite(truth[i])) return(NA_real_)
-    empirical_crps(draws[i, is.finite(draws[i, ])], truth[i])
+    di <- draws[i, is.finite(draws[i, ])]
+    if (length(di) == 0) return(NA_real_)
+    as.numeric(scoringutils::crps_sample(observed = truth[i], predicted = di))
   }, numeric(1))
   crps <- mean(crps_vals, na.rm = TRUE)
 
   list(
     rmse = rmse,
     coverage = coverage,
+    coverage_raw = coverage_raw,
     hpd_width = hpd_width,
     crps = crps
   )
@@ -1257,6 +1274,13 @@ run_migration_baseline <- function(
   inferred_rt <- infer_rt_from_beta_gamma_draws(sampled_beta, gamma_draws)
   truth_rt <- truth_df$Rt[idx]
   metrics_rt <- evaluate_infection_trajectory_metrics(inferred_rt, truth_rt)
+  rt_prob_gt1 <- rowMeans(inferred_rt > 1, na.rm = TRUE)
+  rt_truth_gt1 <- factor(ifelse(truth_rt > 1, "above", "below"), levels = c("below", "above"))
+  ok_brier <- is.finite(rt_prob_gt1) & !is.na(rt_truth_gt1)
+  rt_brier <- mean(as.numeric(scoringutils::brier_score(
+    observed = rt_truth_gt1[ok_brier],
+    predicted = rt_prob_gt1[ok_brier]
+  )))
 
   # Save plots
   plot_mcmc_trace_panel(
@@ -1304,12 +1328,12 @@ run_migration_baseline <- function(
   write.csv(summary_df, file.path(run_dir, "timing_summary.csv"), row.names = FALSE)
   write.csv(as.data.frame(warmup_history), file.path(run_dir, "warmup_history.csv"), row.names = FALSE)
   metrics_combined <- data.frame(
-    target = c("infections", "infections", "infections", "infections",
-               "Rt", "Rt", "Rt", "Rt"),
-    metric = c("rmse", "coverage", "hpd_width", "crps",
-               "rmse", "coverage", "hpd_width", "crps"),
-    value = c(metrics$rmse, metrics$coverage, metrics$hpd_width, metrics$crps,
-              metrics_rt$rmse, metrics_rt$coverage, metrics_rt$hpd_width, metrics_rt$crps),
+    target = c("infections", "infections", "infections", "infections", "infections",
+               "Rt", "Rt", "Rt", "Rt", "Rt", "Rt"),
+    metric = c("rmse", "coverage", "coverage_raw", "hpd_width", "crps",
+               "rmse", "coverage", "coverage_raw", "hpd_width", "crps", "brier"),
+    value = c(metrics$rmse, metrics$coverage, metrics$coverage_raw, metrics$hpd_width, metrics$crps,
+              metrics_rt$rmse, metrics_rt$coverage, metrics_rt$coverage_raw, metrics_rt$hpd_width, metrics_rt$crps, rt_brier),
     stringsAsFactors = FALSE
   )
 
@@ -1324,7 +1348,8 @@ run_migration_baseline <- function(
       "infections|crps" = "infection_crps",
       "Rt|rmse" = "rt_rmse",
       "Rt|coverage" = "rt_calibrated_coverage",
-      "Rt|crps" = "rt_crps"
+      "Rt|crps" = "rt_crps",
+      "Rt|brier" = "rt_brier_above_below_1"
     )
     row_keys <- paste(metrics_combined$target, metrics_combined$metric, sep = "|")
     bench_keys <- unname(bench_map[row_keys])
