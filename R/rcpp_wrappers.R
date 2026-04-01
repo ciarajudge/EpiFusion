@@ -469,6 +469,7 @@ validate_interval_prior_spec <- function(prior_spec) {
 #' @param phi Observation scaling parameter.
 #' @param initial_state Initial latent infected state for all particles.
 #' @param num_particles Number of particles.
+#' @param resampling_strategy Resampling strategy label for PF architecture.
 #' @param seed RNG seed.
 #'
 #' @return A list with total log-likelihood and filter diagnostics.
@@ -482,8 +483,10 @@ run_epi_only_poisson_pf <- function(
   phi,
   initial_state = 1L,
   num_particles = 1000L,
+  resampling_strategy = c("systematic"),
   seed = 1L
 ) {
+  resampling_strategy <- match.arg(resampling_strategy)
   if (!inherits(config, "epifusion_config")) {
     stop("`config` must be an `epifusion_config` object.", call. = FALSE)
   }
@@ -503,7 +506,7 @@ run_epi_only_poisson_pf <- function(
     stop("`config$data$incidence_times` must be strictly increasing.", call. = FALSE)
   }
 
-  epi_only_poisson_pf_window_cpp(
+  out <- epi_only_poisson_pf_window_cpp(
     observation_counts = observation_counts,
     observation_times = observation_times,
     initial_beta = as.numeric(initial_beta),
@@ -515,6 +518,8 @@ run_epi_only_poisson_pf <- function(
     num_particles = as.integer(num_particles),
     seed = as.integer(seed)
   )
+  attr(out, "resampling_strategy") <- resampling_strategy
+  out
 }
 
 #' Run a Looseformbeta MH Chain
