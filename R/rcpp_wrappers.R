@@ -190,6 +190,38 @@ read_epifusion_xml_inputs <- function(xml_filepath) {
   )
 }
 
+#' Translate Legacy XML Inputs to Native Config
+#'
+#' Convenience bridge for migration: parses legacy XML incidence inputs and
+#' creates an `epifusion_config` object with optional architecture slots.
+#'
+#' @param xml_filepath Path to legacy EpiFusion XML.
+#' @param rate_schedules Optional named list of interval schedules.
+#' @param prior_spec Optional interval prior specification.
+#' @param model_spec Optional model spec list.
+#'
+#' @return An `epifusion_config` object.
+#' @export
+legacy_xml_to_epifusion_config <- function(
+  xml_filepath,
+  rate_schedules = list(),
+  prior_spec = NULL,
+  model_spec = list()
+) {
+  inp <- read_epifusion_xml_inputs(xml_filepath)
+  dates <- inp$dates
+  if (is.null(dates) || all(is.na(dates))) {
+    dates <- as.Date("2024-01-01") + inp$incidence_time
+  }
+  epifusion_config(
+    case_incidence = data.frame(Date = as.Date(dates), Cases = as.numeric(inp$incidence_vals)),
+    index_date = min(as.Date(dates), na.rm = TRUE),
+    rate_schedules = rate_schedules,
+    prior_spec = prior_spec,
+    model_spec = model_spec
+  )
+}
+
 #' Benchmark Layouts Using XML Incidence
 #'
 #' Benchmarks the two particle matrix layouts using incidence extracted from an
