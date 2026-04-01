@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.gitignore$
+^EpiFusion\.iml$
+^lib$
+^src/.*\.java$
+^out$
+^\.vscode$
+^README\.(md|Rmd)$
+

@@ -1,0 +1,8 @@
+metric_key,metric_label,value,source
+infection_rmse,Infection trajectory RMSE,329.8,Java epi-only baseline
+infection_calibrated_coverage,Infection trajectory calibrated coverage,1.05,Java epi-only baseline
+rt_rmse,Rt trajectory RMSE,0.356,Java epi-only baseline
+rt_calibrated_coverage,Rt trajectory calibrated coverage,1.05,Java epi-only baseline
+infection_crps,Infection CRPS,162.91,Java epi-only baseline
+rt_crps,Rt CRPS,0.196,Java epi-only baseline
+rt_brier_above_below_1,Brier Score for Rt above/below 1 classification,0.042,Java epi-only baseline

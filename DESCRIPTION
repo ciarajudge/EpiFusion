@@ -1,0 +1,29 @@
+Package: EpiFusion
+Title: Tools for Epidemic Fusion Analysis
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Your",
+           family = "Name",
+           email = "you@example.com",
+           role = c("aut", "cre"))
+Description: Template DESCRIPTION file for the EpiFusion R package.
+    Edit this file to provide a meaningful description and metadata.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.0.0)
+Imports: 
+    ggplot2,
+    Rcpp,
+    stats,
+    utils,
+    xml2
+LinkingTo:
+    Rcpp
+SystemRequirements: C++11
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
