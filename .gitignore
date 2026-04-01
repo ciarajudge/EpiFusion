@@ -33,3 +33,25 @@ bin/
 ### R ###
 *.Rhistory
 .Rproj.user
+.Rlib/
+
+### Build Artifacts ###
+src/*.o
+src/*.so
+src/*.dll
+src/*.dylib
+
+### Migration Run Outputs ###
+migration/
+
+### Generated Docs Artifacts ###
+docs/*.html
+docs/*.log
+docs/*.tex
+docs/daily_particle_states_*
+docs/looseformbeta_*
+docs/mcmc_*
+docs/observed_vs_modelled_*
+docs/particle_filter_state_diagnostics.*
+docs/particle_states_*
+docs/simulated_*
