@@ -798,6 +798,7 @@ plot_mcmc_trace_panel <- function(
   samples,
   loglik,
   accepted = NULL,
+  chain_id = NULL,
   truth_gamma = 0.143,
   truth_phi = 0.02,
   output_path = NULL
@@ -812,17 +813,52 @@ plot_mcmc_trace_panel <- function(
     on.exit(dev.off(), add = TRUE)
   }
 
+  if (is.null(chain_id)) {
+    chain_id <- rep(1L, nrow(s))
+  } else {
+    chain_id <- as.integer(chain_id)
+    if (length(chain_id) != nrow(s)) {
+      stop("`chain_id` length must match number of sample rows.", call. = FALSE)
+    }
+  }
+  chain_levels <- sort(unique(chain_id))
+  chain_cols <- grDevices::rainbow(length(chain_levels))
+  names(chain_cols) <- as.character(chain_levels)
+  chain_iter <- integer(length(chain_id))
+  for (ch in chain_levels) {
+    idx <- which(chain_id == ch)
+    chain_iter[idx] <- seq_along(idx)
+  }
+  max_iter <- max(chain_iter)
+
+  draw_trace <- function(y, ylab, main, ref = NULL) {
+    plot(c(1, max_iter), range(y, na.rm = TRUE), type = "n",
+         xlab = "Within-chain step", ylab = ylab, main = main)
+    for (ch in chain_levels) {
+      idx <- which(chain_id == ch)
+      lines(chain_iter[idx], y[idx], col = chain_cols[as.character(ch)], lwd = 1)
+    }
+    if (!is.null(ref)) {
+      abline(h = ref, col = "firebrick", lwd = 2, lty = 2)
+    }
+  }
+
   par(mfrow = c(3, 2), mar = c(4, 4, 2, 1))
-  plot(s[, "initial_beta"], type = "l", col = "steelblue", xlab = "Step", ylab = "initial_beta", main = "Trace: initial_beta")
-  plot(s[, "beta_jitter"], type = "l", col = "steelblue", xlab = "Step", ylab = "beta_jitter", main = "Trace: beta_jitter")
-  plot(s[, "gamma"], type = "l", col = "steelblue", xlab = "Step", ylab = "gamma", main = "Trace: gamma")
-  abline(h = truth_gamma, col = "firebrick", lwd = 2, lty = 2)
-  plot(s[, "phi"], type = "l", col = "steelblue", xlab = "Step", ylab = "phi", main = "Trace: phi")
-  abline(h = truth_phi, col = "firebrick", lwd = 2, lty = 2)
-  plot(loglik, type = "l", col = "darkorange", xlab = "Step", ylab = "log-likelihood", main = "Trace: log-likelihood")
+  draw_trace(s[, "initial_beta"], "initial_beta", "Trace: initial_beta")
+  draw_trace(s[, "beta_jitter"], "beta_jitter", "Trace: beta_jitter")
+  draw_trace(s[, "gamma"], "gamma", "Trace: gamma", ref = truth_gamma)
+  draw_trace(s[, "phi"], "phi", "Trace: phi", ref = truth_phi)
+  draw_trace(loglik, "log-likelihood", "Trace: log-likelihood")
   if (!is.null(accepted)) {
-    plot(cumsum(as.numeric(accepted)) / seq_along(accepted), type = "l", col = "darkgreen",
-         xlab = "Step", ylab = "Cumulative acceptance", main = "Acceptance")
+    acc <- as.numeric(accepted)
+    plot(c(1, max_iter), c(0, 1), type = "n", xlab = "Within-chain step",
+         ylab = "Cumulative acceptance", main = "Acceptance")
+    for (ch in chain_levels) {
+      idx <- which(chain_id == ch)
+      ch_acc <- cumsum(acc[idx]) / seq_along(idx)
+      lines(chain_iter[idx], ch_acc, col = chain_cols[as.character(ch)], lwd = 1)
+    }
+    legend("bottomright", legend = paste0("chain ", chain_levels), col = chain_cols, lwd = 1, bty = "n", cex = 0.8)
   } else {
     plot.new()
     text(0.5, 0.5, "Acceptance trace not provided")
@@ -1059,6 +1095,7 @@ run_migration_baseline <- function(
   )
 
   fits <- NULL
+  best_chain_id <- NA_integer_
   elapsed <- system.time({
     if (as.integer(num_chains) <= 1L) {
       fit <- run_mcmc_looseformbeta_adaptive(
@@ -1098,6 +1135,7 @@ run_migration_baseline <- function(
       if (chain_pool_mode == "best_loglik") {
         chain_ll <- vapply(fits, function(z) mean(as.numeric(z$chain$loglik_trace)), numeric(1))
         best <- which.max(chain_ll)
+        best_chain_id <- as.integer(best)
         chain <- fits[[best]]$chain
       }
       warmup_history <- do.call(rbind, lapply(seq_along(fits), function(i) {
@@ -1109,6 +1147,17 @@ run_migration_baseline <- function(
   })
 
   samples <- as.matrix(chain$samples)
+  if (!is.null(fits) && length(fits) > 1L) {
+    if (chain_pool_mode == "best_loglik" && is.finite(best_chain_id)) {
+      chain_ids <- rep(best_chain_id, nrow(samples))
+    } else {
+      chain_ids <- unlist(lapply(seq_along(fits), function(i) {
+        rep(i, nrow(as.matrix(fits[[i]]$chain$samples)))
+      }), use.names = FALSE)
+    }
+  } else {
+    chain_ids <- rep(1L, nrow(samples))
+  }
   post_idx <- seq.int(max(1L, floor(nrow(samples) * 0.5)), nrow(samples))
   n_draws <- min(as.integer(n_posterior_pf_draws), length(post_idx))
   if (n_draws <= 0L) {
@@ -1287,6 +1336,7 @@ run_migration_baseline <- function(
     samples = samples,
     loglik = chain$loglik_trace,
     accepted = chain$accepted,
+    chain_id = chain_ids,
     truth_gamma = 0.143,
     truth_phi = 0.02,
     output_path = file.path(plot_dir, "trace_params_likelihood.png")
