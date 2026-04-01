@@ -1008,6 +1008,7 @@ run_migration_baseline <- function(
   num_particles = 200L,
   num_chains = 1L,
   parallel_chains = TRUE,
+  chain_pool_mode = c("pooled", "best_loglik"),
   warmup_steps = 500L,
   adapt_interval = 50L,
   n_posterior_pf_draws = 30L,
@@ -1017,6 +1018,7 @@ run_migration_baseline <- function(
   incidence_path = file.path(root_dir, "data", "incidence", "baseline_weeklyincidence.txt"),
   rt_gen_time = c(0.2, 0.3, 0.5)
 ) {
+  chain_pool_mode <- match.arg(chain_pool_mode)
   ts <- format(Sys.time(), "%Y-%m-%d_%H%M%S")
   run_dir <- file.path(root_dir, "migration", paste(ts, label, sep = "_"))
   dir.create(run_dir, recursive = TRUE, showWarnings = FALSE)
@@ -1076,6 +1078,11 @@ run_migration_baseline <- function(
         accepted = as.logical(unlist(lapply(fits, function(z) z$chain$accepted), use.names = FALSE)),
         acceptance_rate = mean(unlist(lapply(fits, function(z) z$chain$accepted), use.names = FALSE))
       )
+      if (chain_pool_mode == "best_loglik") {
+        chain_ll <- vapply(fits, function(z) mean(as.numeric(z$chain$loglik_trace)), numeric(1))
+        best <- which.max(chain_ll)
+        chain <- fits[[best]]$chain
+      }
       warmup_history <- do.call(rbind, lapply(seq_along(fits), function(i) {
         h <- as.data.frame(fits[[i]]$warmup_history)
         h$chain <- i
@@ -1286,6 +1293,7 @@ run_migration_baseline <- function(
     warmup_steps = as.integer(warmup_steps),
     n_posterior_pf_draws = as.integer(n_draws),
     num_chains = as.integer(num_chains),
+    chain_pool_mode = chain_pool_mode,
     num_particles = as.integer(num_particles),
     acceptance_rate = as.numeric(chain$acceptance_rate),
     post_mean_initial_beta = post_mean["initial_beta"],

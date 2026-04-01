@@ -415,6 +415,15 @@ Split `EpiFusionUtilities` functions into categories:
 
 ## 12. Suggested concrete next steps
 
+- **Phase 2 architecture parity pass (implemented baseline scaffolding):**
+  - Multi-chain baseline execution with optional parallel chains and chain pooling.
+  - Java-style per-chain raw output traces in `raw_output/` when multi-chain mode is used.
+  - Native interval schedule helpers with optional buffered transitions.
+  - Interval prior schema validation hooks for rate-block priors.
+  - Observation model dispatcher scaffolding (`poisson`/`negbinom`) for epi likelihood modules.
+  - Structured PF state object wrapper to support future epi+phylo state extension.
+  - Legacy XML-to-native config translation bridge.
+
 - **Short term (1–2 weeks)**:
   - Finalise **target R API** (what does `run_epifusion()` look like in the new world).
   - Write **R tests** that exercise the full current pipeline on 2–3 example datasets and archive Java outputs.
