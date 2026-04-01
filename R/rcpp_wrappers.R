@@ -797,6 +797,7 @@ run_migration_baseline <- function(
   num_particles = 200L,
   warmup_steps = 500L,
   adapt_interval = 50L,
+  n_posterior_pf_draws = 30L,
   seed = 123L,
   root_dir = ".",
   truth_path = file.path(root_dir, "data", "truth", "baseline_truth.csv"),
@@ -839,7 +840,11 @@ run_migration_baseline <- function(
   chain <- fit$chain
   samples <- as.matrix(chain$samples)
   post_idx <- seq.int(max(1L, floor(nrow(samples) * 0.5)), nrow(samples))
-  thin_idx <- post_idx[seq(1L, length(post_idx), length.out = min(30L, length(post_idx)))]
+  n_draws <- min(as.integer(n_posterior_pf_draws), length(post_idx))
+  if (n_draws <= 0L) {
+    stop("`n_posterior_pf_draws` must be >= 1.", call. = FALSE)
+  }
+  thin_idx <- post_idx[round(seq(1L, length(post_idx), length.out = n_draws))]
 
   # For trajectory-style raw outputs, sample one random particle from each PF run
   # (one PF run per selected posterior draw).
@@ -1004,6 +1009,7 @@ run_migration_baseline <- function(
     elapsed_wall_sec = as.numeric(elapsed[["elapsed"]]),
     n_steps = as.integer(n_steps),
     warmup_steps = as.integer(warmup_steps),
+    n_posterior_pf_draws = as.integer(n_draws),
     num_particles = as.integer(num_particles),
     acceptance_rate = as.numeric(chain$acceptance_rate),
     post_mean_initial_beta = post_mean["initial_beta"],
